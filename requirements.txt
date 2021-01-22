@@ -1,0 +1,10 @@
+black==20.8b1
+Flask==1.1.2
+Flask-Cors==3.0.9
+Flask_Migrate==2.5.3
+Flask-SQLAlchemy==2.4.4
+gunicorn==20.0.4
+pandas==1.2.0
+psycopg2==2.8.6
+requests==2.25.1
+shortuuid==1.0.1

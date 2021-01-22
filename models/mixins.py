@@ -10,6 +10,7 @@ class TimestampMixin(object):
     Adds created_at and updated_at fields to any model.
     Written as a @declared_attr so the fields are placed at the end of a table.
     """
+
     @declared_attr
     def created_at(cls):
         return db.Column(db.DateTime, nullable=False, default=datetime.utcnow)

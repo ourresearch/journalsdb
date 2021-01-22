@@ -26,7 +26,7 @@ def import_author_permissions():
         inplace=True,
     )  # convert column names from Has Policy? to has_policy
 
-    rows = df.to_dict(orient='records')
+    rows = df.to_dict(orient="records")
     for row in rows:
         if not valid_data(row):
             continue

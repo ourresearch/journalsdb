@@ -70,7 +70,7 @@ def import_issn_mappings():
     Map issn-l to issns that are in the issn_to_issnl table.
     """
     sql = """
-    insert into issn_staging (issn_l, issn_org_issns) (
+    insert into issn_metadata (issn_l, issn_org_issns) (
         select
             issn_l,
             jsonb_agg(to_jsonb(issn)) as issn_org_issns

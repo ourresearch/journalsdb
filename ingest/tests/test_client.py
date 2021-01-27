@@ -14,4 +14,4 @@ def client():
             yield client
             # cleanup
             db.session.remove()
-            db.drop_all()
+            # db.drop_all()

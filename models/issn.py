@@ -1,12 +1,11 @@
-from sqlalchemy.dialects.postgresql import JSONB
+import datetime
 
 from app import db
-from models.mixins import TimestampMixin
 
 
-class RawISSNOrgData(db.Model, TimestampMixin):
-    __tablename__ = "raw_issn_org_data"
+class ISSNToISSNL(db.Model):
+    __tablename__ = "issn_to_issnl"
 
-    id = db.Column(db.Integer, primary_key=True)
-    issn_l = db.Column(db.String(9), unique=True, nullable=False)
-    issns = db.Column(JSONB)
+    issn_l = db.Column(db.String(9), nullable=False, primary_key=True)
+    issn = db.Column(db.String(9), nullable=False, primary_key=True)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)

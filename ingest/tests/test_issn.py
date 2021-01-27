@@ -34,6 +34,11 @@ def test_issn_new_record_added(client):
     file_path = os.path.join(app.root_path, 'ingest/tests/sample_data', 'ISSN-to-ISSN-L-new-record.txt')
     runner.invoke(import_issns, ['--file_path', file_path])
 
+    assert ISSNToISSNL.query.count() == 6
+
     # sort by created_at to see new is added
     issn = ISSNToISSNL.query.order_by(desc(ISSNToISSNL.created_at)).first()
     assert issn.issn_l == '0000-0213'
+
+def test_issn_mappings(client):
+    pass

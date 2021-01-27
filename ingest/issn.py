@@ -3,11 +3,9 @@ from urllib.request import urlopen
 from zipfile import ZipFile
 
 import click
-import pandas as pd
-from sqlalchemy.dialects.postgresql import insert
 
 from app import app, db
-from models.issn import ISSNToISSNL
+from models.issn import ISSNToISSNL, ISSNMetaData, ISSNTemp
 
 
 @app.cli.command("import_issns")
@@ -24,23 +22,30 @@ def import_issns(file_path):
     zip_url = "https://www.issn.org/wp-content/uploads/2014/03/issnltables.zip"
     issn_file = get_zipfile(zip_url) if not file_path else file_path
 
-    cols = ["issn", "issn_l"]
-    for chunk in pd.read_table(
-        issn_file,
-        chunksize=10000,
-        header=None,
-        keep_default_na=False,
-        names=cols,
-        skiprows=1,
-    ):
-        for row in chunk.to_dict(orient="records"):
-            statement = (
-                insert(ISSNToISSNL)
-                .values(**row)
-                .on_conflict_do_nothing(index_elements=["issn_l", "issn"])
-            )
-            db.session.execute(statement)
+    # ensure temp ISSN table is empty
+    db.session.query(ISSNTemp).delete()
+    db.session.commit()
+
+    # copy issn records into temp table
+    copy_sql = "COPY issn_temp FROM STDOUT WITH (FORMAT CSV, DELIMITER '\t', HEADER)"
+    connection = db.engine.raw_connection()
+    cursor = connection.cursor()
+    if not file_path:
+        cursor.copy_expert(copy_sql, issn_file)
+    else:
+        with open(file_path,  'rb') as f:
+            cursor.copy_expert(copy_sql, f)
+    connection.commit()
+
+    # sanity check
+    if not file_path and ISSNTemp.query.count() < 2000000:
+        print('not enough records in file')
+        db.session.query(ISSNTemp).delete()
         db.session.commit()
+
+    # finished, remove temp data
+    # db.session.query(ISSNTemp).delete()
+    # db.session.commit()
 
 
 def get_zipfile(zip_url):

@@ -15,7 +15,7 @@ from models.issn import ISSNToISSNL
 def import_issns(file_path):
     """
     Master ISSN list: https://www.issn.org/wp-content/uploads/2014/03/issnltables.zip
-    Available via a text file within the zip archive with name ISSN-to-ISSN-L.txt.
+    Available via a text file within the zip archive with name ISSN-to-ISSN-L-initial.txt.
 
     Read the issn-l to issn mapping from issn.org and save it to a table for further processing.
 

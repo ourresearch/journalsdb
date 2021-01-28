@@ -49,9 +49,15 @@ def import_issns(file_path):
     new_records = db.session.execute(
         "SELECT issn_l, issn FROM issn_temp EXCEPT SELECT issn_l, issn FROM issn_to_issnl;"
     )
+
+    # save new records
+    objects = []
+    history = []
     for new in new_records:
-        db.session.add(ISSNToISSNL(issn_l=new.issn_l, issn=new.issn))
-        db.session.add(ISSNHistory(issn_l=new.issn_l, issn=new.issn, status='added'))
+        objects.append(ISSNToISSNL(issn_l=new.issn_l, issn=new.issn))
+        history.append(ISSNHistory(issn_l=new.issn_l, issn=new.issn, status='added'))
+    db.session.bulk_save_objects(objects)
+    db.session.bulk_save_objects(history)
     db.session.commit()
 
     # removed records (in ISSNtoISSNL but not in issn_temp)

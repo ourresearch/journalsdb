@@ -93,7 +93,6 @@ def test_issn_record_removed(client):
     # record added to history
     h = ISSNHistory.query.filter_by(issn_l='0000-006X', issn='0000-006X', status='removed').one_or_none()
     assert h is not None
-    assert h.status == 'removed'
 
 
 # def test_issn_mappings(client):

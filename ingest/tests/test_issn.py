@@ -1,12 +1,11 @@
 import os
-import time
 
 from sqlalchemy import desc
 
 from app import app, db
 from ingest.issn import import_issns, import_issn_mappings
 from ingest.tests.test_client import client
-from models.issn import ISSNToISSNL, ISSNMetaData
+from models.issn import ISSNToISSNL, ISSNHistory
 
 
 def test_issn_to_issnl_import(client):
@@ -65,6 +64,11 @@ def test_issn_new_record_added(client):
     issn = ISSNToISSNL.query.order_by(desc(ISSNToISSNL.created_at)).first()
     assert issn.issn_l == "0000-0213"
 
+    # record added to history
+    # h = ISSNHistory.query.filter_by(issn_l='0000-0213', issn='0000-0213').one_or_none()
+    # assert h is not None
+    # assert h.status == 'added'
+
 
 def test_issn_record_removed(client):
     runner = app.test_cli_runner()
@@ -85,6 +89,11 @@ def test_issn_record_removed(client):
     # try to find removed record
     issn = ISSNToISSNL.query.filter_by(issn_l="0000-006X").first()
     assert issn is None
+
+    # record added to history
+    # h = ISSNHistory.query.filter_by(issn_l='0000-006X', issn='0000-006X').one_or_none()
+    # assert h is not None
+    # assert h.status == 'removed'
 
 
 # def test_issn_mappings(client):

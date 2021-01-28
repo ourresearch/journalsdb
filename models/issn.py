@@ -20,6 +20,15 @@ class ISSNToISSNL(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
 
+class ISSNHistory(db.Model):
+    __tablename__ = "issn_history"
+
+    issn_l = db.Column(db.String(9), nullable=False, primary_key=True)
+    issn = db.Column(db.String(9), nullable=False, primary_key=True)
+    status = db.Column(db.String, nullable=False)
+    occurred_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+
 class ISSNMetaData(db.Model):
     __tablename__ = "issn_metadata"
 

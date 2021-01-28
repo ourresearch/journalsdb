@@ -5,7 +5,7 @@ from zipfile import ZipFile
 import click
 
 from app import app, db
-from models.issn import ISSNToISSNL, ISSNMetaData, ISSNTemp
+from models.issn import ISSNToISSNL, ISSNTemp, ISSNHistory
 
 
 @app.cli.command("import_issns")
@@ -50,6 +50,7 @@ def import_issns(file_path):
     )
     for new in new_records:
         db.session.add(ISSNToISSNL(issn_l=new.issn_l, issn=new.issn))
+        # db.session.add(ISSNHistory(issn_l=new.issn_l, issn=new.issn, status='added'))
     db.session.commit()
 
     # removed records (in ISSNtoISSNL but not in issn_temp)
@@ -61,6 +62,7 @@ def import_issns(file_path):
             issn_l=removed.issn_l, issn=removed.issn
         ).one_or_none()
         db.session.delete(r)
+        # db.session.add(ISSNHistory(issn_l=removed.issn_l, issn=removed.issn, status='removed'))
     db.session.commit()
 
     # finished, remove temp data

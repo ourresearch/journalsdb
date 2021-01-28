@@ -5,7 +5,9 @@ def find_journal(issn):
     """
     Find journal by issn_l field first, then look through mapped issns
     """
-    return Journal.query.filter_by(issn_l=issn).one_or_none() or Journal.find_by_issn(issn)
+    return Journal.query.filter_by(issn_l=issn).one_or_none() or Journal.find_by_issn(
+        issn
+    )
 
 
 def get_or_create(session, model, **kwargs):

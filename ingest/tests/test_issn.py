@@ -13,32 +13,78 @@ def test_issn_to_issnl_import(client):
     runner = app.test_cli_runner()
 
     # run command
-    file_path = os.path.join(app.root_path, 'ingest/tests/sample_data', 'ISSN-to-ISSN-L-initial.txt')
-    runner.invoke(import_issns, ['--file_path', file_path])
+    file_path = os.path.join(
+        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-initial.txt"
+    )
+    runner.invoke(import_issns, ["--file_path", file_path])
 
     # 5 records imported
-    # assert ISSNToISSNL.query.count() == 5
+    assert ISSNToISSNL.query.count() == 5
 
     # check for issn_pair
-    # issn_pair = ISSNToISSNL.query.filter_by(issn_l='0000-0019').first()
-    # assert issn_pair.issn == '0000-0019'
-#
-#
-# def test_issn_new_record_added(client):
-#     runner = app.test_cli_runner()
-#     # run day one
-#     file_path = os.path.join(app.root_path, 'ingest/tests/sample_data', 'ISSN-to-ISSN-L-initial.txt')
-#     runner.invoke(import_issns, ['--file_path', file_path])
-#
-#     # run day two with added record
-#     file_path = os.path.join(app.root_path, 'ingest/tests/sample_data', 'ISSN-to-ISSN-L-new-record.txt')
-#     runner.invoke(import_issns, ['--file_path', file_path])
-#
-#     assert ISSNToISSNL.query.count() == 6
-#
-#     # sort by created_at to see new is added
-#     issn = ISSNToISSNL.query.order_by(desc(ISSNToISSNL.created_at)).first()
-#     assert issn.issn_l == '0000-0213'
+    issn_pair = ISSNToISSNL.query.filter_by(issn_l="0000-0019").first()
+    assert issn_pair.issn == "0000-0019"
+
+
+def test_issn_import_no_changes(client):
+    runner = app.test_cli_runner()
+
+    # run command
+    file_path = os.path.join(
+        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-initial.txt"
+    )
+    runner.invoke(import_issns, ["--file_path", file_path])
+
+    # 5 records imported
+    assert ISSNToISSNL.query.count() == 5
+
+    # run command again
+    runner.invoke(import_issns, ["--file_path", file_path])
+
+    # number of records is the same
+    assert ISSNToISSNL.query.count() == 5
+
+
+def test_issn_new_record_added(client):
+    runner = app.test_cli_runner()
+    # run day one
+    file_path = os.path.join(
+        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-initial.txt"
+    )
+    runner.invoke(import_issns, ["--file_path", file_path])
+
+    # run day two with added record
+    file_path = os.path.join(
+        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-new-record.txt"
+    )
+    runner.invoke(import_issns, ["--file_path", file_path])
+
+    assert ISSNToISSNL.query.count() == 6
+
+    # sort by created_at to see new is added
+    issn = ISSNToISSNL.query.order_by(desc(ISSNToISSNL.created_at)).first()
+    assert issn.issn_l == "0000-0213"
+
+
+def test_issn_record_removed(client):
+    runner = app.test_cli_runner()
+    # run day one
+    file_path = os.path.join(
+        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-initial.txt"
+    )
+    runner.invoke(import_issns, ["--file_path", file_path])
+
+    # run day two with (0000-006X, 0000-006X) removed
+    file_path = os.path.join(
+        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-removed.txt"
+    )
+    runner.invoke(import_issns, ["--file_path", file_path])
+
+    assert ISSNToISSNL.query.count() == 4
+
+    # try to find removed record
+    issn = ISSNToISSNL.query.filter_by(issn_l="0000-006X").first()
+    assert issn is None
 
 
 # def test_issn_mappings(client):

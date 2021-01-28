@@ -9,7 +9,7 @@ from models.issn import ISSNToISSNL, ISSNMetaData, ISSNTemp
 
 
 @app.cli.command("import_issns")
-@click.option('--file_path')
+@click.option("--file_path")
 def import_issns(file_path):
     """
     Master ISSN list: https://www.issn.org/wp-content/uploads/2014/03/issnltables.zip
@@ -33,29 +33,39 @@ def import_issns(file_path):
     if not file_path:
         cursor.copy_expert(copy_sql, issn_file)
     else:
-        with open(file_path,  'rb') as f:
+        with open(file_path, "rb") as f:
             cursor.copy_expert(copy_sql, f)
     connection.commit()
 
     # sanity check
     if not file_path and ISSNTemp.query.count() < 2000000:
-        print('not enough records in file')
+        print("not enough records in file")
         db.session.query(ISSNTemp).delete()
         db.session.commit()
 
     # compare the regular ISSNtoISSNL table
     # new ISSN records (in temp but not in ISSNtoISSNL)
-    new_records = db.session.execute('SELECT issn_l, issn FROM issn_temp EXCEPT SELECT issn_l, issn FROM issn_to_issnl;')
-    for r in new_records:
-        db.session.add(ISSNToISSNL(issn_l=r.issn_l, issn=r.issn))
-        db.session.commit()
+    new_records = db.session.execute(
+        "SELECT issn_l, issn FROM issn_temp EXCEPT SELECT issn_l, issn FROM issn_to_issnl;"
+    )
+    for new in new_records:
+        db.session.add(ISSNToISSNL(issn_l=new.issn_l, issn=new.issn))
+    db.session.commit()
 
     # removed records (in ISSNtoISSNL but not in issn_temp)
-    removed_records = db.session.execute('SELECT issn_l, issn FROM issn_to_issnl EXCEPT SELECT issn_l, issn FROM issn_temp;')
+    removed_records = db.session.execute(
+        "SELECT issn_l, issn FROM issn_to_issnl EXCEPT SELECT issn_l, issn FROM issn_temp;"
+    )
+    for removed in removed_records:
+        r = ISSNToISSNL.query.filter_by(
+            issn_l=removed.issn_l, issn=removed.issn
+        ).one_or_none()
+        db.session.delete(r)
+    db.session.commit()
 
     # finished, remove temp data
-    # db.session.query(ISSNTemp).delete()
-    # db.session.commit()
+    db.session.query(ISSNTemp).delete()
+    db.session.commit()
 
 
 def get_zipfile(zip_url):
@@ -97,4 +107,3 @@ def import_issn_mappings():
     """
     db.session.execute(sql)
     db.session.commit()
-

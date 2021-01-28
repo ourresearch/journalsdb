@@ -43,6 +43,16 @@ def import_issns(file_path):
         db.session.query(ISSNTemp).delete()
         db.session.commit()
 
+    # compare the regular ISSNtoISSNL table
+    # new ISSN records (in temp but not in ISSNtoISSNL)
+    new_records = db.session.execute('SELECT issn_l, issn FROM issn_temp EXCEPT SELECT issn_l, issn FROM issn_to_issnl;')
+    for r in new_records:
+        db.session.add(ISSNToISSNL(issn_l=r.issn_l, issn=r.issn))
+        db.session.commit()
+
+    # removed records (in ISSNtoISSNL but not in issn_temp)
+    removed_records = db.session.execute('SELECT issn_l, issn FROM issn_to_issnl EXCEPT SELECT issn_l, issn FROM issn_temp;')
+
     # finished, remove temp data
     # db.session.query(ISSNTemp).delete()
     # db.session.commit()

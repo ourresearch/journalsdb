@@ -65,9 +65,9 @@ def test_issn_new_record_added(client):
     assert issn.issn_l == "0000-0213"
 
     # record added to history
-    # h = ISSNHistory.query.filter_by(issn_l='0000-0213', issn='0000-0213').one_or_none()
-    # assert h is not None
-    # assert h.status == 'added'
+    h = ISSNHistory.query.filter_by(issn_l='0000-0213', issn='0000-0213').one_or_none()
+    assert h is not None
+    assert h.status == 'added'
 
 
 def test_issn_record_removed(client):
@@ -91,9 +91,9 @@ def test_issn_record_removed(client):
     assert issn is None
 
     # record added to history
-    # h = ISSNHistory.query.filter_by(issn_l='0000-006X', issn='0000-006X').one_or_none()
-    # assert h is not None
-    # assert h.status == 'removed'
+    h = ISSNHistory.query.filter_by(issn_l='0000-006X', issn='0000-006X', status='removed').one_or_none()
+    assert h is not None
+    assert h.status == 'removed'
 
 
 # def test_issn_mappings(client):

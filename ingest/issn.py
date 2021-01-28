@@ -28,20 +28,21 @@ def import_issns(file_path):
 
     # copy issn records into temp table
     copy_sql = "COPY issn_temp FROM STDOUT WITH (FORMAT CSV, DELIMITER '\t', HEADER)"
-    connection = db.engine.raw_connection()
-    cursor = connection.cursor()
-    if not file_path:
-        cursor.copy_expert(copy_sql, issn_file)
-    else:
-        with open(file_path, "rb") as f:
-            cursor.copy_expert(copy_sql, f)
-    connection.commit()
+    conn = db.engine.raw_connection()
+    with conn.cursor() as cur:
+        if not file_path:
+            cur.copy_expert(copy_sql, issn_file)
+        else:
+            with open(file_path, "rb") as f:
+                cur.copy_expert(copy_sql, f)
+    conn.commit()
 
     # sanity check
     if not file_path and ISSNTemp.query.count() < 2000000:
         print("not enough records in file")
         db.session.query(ISSNTemp).delete()
         db.session.commit()
+        return  # need to test this
 
     # compare the regular ISSNtoISSNL table
     # new ISSN records (in temp but not in ISSNtoISSNL)
@@ -50,7 +51,7 @@ def import_issns(file_path):
     )
     for new in new_records:
         db.session.add(ISSNToISSNL(issn_l=new.issn_l, issn=new.issn))
-        # db.session.add(ISSNHistory(issn_l=new.issn_l, issn=new.issn, status='added'))
+        db.session.add(ISSNHistory(issn_l=new.issn_l, issn=new.issn, status='added'))
     db.session.commit()
 
     # removed records (in ISSNtoISSNL but not in issn_temp)
@@ -62,7 +63,7 @@ def import_issns(file_path):
             issn_l=removed.issn_l, issn=removed.issn
         ).one_or_none()
         db.session.delete(r)
-        # db.session.add(ISSNHistory(issn_l=removed.issn_l, issn=removed.issn, status='removed'))
+        db.session.add(ISSNHistory(issn_l=removed.issn_l, issn=removed.issn, status='removed'))
     db.session.commit()
 
     # finished, remove temp data

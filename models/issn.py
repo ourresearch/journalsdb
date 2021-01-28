@@ -23,8 +23,9 @@ class ISSNToISSNL(db.Model):
 class ISSNHistory(db.Model):
     __tablename__ = "issn_history"
 
-    issn_l = db.Column(db.String(9), nullable=False, primary_key=True)
-    issn = db.Column(db.String(9), nullable=False, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
+    issn_l = db.Column(db.String(9), nullable=False)
+    issn = db.Column(db.String(9), nullable=False)
     status = db.Column(db.String, nullable=False)
     occurred_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 

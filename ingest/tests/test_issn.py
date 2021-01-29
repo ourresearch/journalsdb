@@ -5,7 +5,7 @@ from sqlalchemy import desc
 from app import app, db
 from ingest.issn import import_issns, import_issn_mappings
 from ingest.tests.test_client import client
-from models.issn import ISSNToISSNL, ISSNHistory
+from models.issn import ISSNToISSNL, ISSNHistory, ISSNMetaData
 
 
 def test_issn_to_issnl_import(client):
@@ -21,8 +21,8 @@ def test_issn_to_issnl_import(client):
     assert ISSNToISSNL.query.count() == 5
 
     # check for issn_pair
-    issn_pair = ISSNToISSNL.query.filter_by(issn_l="0000-0019").first()
-    assert issn_pair.issn == "0000-0019"
+    issn_pair = ISSNToISSNL.query.filter_by(issn="0000-0051").first()
+    assert issn_pair.issn_l == "0000-0019"
 
 
 def test_issn_import_no_changes(client):
@@ -95,55 +95,48 @@ def test_issn_record_removed(client):
     assert h is not None
 
 
-# def test_issn_mappings(client):
-#     runner = app.test_cli_runner()
-#
-#     # run initial issn-to-issn-l file
-#     file_path = os.path.join(app.root_path, 'ingest/tests/sample_data', 'ISSN-to-ISSN-L-initial.txt')
-#     runner.invoke(import_issns, ['--file_path', file_path])
-#
-#     # run mapping
-#     runner.invoke(import_issn_mappings)
-#
-#     # test import count after group by
-#     assert ISSNMetaData.query.count() == 4
-#
-#     # test single mapping
-#     issn_l = ISSNMetaData.query.filter_by(issn_l='0000-0043').one()
-#     assert issn_l.issn_org_issns == ['0000-0043']
-#
-#     # test mapping with two issns
-#     issn_l = ISSNMetaData.query.filter_by(issn_l='0000-0019').one()
-#     assert issn_l.issn_org_issns == ['0000-0019', '0000-0051']
-#
-#     # test created_at
-#     assert issn_l.created_at is not None
-#
-#
-# def test_issn_mapping_change(client):
-#     runner = app.test_cli_runner()
-#
-#     # run initial issn-to-issn-l file
-#     file_path = os.path.join(app.root_path, 'ingest/tests/sample_data', 'ISSN-to-ISSN-L-initial.txt')
-#     runner.invoke(import_issns, ['--file_path', file_path])
-#
-#     # run mapping
-#     runner.invoke(import_issn_mappings)
-#
-#     # run file with changed issns
-#     file_path = os.path.join(app.root_path, 'ingest/tests/sample_data', 'ISSN-to-ISSN-L-changed.txt')
-#     runner.invoke(import_issns, ['--file_path', file_path])
-#
-#     # run mapping
-#     runner.invoke(import_issn_mappings)
-#
-#     # test that issn_l has the new data
-#     issn_l = ISSNMetaData.query.filter_by(issn_l='0000-006X').one()
-#     assert issn_l.issn_org_issns == ['0000-006X', '0000-0507']
-#
-#     # test updated_at is filled in
-#     assert issn_l.updated_at is not None
-#
-#     # test that other field does not have updated_at field filled
-#     second_issn_l = ISSNMetaData.query.filter_by(issn_l='0000-0043').one()
-#     assert second_issn_l.updated_at is None
+def test_issn_mappings(client):
+    runner = app.test_cli_runner()
+
+    # run initial issn-to-issn-l file
+    file_path = os.path.join(app.root_path, 'ingest/tests/sample_data', 'ISSN-to-ISSN-L-initial.txt')
+    runner.invoke(import_issns, ['--file_path', file_path])
+
+    # run mapping
+    runner.invoke(import_issn_mappings)
+
+    # test import count after group by
+    assert ISSNMetaData.query.count() == 4
+
+    # test single mapping
+    issn_l = ISSNMetaData.query.filter_by(issn_l='0000-0043').one()
+    assert issn_l.issn_org_issns == ['0000-0043']
+
+    # test mapping with two issns
+    issn_l = ISSNMetaData.query.filter_by(issn_l='0000-0019').one()
+    assert issn_l.issn_org_issns == ['0000-0051', '0000-0019']
+
+    # test created_at
+    assert issn_l.created_at is not None
+
+
+def test_issn_mapping_change(client):
+    runner = app.test_cli_runner()
+
+    # run initial issn-to-issn-l file
+    file_path = os.path.join(app.root_path, 'ingest/tests/sample_data', 'ISSN-to-ISSN-L-initial.txt')
+    runner.invoke(import_issns, ['--file_path', file_path])
+
+    # run mapping
+    runner.invoke(import_issn_mappings)
+
+    # run file with changed issns
+    file_path = os.path.join(app.root_path, 'ingest/tests/sample_data', 'ISSN-to-ISSN-L-changed.txt')
+    runner.invoke(import_issns, ['--file_path', file_path])
+
+    # run mapping
+    runner.invoke(import_issn_mappings)
+
+    # test that issn_l has the new data
+    issn_l = ISSNMetaData.query.filter_by(issn_l='0000-006X').one()
+    assert issn_l.issn_org_issns == ['0000-006X', '0000-0507']

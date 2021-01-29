@@ -47,7 +47,7 @@ def import_issns(file_path, initial_load):
 
     # if initial load, simply copy the rows to the master table
     if initial_load:
-        db.session.execute('INSERT INTO issn_to_issnl (issn_l, issn, created_at) SELECT issn_l, issn, NOW() FROM issn_temp;')
+        db.session.execute('INSERT INTO issn_to_issnl (issn, issn_l, created_at) SELECT issn, issn_l, NOW() FROM issn_temp;')
         # finished, remove temp data
         db.session.query(ISSNTemp).delete()
         db.session.commit()
@@ -56,26 +56,27 @@ def import_issns(file_path, initial_load):
     # compare the regular ISSNtoISSNL table
     # new ISSN records (in temp but not in ISSNtoISSNL)
     new_records = db.session.execute(
-        "SELECT issn_l, issn FROM issn_temp EXCEPT SELECT issn_l, issn FROM issn_to_issnl;"
+        "SELECT issn, issn_l FROM issn_temp EXCEPT SELECT issn, issn_l FROM issn_to_issnl;"
     )
 
     # save new records
     objects = []
     history = []
     for new in new_records:
-        objects.append(ISSNToISSNL(issn_l=new.issn_l, issn=new.issn))
-        history.append(ISSNHistory(issn_l=new.issn_l, issn=new.issn, status='added'))
+        objects.append(ISSNToISSNL(issn=new.issn, issn_l=new.issn_l, ))
+        history.append(ISSNHistory(issn=new.issn, issn_l=new.issn_l, status='added'))
     db.session.bulk_save_objects(objects)
     db.session.bulk_save_objects(history)
     db.session.commit()
 
     # removed records (in ISSNtoISSNL but not in issn_temp)
     removed_records = db.session.execute(
-        "SELECT issn_l, issn FROM issn_to_issnl EXCEPT SELECT issn_l, issn FROM issn_temp;"
+        "SELECT issn, issn_l FROM issn_to_issnl EXCEPT SELECT issn, issn_l FROM issn_temp;"
     )
     for removed in removed_records:
         r = ISSNToISSNL.query.filter_by(
-            issn_l=removed.issn_l, issn=removed.issn
+            issn=removed.issn,
+            issn_l=removed.issn_l
         ).one_or_none()
         db.session.delete(r)
         db.session.add(ISSNHistory(issn_l=removed.issn_l, issn=removed.issn, status='removed'))

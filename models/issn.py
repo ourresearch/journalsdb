@@ -57,3 +57,9 @@ class ISSNMetaData(db.Model):
         )
         title = title[0] if isinstance(title, list) else title
         return title
+
+    @property
+    def issns_from_crossref_api(self):
+        return (
+            self.crossref_raw_api["message"]["ISSN"] if self.crossref_raw_api else None
+        )

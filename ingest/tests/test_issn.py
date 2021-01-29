@@ -168,3 +168,4 @@ def test_api_import(client):
     issn_l = ISSNMetaData.query.filter_by(issn_l="2291-5222").one()
     assert issn_l.crossref_raw_api["message"]["title"] == "JMIR mhealth and uhealth"
     assert issn_l.crossref_raw_api["message"]["publisher"] == "JMIR Publications Inc."
+    assert issn_l.issns_from_crossref_api == ["2291-5222"]

@@ -142,7 +142,7 @@ def map_issns_to_issnl():
 
 @app.cli.command("import_issn_apis")
 def import_issn_apis():
-    issns = ISSNMetaData.query.all()
+    issns = ISSNMetaData.query.filter_by(updated_at=None).limit(100).all()
     for issn in issns:
         # issn.org api
         issn_org_url = "https://portal.issn.org/resource/ISSN/{}?format=json".format(
@@ -159,5 +159,6 @@ def import_issn_apis():
         if c.status_code == 200:
             issn.crossref_raw_api = c.json()
             issn.updated_at = datetime.datetime.now()
+            issn.crossref_issns = issn.issns_from_crossref_api
 
         db.session.commit()

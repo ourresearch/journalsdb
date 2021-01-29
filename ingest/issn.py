@@ -10,7 +10,8 @@ from models.issn import ISSNToISSNL, ISSNTemp, ISSNHistory
 
 @app.cli.command("import_issns")
 @click.option("--file_path")
-def import_issns(file_path):
+@click.option("--initial_load", is_flag=True)
+def import_issns(file_path, initial_load):
     """
     Master ISSN list: https://www.issn.org/wp-content/uploads/2014/03/issnltables.zip
     Available via a text file within the zip archive with name ISSN-to-ISSN-L-initial.txt.
@@ -42,7 +43,15 @@ def import_issns(file_path):
         print("not enough records in file")
         db.session.query(ISSNTemp).delete()
         db.session.commit()
-        return  # need to test this
+        return
+
+    # if initial load, simply copy the rows to the master table
+    if initial_load:
+        db.session.execute('INSERT INTO issn_to_issnl (issn_l, issn, created_at) SELECT issn_l, issn, NOW() FROM issn_temp;')
+        # finished, remove temp data
+        db.session.query(ISSNTemp).delete()
+        db.session.commit()
+        return
 
     # compare the regular ISSNtoISSNL table
     # new ISSN records (in temp but not in ISSNtoISSNL)

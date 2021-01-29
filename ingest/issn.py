@@ -45,9 +45,10 @@ def import_issns(file_path, initial_load):
         db.session.commit()
         return
 
-    # if initial load, simply copy the rows to the master table
+    # if initial load, simply copy the rows to the master table and map the issns
     if initial_load:
         db.session.execute('INSERT INTO issn_to_issnl (issn, issn_l, created_at) SELECT issn, issn_l, NOW() FROM issn_temp;')
+        map_issns_to_issnl()
         # finished, remove temp data
         db.session.query(ISSNTemp).delete()
         db.session.commit()

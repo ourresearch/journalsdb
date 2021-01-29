@@ -1,8 +1,8 @@
 """initial migration
 
-Revision ID: af6d788a7ef5
+Revision ID: ad2581fd20bb
 Revises: 
-Create Date: 2021-01-28 19:57:48.659941
+Create Date: 2021-01-28 21:01:31.524090
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = 'af6d788a7ef5'
+revision = 'ad2581fd20bb'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -53,15 +53,15 @@ def upgrade():
     sa.UniqueConstraint('issn_l')
     )
     op.create_table('issn_temp',
-    sa.Column('issn_l', sa.String(length=9), nullable=False),
     sa.Column('issn', sa.String(length=9), nullable=False),
-    sa.PrimaryKeyConstraint('issn_l', 'issn')
+    sa.Column('issn_l', sa.String(length=9), nullable=False),
+    sa.PrimaryKeyConstraint('issn', 'issn_l')
     )
     op.create_table('issn_to_issnl',
-    sa.Column('issn_l', sa.String(length=9), nullable=False),
     sa.Column('issn', sa.String(length=9), nullable=False),
+    sa.Column('issn_l', sa.String(length=9), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
-    sa.PrimaryKeyConstraint('issn_l', 'issn')
+    sa.PrimaryKeyConstraint('issn', 'issn_l')
     )
     op.create_table('publishers',
     sa.Column('id', sa.Integer(), nullable=False),

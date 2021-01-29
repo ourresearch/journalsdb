@@ -5,6 +5,10 @@ from app import app, db
 
 @pytest.fixture
 def client():
+    import requests_cache
+
+    requests_cache.install_cache("test_cache")
+
     app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://localhost/journalsdb_test"
     app.config["TESTING"] = True
 

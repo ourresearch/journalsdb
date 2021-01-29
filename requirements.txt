@@ -7,4 +7,5 @@ gunicorn==20.0.4
 pandas==1.2.0
 psycopg2==2.8.6
 requests==2.25.1
+requests-cache==0.5.2
 shortuuid==1.0.1

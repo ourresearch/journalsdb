@@ -57,3 +57,5 @@ venv.bak/
 
 # pycharm
 .idea/
+
+*.sqlite

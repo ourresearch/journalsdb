@@ -82,6 +82,8 @@ def import_issns(file_path, initial_load):
         db.session.add(ISSNHistory(issn_l=removed.issn_l, issn=removed.issn, status='removed'))
     db.session.commit()
 
+    map_issns_to_issnl()
+
     # finished, remove temp data
     db.session.query(ISSNTemp).delete()
     db.session.commit()
@@ -108,8 +110,7 @@ def find_file_name(zipfile):
     return file
 
 
-@app.cli.command("import_issn_mappings")
-def import_issn_mappings():
+def map_issns_to_issnl():
     """
     Map issn-l to issns that are in the issn_to_issnl table.
     """

@@ -3,7 +3,7 @@ import os
 from sqlalchemy import desc
 
 from app import app, db
-from ingest.issn import import_issns, import_issn_mappings
+from ingest.issn import import_issns
 from ingest.tests.test_client import client
 from models.issn import ISSNToISSNL, ISSNHistory, ISSNMetaData
 
@@ -102,9 +102,6 @@ def test_issn_mappings(client):
     file_path = os.path.join(app.root_path, 'ingest/tests/sample_data', 'ISSN-to-ISSN-L-initial.txt')
     runner.invoke(import_issns, ['--file_path', file_path])
 
-    # run mapping
-    runner.invoke(import_issn_mappings)
-
     # test import count after group by
     assert ISSNMetaData.query.count() == 4
 
@@ -127,15 +124,9 @@ def test_issn_mapping_change(client):
     file_path = os.path.join(app.root_path, 'ingest/tests/sample_data', 'ISSN-to-ISSN-L-initial.txt')
     runner.invoke(import_issns, ['--file_path', file_path])
 
-    # run mapping
-    runner.invoke(import_issn_mappings)
-
     # run file with changed issns
     file_path = os.path.join(app.root_path, 'ingest/tests/sample_data', 'ISSN-to-ISSN-L-changed.txt')
     runner.invoke(import_issns, ['--file_path', file_path])
-
-    # run mapping
-    runner.invoke(import_issn_mappings)
 
     # test that issn_l has the new data
     issn_l = ISSNMetaData.query.filter_by(issn_l='0000-006X').one()

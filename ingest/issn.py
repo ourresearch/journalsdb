@@ -1,43 +1,89 @@
-import json
 from io import BytesIO
 from urllib.request import urlopen
 from zipfile import ZipFile
 
-import pandas as pd
+import click
 
 from app import app, db
+from models.issn import ISSNToISSNL, ISSNTemp, ISSNHistory
 
 
 @app.cli.command("import_issns")
-def import_issns():
+@click.option("--file_path")
+@click.option("--initial_load", is_flag=True)
+def import_issns(file_path, initial_load):
     """
     Master ISSN list: https://www.issn.org/wp-content/uploads/2014/03/issnltables.zip
-    Available via a text file within the zip archive with name 20210121.ISSN-L-to-ISSN.txt.
-    issn-l: list of issns
+    Available via a text file within the zip archive with name ISSN-to-ISSN-L-initial.txt.
+
+    Read the issn-l to issn mapping from issn.org and save it to a table for further processing.
 
     Run with: flask import_issns
     """
     zip_url = "https://www.issn.org/wp-content/uploads/2014/03/issnltables.zip"
-    issn_file = get_zipfile(zip_url)
+    issn_file = get_zipfile(zip_url) if not file_path else file_path
 
-    cols = ["issn_l", "issn_0", "issn_1", "issn_2", "issn_3", "issn_4"]
-    df = pd.read_table(
-        issn_file, header=None, names=cols, skiprows=1, keep_default_na=False
+    # ensure temp ISSN table is empty
+    db.session.query(ISSNTemp).delete()
+    db.session.commit()
+
+    # copy issn records into temp table
+    copy_sql = "COPY issn_temp FROM STDOUT WITH (FORMAT CSV, DELIMITER '\t', HEADER)"
+    conn = db.engine.raw_connection()
+    with conn.cursor() as cur:
+        if not file_path:
+            cur.copy_expert(copy_sql, issn_file)
+        else:
+            with open(file_path, "rb") as f:
+                cur.copy_expert(copy_sql, f)
+    conn.commit()
+
+    # sanity check
+    if not file_path and ISSNTemp.query.count() < 2000000:
+        print("not enough records in file")
+        db.session.query(ISSNTemp).delete()
+        db.session.commit()
+        return
+
+    # if initial load, simply copy the rows to the master table
+    if initial_load:
+        db.session.execute('INSERT INTO issn_to_issnl (issn_l, issn, created_at) SELECT issn_l, issn, NOW() FROM issn_temp;')
+        # finished, remove temp data
+        db.session.query(ISSNTemp).delete()
+        db.session.commit()
+        return
+
+    # compare the regular ISSNtoISSNL table
+    # new ISSN records (in temp but not in ISSNtoISSNL)
+    new_records = db.session.execute(
+        "SELECT issn_l, issn FROM issn_temp EXCEPT SELECT issn_l, issn FROM issn_to_issnl;"
     )
 
-    # combine issns into list
-    cols.remove("issn_l")
-    df["issns"] = df[cols].values.tolist()
+    # save new records
+    objects = []
+    history = []
+    for new in new_records:
+        objects.append(ISSNToISSNL(issn_l=new.issn_l, issn=new.issn))
+        history.append(ISSNHistory(issn_l=new.issn_l, issn=new.issn, status='added'))
+    db.session.bulk_save_objects(objects)
+    db.session.bulk_save_objects(history)
+    db.session.commit()
 
-    # make new dataframe consisting of issn-l and list of issns
-    new_df = df[["issn_l", "issns"]].copy()
+    # removed records (in ISSNtoISSNL but not in issn_temp)
+    removed_records = db.session.execute(
+        "SELECT issn_l, issn FROM issn_to_issnl EXCEPT SELECT issn_l, issn FROM issn_temp;"
+    )
+    for removed in removed_records:
+        r = ISSNToISSNL.query.filter_by(
+            issn_l=removed.issn_l, issn=removed.issn
+        ).one_or_none()
+        db.session.delete(r)
+        db.session.add(ISSNHistory(issn_l=removed.issn_l, issn=removed.issn, status='removed'))
+    db.session.commit()
 
-    # clean issns list to remove empty strings
-    new_df["issns"] = new_df["issns"].apply(lambda x: list(filter(None, x)))
-    # new_df['issns'] = new_df['issns'].apply(lambda x: x.to_json(orient='values'))
-
-    # save to database
-    new_df.to_sql("raw_issn_org_data", con=db.engine, if_exists="append", index=False)
+    # finished, remove temp data
+    db.session.query(ISSNTemp).delete()
+    db.session.commit()
 
 
 def get_zipfile(zip_url):
@@ -53,9 +99,29 @@ def get_zipfile(zip_url):
 
 def find_file_name(zipfile):
     """
-    Finds file from the zip archive ending with issn-l-to-issn.txt.
+    Finds file from the zip archive ending with issn-to-issn-l.txt.
     """
     files = zipfile.namelist()
-    select_file = [f for f in files if f.lower().endswith("issn-l-to-issn.txt")]
+    select_file = [f for f in files if f.lower().endswith("issn-to-issn-l.txt")]
     file = select_file[0] if select_file else None
     return file
+
+
+@app.cli.command("import_issn_mappings")
+def import_issn_mappings():
+    """
+    Map issn-l to issns that are in the issn_to_issnl table.
+    """
+    sql = """
+    insert into issn_metadata (issn_l, issn_org_issns) (
+        select
+            issn_l,
+            jsonb_agg(to_jsonb(issn)) as issn_org_issns
+        from issn_to_issnl
+        where issn_l is not null
+        group by 1
+    ) on conflict (issn_l) do update
+    set issn_org_issns = excluded.issn_org_issns;
+    """
+    db.session.execute(sql)
+    db.session.commit()

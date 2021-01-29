@@ -42,3 +42,18 @@ class ISSNMetaData(db.Model):
     crossref_raw_api = db.Column(JSONB)
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, onupdate=func.now())
+
+    @property
+    def title_from_issn_api(self):
+        title_dict = next(
+            d
+            for d in self.issn_org_raw_api["@graph"]
+            if "name" in d.keys() or "mainTitle" in d.keys()
+        )
+        title = (
+            title_dict["mainTitle"]
+            if "mainTitle" in title_dict
+            else title_dict.get("name")
+        )
+        title = title[0] if isinstance(title, list) else title
+        return title

@@ -1,9 +1,10 @@
+import json
 import os
 
 from sqlalchemy import desc
 
 from app import app, db
-from ingest.issn import import_issns
+from ingest.issn import import_issns, import_issn_apis
 from ingest.tests.test_client import client
 from models.issn import ISSNToISSNL, ISSNHistory, ISSNMetaData
 
@@ -65,9 +66,9 @@ def test_issn_new_record_added(client):
     assert issn.issn_l == "0000-0213"
 
     # record added to history
-    h = ISSNHistory.query.filter_by(issn_l='0000-0213', issn='0000-0213').one_or_none()
+    h = ISSNHistory.query.filter_by(issn_l="0000-0213", issn="0000-0213").one_or_none()
     assert h is not None
-    assert h.status == 'added'
+    assert h.status == "added"
 
 
 def test_issn_record_removed(client):
@@ -91,7 +92,9 @@ def test_issn_record_removed(client):
     assert issn is None
 
     # record added to history
-    h = ISSNHistory.query.filter_by(issn_l='0000-006X', issn='0000-006X', status='removed').one_or_none()
+    h = ISSNHistory.query.filter_by(
+        issn_l="0000-006X", issn="0000-006X", status="removed"
+    ).one_or_none()
     assert h is not None
 
 
@@ -99,19 +102,21 @@ def test_issn_mappings(client):
     runner = app.test_cli_runner()
 
     # run initial issn-to-issn-l file
-    file_path = os.path.join(app.root_path, 'ingest/tests/sample_data', 'ISSN-to-ISSN-L-initial.txt')
-    runner.invoke(import_issns, ['--file_path', file_path])
+    file_path = os.path.join(
+        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-initial.txt"
+    )
+    runner.invoke(import_issns, ["--file_path", file_path])
 
     # test import count after group by
     assert ISSNMetaData.query.count() == 4
 
     # test single mapping
-    issn_l = ISSNMetaData.query.filter_by(issn_l='0000-0043').one()
-    assert issn_l.issn_org_issns == ['0000-0043']
+    issn_l = ISSNMetaData.query.filter_by(issn_l="0000-0043").one()
+    assert issn_l.issn_org_issns == ["0000-0043"]
 
     # test mapping with two issns
-    issn_l = ISSNMetaData.query.filter_by(issn_l='0000-0019').one()
-    assert issn_l.issn_org_issns == ['0000-0051', '0000-0019']
+    issn_l = ISSNMetaData.query.filter_by(issn_l="0000-0019").one()
+    assert issn_l.issn_org_issns == ["0000-0051", "0000-0019"]
 
     # test created_at
     assert issn_l.created_at is not None
@@ -121,13 +126,45 @@ def test_issn_mapping_change(client):
     runner = app.test_cli_runner()
 
     # run initial issn-to-issn-l file
-    file_path = os.path.join(app.root_path, 'ingest/tests/sample_data', 'ISSN-to-ISSN-L-initial.txt')
-    runner.invoke(import_issns, ['--file_path', file_path])
+    file_path = os.path.join(
+        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-initial.txt"
+    )
+    runner.invoke(import_issns, ["--file_path", file_path])
 
     # run file with changed issns
-    file_path = os.path.join(app.root_path, 'ingest/tests/sample_data', 'ISSN-to-ISSN-L-changed.txt')
-    runner.invoke(import_issns, ['--file_path', file_path])
+    file_path = os.path.join(
+        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-changed.txt"
+    )
+    runner.invoke(import_issns, ["--file_path", file_path])
 
     # test that issn_l has the new data
-    issn_l = ISSNMetaData.query.filter_by(issn_l='0000-006X').one()
-    assert issn_l.issn_org_issns == ['0000-006X', '0000-0507']
+    issn_l = ISSNMetaData.query.filter_by(issn_l="0000-006X").one()
+    assert issn_l.issn_org_issns == ["0000-006X", "0000-0507"]
+
+
+def test_api_import(client):
+    runner = app.test_cli_runner()
+
+    # run initial issn-to-issn-l file
+    file_path = os.path.join(
+        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-api.txt"
+    )
+    runner.invoke(import_issns, ["--file_path", file_path])
+
+    runner.invoke(import_issn_apis)
+
+    issn_l = ISSNMetaData.query.filter_by(issn_l="0000-0043").one()
+    assert issn_l.issn_org_raw_api is not None
+
+    # find title that is only in the 'name' field
+    assert issn_l.title_from_issn_api == "Irregular serials & annuals."
+
+    issn_l = ISSNMetaData.query.filter_by(issn_l="0000-0027").one()
+
+    # find title that is only in the 'mainTitle' field
+    assert issn_l.title_from_issn_api == "Library journal."
+
+    # check crossref title and publisher
+    issn_l = ISSNMetaData.query.filter_by(issn_l="2291-5222").one()
+    assert issn_l.crossref_raw_api["message"]["title"] == "JMIR mhealth and uhealth"
+    assert issn_l.crossref_raw_api["message"]["publisher"] == "JMIR Publications Inc."

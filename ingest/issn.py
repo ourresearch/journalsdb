@@ -1,11 +1,13 @@
+import datetime
 from io import BytesIO
 from urllib.request import urlopen
 from zipfile import ZipFile
 
 import click
+import requests
 
 from app import app, db
-from models.issn import ISSNToISSNL, ISSNTemp, ISSNHistory
+from models.issn import ISSNToISSNL, ISSNTemp, ISSNHistory, ISSNMetaData
 
 
 @app.cli.command("import_issns")
@@ -47,7 +49,9 @@ def import_issns(file_path, initial_load):
 
     # if initial load, simply copy the rows to the master table and map the issns
     if initial_load:
-        db.session.execute('INSERT INTO issn_to_issnl (issn, issn_l, created_at) SELECT issn, issn_l, NOW() FROM issn_temp;')
+        db.session.execute(
+            "INSERT INTO issn_to_issnl (issn, issn_l, created_at) SELECT issn, issn_l, NOW() FROM issn_temp;"
+        )
         map_issns_to_issnl()
         # finished, remove temp data
         db.session.query(ISSNTemp).delete()
@@ -64,8 +68,13 @@ def import_issns(file_path, initial_load):
     objects = []
     history = []
     for new in new_records:
-        objects.append(ISSNToISSNL(issn=new.issn, issn_l=new.issn_l, ))
-        history.append(ISSNHistory(issn=new.issn, issn_l=new.issn_l, status='added'))
+        objects.append(
+            ISSNToISSNL(
+                issn=new.issn,
+                issn_l=new.issn_l,
+            )
+        )
+        history.append(ISSNHistory(issn=new.issn, issn_l=new.issn_l, status="added"))
     db.session.bulk_save_objects(objects)
     db.session.bulk_save_objects(history)
     db.session.commit()
@@ -76,11 +85,12 @@ def import_issns(file_path, initial_load):
     )
     for removed in removed_records:
         r = ISSNToISSNL.query.filter_by(
-            issn=removed.issn,
-            issn_l=removed.issn_l
+            issn=removed.issn, issn_l=removed.issn_l
         ).one_or_none()
         db.session.delete(r)
-        db.session.add(ISSNHistory(issn_l=removed.issn_l, issn=removed.issn, status='removed'))
+        db.session.add(
+            ISSNHistory(issn_l=removed.issn_l, issn=removed.issn, status="removed")
+        )
     db.session.commit()
 
     map_issns_to_issnl()
@@ -128,3 +138,26 @@ def map_issns_to_issnl():
     """
     db.session.execute(sql)
     db.session.commit()
+
+
+@app.cli.command("import_issn_apis")
+def import_issn_apis():
+    issns = ISSNMetaData.query.all()
+    for issn in issns:
+        # issn.org api
+        issn_org_url = "https://portal.issn.org/resource/ISSN/{}?format=json".format(
+            issn.issn_l
+        )
+        i = requests.get(issn_org_url)
+        if i.status_code == 200:
+            issn.issn_org_raw_api = i.json()
+            issn.updated_at = datetime.datetime.now()
+
+        # crossref api
+        crossref_url = "https://api.crossref.org/journals/{}".format(issn.issn_l)
+        c = requests.get(crossref_url)
+        if c.status_code == 200:
+            issn.crossref_raw_api = c.json()
+            issn.updated_at = datetime.datetime.now()
+
+        db.session.commit()

@@ -31,6 +31,7 @@ class Journal(db.Model, TimestampMixin):
     )
     author_permissions = db.relationship("AuthorPermissions")
     imprint = db.relationship("Imprint")
+    issn_metadata = db.relationship("ISSNMetaData")
     journal_metadata = db.relationship(
         "JournalMetadata", lazy="joined", backref="journal"
     )
@@ -53,6 +54,10 @@ class Journal(db.Model, TimestampMixin):
         return cls.query.filter(
             cls.synonyms.contains(json.dumps(synonym))
         ).one_or_none()
+
+    @property
+    def issns(self):
+        return self.issn_metadata.issns
 
     def to_dict(self):
         return {

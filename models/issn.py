@@ -77,6 +77,10 @@ class ISSNMetaData(db.Model):
             else None
         )
 
+    @property
+    def issns(self):
+        return set(self.issn_org_issns + self.crossref_issns)
+
 
 class LinkedISSNL(db.Model):
     __tablename__ = "linked_issn_l"

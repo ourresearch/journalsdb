@@ -69,6 +69,14 @@ class ISSNMetaData(db.Model):
             self.crossref_raw_api["message"]["ISSN"] if self.crossref_raw_api else None
         )
 
+    @property
+    def publisher(self):
+        return (
+            self.crossref_raw_api["message"]["publisher"]
+            if self.crossref_raw_api
+            else None
+        )
+
 
 class LinkedISSNL(db.Model):
     __tablename__ = "linked_issn_l"

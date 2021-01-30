@@ -13,7 +13,9 @@ class Journal(db.Model, TimestampMixin):
     __tablename__ = "journals"
 
     id = db.Column(db.Integer, primary_key=True)
-    issn_l = db.Column(db.String(9), unique=True, nullable=False)
+    issn_l = db.Column(
+        db.String(9), db.ForeignKey("issn_metadata.issn_l"), unique=True, nullable=False
+    )
     title = db.Column(db.Text, nullable=False)
     issns = db.Column(JSONB)
     synonyms = db.Column(JSONB)

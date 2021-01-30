@@ -9,6 +9,8 @@ import requests
 
 from app import app, db
 from models.issn import ISSNHistory, ISSNMetaData, ISSNTemp, ISSNToISSNL, LinkedISSNL
+from models.journal import Journal, Publisher
+from ingest.utils import get_or_create
 
 
 @app.cli.command("import_issns")
@@ -167,6 +169,8 @@ def import_issn_apis():
         for issn in chunk:
             save_issn_org_api(issn)
             save_crossref_api(issn)
+            set_title(issn)
+            set_publisher(issn)
             link_issn_l(issn)
         db.session.commit()
 
@@ -188,6 +192,27 @@ def save_crossref_api(issn):
         issn.crossref_raw_api = r.json()
         issn.updated_at = datetime.datetime.now()
         issn.crossref_issns = issn.issns_from_crossref_api
+
+
+def set_title(issn):
+    j = Journal.query.filter_by(issn_l=issn.issn_l).one_or_none()
+    if j:
+        # update
+        j.title = issn.title_from_issn_api
+    else:
+        j = Journal(issn_l=issn.issn_l, title=issn.title_from_issn_api)
+        db.session.add(j)
+
+
+def set_publisher(issn):
+    publisher = (
+        get_or_create(db.session, Publisher, name=issn.publisher)
+        if issn.publisher
+        else None
+    )
+    j = Journal.query.filter_by(issn_l=issn.issn_l).one_or_none()
+    if j:
+        j.publisher_id = publisher.id if publisher else None
 
 
 def link_issn_l(issn):

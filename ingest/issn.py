@@ -1,5 +1,6 @@
 import datetime
 from io import BytesIO
+import json
 from urllib.request import urlopen
 from zipfile import ZipFile
 
@@ -7,7 +8,7 @@ import click
 import requests
 
 from app import app, db
-from models.issn import ISSNHistory, ISSNMetaData, ISSNTemp, ISSNToISSNL
+from models.issn import ISSNHistory, ISSNMetaData, ISSNTemp, ISSNToISSNL, LinkedISSNL
 
 
 @app.cli.command("import_issns")
@@ -163,7 +164,7 @@ def import_issn_apis():
     for issn in issns:
         save_issn_org_api(issn)
         save_crossref_api(issn)
-        db.session.commit()
+        link_issn_l(issn)
 
 
 def save_issn_org_api(issn):
@@ -174,6 +175,7 @@ def save_issn_org_api(issn):
     if r.status_code == 200:
         issn.issn_org_raw_api = r.json()
         issn.updated_at = datetime.datetime.now()
+    db.session.commit()
 
 
 def save_crossref_api(issn):
@@ -183,3 +185,21 @@ def save_crossref_api(issn):
         issn.crossref_raw_api = r.json()
         issn.updated_at = datetime.datetime.now()
         issn.crossref_issns = issn.issns_from_crossref_api
+    db.session.commit()
+
+
+def link_issn_l(issn):
+    # if the issn_l is in a different record issn, then link it
+    issn_ls = ISSNMetaData.query.filter(
+        ISSNMetaData.crossref_issns.contains(json.dumps(issn.issn_l))
+    ).all()
+    for issn_l in issn_ls:
+        if issn_l.issn_l != issn.issn_l:
+            db.session.add(
+                LinkedISSNL(
+                    issn_l_primary=issn.issn_l,
+                    issn_l_secondary=issn_l.issn_l,
+                    reason="crossref",
+                )
+            )
+    db.session.commit()

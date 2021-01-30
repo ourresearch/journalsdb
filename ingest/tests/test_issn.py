@@ -5,7 +5,7 @@ from sqlalchemy import desc
 from app import app, db
 from ingest.issn import import_issns, import_issn_apis
 from ingest.tests.test_client import client
-from models.issn import ISSNHistory, ISSNMetaData, ISSNToISSNL
+from models.issn import ISSNHistory, ISSNMetaData, ISSNToISSNL, LinkedISSNL
 
 SAMPLE_DIRECTORY = "ingest/tests/sample_data"
 
@@ -168,3 +168,20 @@ def test_api_import(client):
     assert issn_l.crossref_raw_api["message"]["title"] == "JMIR mhealth and uhealth"
     assert issn_l.crossref_raw_api["message"]["publisher"] == "JMIR Publications Inc."
     assert issn_l.issns_from_crossref_api == ["2291-5222"]
+
+
+def test_linked_issnl(client):
+    runner = app.test_cli_runner()
+
+    # run initial issn-to-issn-l file
+    file_path = os.path.join(
+        app.root_path, SAMPLE_DIRECTORY, "ISSN-to-ISSN-L-linked.txt"
+    )
+    runner.invoke(import_issns, ["--file_path", file_path])
+
+    runner.invoke(import_issn_apis)
+
+    l = LinkedISSNL.query.filter_by(
+        issn_l_primary="0974-4061", issn_l_secondary="0974-4053"
+    ).one_or_none()
+    assert l is not None

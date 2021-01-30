@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import JSONB
@@ -34,14 +35,18 @@ class ISSNHistory(db.Model):
 class ISSNMetaData(db.Model):
     __tablename__ = "issn_metadata"
 
-    id = db.Column(db.Integer, primary_key=True)
-    issn_l = db.Column(db.String, nullable=False, unique=True)
+    issn_l = db.Column(db.String, primary_key=True)
     issn_org_issns = db.Column(JSONB)
     crossref_issns = db.Column(JSONB)
     issn_org_raw_api = db.Column(JSONB)
     crossref_raw_api = db.Column(JSONB)
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, onupdate=func.now())
+
+    __table_args__ = (
+        db.Index("idx_crossref_issns", crossref_issns, postgresql_using="gin"),
+        db.Index("idx_issn_org_issns", issn_org_issns, postgresql_using="gin"),
+    )
 
     @property
     def title_from_issn_api(self):
@@ -63,3 +68,12 @@ class ISSNMetaData(db.Model):
         return (
             self.crossref_raw_api["message"]["ISSN"] if self.crossref_raw_api else None
         )
+
+
+class LinkedISSNL(db.Model):
+    issn_l_primary = db.Column(db.ForeignKey("issn_metadata.issn_l"), primary_key=True)
+    issn_l_secondary = db.Column(
+        db.ForeignKey("issn_metadata.issn_l"), primary_key=True
+    )
+    reason = db.Column(db.String(), nullable=False)
+    created_at = db.Column(db.DateTime, server_default=func.now())

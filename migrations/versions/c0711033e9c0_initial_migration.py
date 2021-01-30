@@ -1,8 +1,8 @@
 """initial migration
 
-Revision ID: ad2581fd20bb
+Revision ID: c0711033e9c0
 Revises: 
-Create Date: 2021-01-28 21:01:31.524090
+Create Date: 2021-01-30 11:23:51.223110
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = "ad2581fd20bb"
+revision = "c0711033e9c0"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -45,7 +45,6 @@ def upgrade():
     )
     op.create_table(
         "issn_metadata",
-        sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("issn_l", sa.String(), nullable=False),
         sa.Column(
             "issn_org_issns", postgresql.JSONB(astext_type=sa.Text()), nullable=True
@@ -63,8 +62,21 @@ def upgrade():
             "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
         ),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("issn_l"),
+        sa.PrimaryKeyConstraint("issn_l"),
+    )
+    op.create_index(
+        "idx_crossref_issns",
+        "issn_metadata",
+        ["crossref_issns"],
+        unique=False,
+        postgresql_using="gin",
+    )
+    op.create_index(
+        "idx_issn_org_issns",
+        "issn_metadata",
+        ["issn_org_issns"],
+        unique=False,
+        postgresql_using="gin",
     )
     op.create_table(
         "issn_temp",
@@ -72,12 +84,16 @@ def upgrade():
         sa.Column("issn_l", sa.String(length=9), nullable=False),
         sa.PrimaryKeyConstraint("issn", "issn_l"),
     )
+    op.create_index(op.f("ix_issn_temp_issn_l"), "issn_temp", ["issn_l"], unique=False)
     op.create_table(
         "issn_to_issnl",
         sa.Column("issn", sa.String(length=9), nullable=False),
         sa.Column("issn_l", sa.String(length=9), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint("issn", "issn_l"),
+    )
+    op.create_index(
+        op.f("ix_issn_to_issnl_issn_l"), "issn_to_issnl", ["issn_l"], unique=False
     )
     op.create_table(
         "publishers",
@@ -134,6 +150,24 @@ def upgrade():
         ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("name"),
+    )
+    op.create_table(
+        "linked_issn_l",
+        sa.Column("issn_l_primary", sa.String(), nullable=False),
+        sa.Column("issn_l_secondary", sa.String(), nullable=False),
+        sa.Column("reason", sa.String(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True
+        ),
+        sa.ForeignKeyConstraint(
+            ["issn_l_primary"],
+            ["issn_metadata.issn_l"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["issn_l_secondary"],
+            ["issn_metadata.issn_l"],
+        ),
+        sa.PrimaryKeyConstraint("issn_l_primary", "issn_l_secondary"),
     )
     op.create_table(
         "mini_bundles",
@@ -527,13 +561,18 @@ def downgrade():
     op.drop_table("apc_price")
     op.drop_table("regions")
     op.drop_table("mini_bundles")
+    op.drop_table("linked_issn_l")
     op.drop_table("imprints")
     op.drop_index(op.f("ix_countries_continent_id"), table_name="countries")
     op.drop_table("countries")
     op.drop_table("subjects")
     op.drop_table("publishers")
+    op.drop_index(op.f("ix_issn_to_issnl_issn_l"), table_name="issn_to_issnl")
     op.drop_table("issn_to_issnl")
+    op.drop_index(op.f("ix_issn_temp_issn_l"), table_name="issn_temp")
     op.drop_table("issn_temp")
+    op.drop_index("idx_issn_org_issns", table_name="issn_metadata")
+    op.drop_index("idx_crossref_issns", table_name="issn_metadata")
     op.drop_table("issn_metadata")
     op.drop_table("issn_history")
     op.drop_table("currency")

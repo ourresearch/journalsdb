@@ -191,6 +191,11 @@ def test_linked_issnl(client):
     ).one_or_none()
     assert l is not None
 
+    l = LinkedISSNL.query.filter_by(
+        issn_l_primary="2582-2810", issn_l_secondary="2454-3993"
+    ).one_or_none()
+    assert l is not None
+
     # not linked
     l = LinkedISSNL.query.filter_by(issn_l_primary="0000-0043").one_or_none()
     assert l is None

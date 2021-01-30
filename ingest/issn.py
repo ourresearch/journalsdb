@@ -160,10 +160,14 @@ def import_issn_apis():
     """
     Iterate over issn_metadata table, then fetch and store API data from issn.org and crossref.
     """
-    for issn in ISSNMetaData.query.filter_by(updated_at=None).yield_per(1000):
-        save_issn_org_api(issn)
-        save_crossref_api(issn)
-        link_issn_l(issn)
+    while True:
+        chunk = ISSNMetaData.query.filter_by(updated_at=None).limit(100).all()
+        if not chunk:
+            break
+        for issn in chunk:
+            save_issn_org_api(issn)
+            save_crossref_api(issn)
+            link_issn_l(issn)
         db.session.commit()
 
 
@@ -188,15 +192,15 @@ def save_crossref_api(issn):
 
 def link_issn_l(issn):
     # if the issn_l is in a different record issn, then link it
-    issn_ls = ISSNMetaData.query.filter(
+    issn_l_in_crossref_issns = ISSNMetaData.query.filter(
         ISSNMetaData.crossref_issns.contains(json.dumps(issn.issn_l))
     ).all()
-    for issn_l in issn_ls:
-        if issn_l.issn_l != issn.issn_l:
+    for issn_l_in_crossref in issn_l_in_crossref_issns:
+        if issn_l_in_crossref.issn_l != issn.issn_l:
             db.session.add(
                 LinkedISSNL(
                     issn_l_primary=issn.issn_l,
-                    issn_l_secondary=issn_l.issn_l,
+                    issn_l_secondary=issn_l_in_crossref.issn_l,
                     reason="crossref",
                 )
             )

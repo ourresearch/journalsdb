@@ -160,11 +160,11 @@ def import_issn_apis():
     """
     Iterate over issn_metadata table, then fetch and store API data from issn.org and crossref.
     """
-    issns = ISSNMetaData.query.filter_by(updated_at=None).limit(100).all()
-    for issn in issns:
+    for issn in ISSNMetaData.query.filter_by(updated_at=None).yield_per(1000):
         save_issn_org_api(issn)
         save_crossref_api(issn)
         link_issn_l(issn)
+        db.session.commit()
 
 
 def save_issn_org_api(issn):
@@ -175,7 +175,6 @@ def save_issn_org_api(issn):
     if r.status_code == 200:
         issn.issn_org_raw_api = r.json()
         issn.updated_at = datetime.datetime.now()
-    db.session.commit()
 
 
 def save_crossref_api(issn):
@@ -185,7 +184,6 @@ def save_crossref_api(issn):
         issn.crossref_raw_api = r.json()
         issn.updated_at = datetime.datetime.now()
         issn.crossref_issns = issn.issns_from_crossref_api
-    db.session.commit()
 
 
 def link_issn_l(issn):
@@ -202,4 +200,3 @@ def link_issn_l(issn):
                     reason="crossref",
                 )
             )
-    db.session.commit()

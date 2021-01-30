@@ -4,6 +4,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 import shortuuid
 
 from app import db
+from models.issn import ISSNMetaData
 from models.mixins import TimestampMixin
 from models.price import journal_subscription_price, journal_apc_price
 from models.subjects import journal_subjects
@@ -46,7 +47,14 @@ class Journal(db.Model, TimestampMixin):
 
     @classmethod
     def find_by_issn(cls, issn):
-        return cls.query.filter(cls.issns.contains(json.dumps(issn))).first()
+        issn_in_crossref = ISSNMetaData.query.filter(
+            ISSNMetaData.crossref_issns.contains(json.dumps(issn))
+        ).first()
+        issn_in_issn_org = ISSNMetaData.query.filter(
+            ISSNMetaData.issn_org_issns.contains(json.dumps(issn))
+        ).first()
+        found_issn_l = issn_in_crossref or issn_in_issn_org
+        return cls.query.filter_by(issn_l=found_issn_l.issn_l).first()
 
     @classmethod
     def find_by_synonym(cls, synonym):

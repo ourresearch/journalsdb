@@ -171,6 +171,10 @@ def test_api_import(client):
 
 
 def test_linked_issnl(client):
+    """
+    When an issn-l is in a separate record's crossref_issns,
+    then those records should be linked in the linked_issn_l table.
+    """
     runner = app.test_cli_runner()
 
     # run initial issn-to-issn-l file
@@ -181,7 +185,12 @@ def test_linked_issnl(client):
 
     runner.invoke(import_issn_apis)
 
+    # linked
     l = LinkedISSNL.query.filter_by(
         issn_l_primary="0974-4061", issn_l_secondary="0974-4053"
     ).one_or_none()
     assert l is not None
+
+    # not linked
+    l = LinkedISSNL.query.filter_by(issn_l_primary="0000-0043").one_or_none()
+    assert l is None

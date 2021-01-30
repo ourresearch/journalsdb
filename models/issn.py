@@ -71,6 +71,8 @@ class ISSNMetaData(db.Model):
 
 
 class LinkedISSNL(db.Model):
+    __tablename__ = "linked_issn_l"
+
     issn_l_primary = db.Column(db.ForeignKey("issn_metadata.issn_l"), primary_key=True)
     issn_l_secondary = db.Column(
         db.ForeignKey("issn_metadata.issn_l"), primary_key=True

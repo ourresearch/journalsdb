@@ -1,4 +1,3 @@
-import json
 import os
 
 from sqlalchemy import desc
@@ -6,7 +5,9 @@ from sqlalchemy import desc
 from app import app, db
 from ingest.issn import import_issns, import_issn_apis
 from ingest.tests.test_client import client
-from models.issn import ISSNToISSNL, ISSNHistory, ISSNMetaData
+from models.issn import ISSNHistory, ISSNMetaData, ISSNToISSNL
+
+SAMPLE_DIRECTORY = "ingest/tests/sample_data"
 
 
 def test_issn_to_issnl_import(client):
@@ -14,7 +15,7 @@ def test_issn_to_issnl_import(client):
 
     # run command
     file_path = os.path.join(
-        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-initial.txt"
+        app.root_path, SAMPLE_DIRECTORY, "ISSN-to-ISSN-L-initial.txt"
     )
     runner.invoke(import_issns, ["--file_path", file_path])
 
@@ -31,7 +32,7 @@ def test_issn_import_no_changes(client):
 
     # run command
     file_path = os.path.join(
-        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-initial.txt"
+        app.root_path, SAMPLE_DIRECTORY, "ISSN-to-ISSN-L-initial.txt"
     )
     runner.invoke(import_issns, ["--file_path", file_path])
 
@@ -49,13 +50,13 @@ def test_issn_new_record_added(client):
     runner = app.test_cli_runner()
     # run day one
     file_path = os.path.join(
-        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-initial.txt"
+        app.root_path, SAMPLE_DIRECTORY, "ISSN-to-ISSN-L-initial.txt"
     )
     runner.invoke(import_issns, ["--file_path", file_path])
 
     # run day two with added record
     file_path = os.path.join(
-        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-new-record.txt"
+        app.root_path, SAMPLE_DIRECTORY, "ISSN-to-ISSN-L-new-record.txt"
     )
     runner.invoke(import_issns, ["--file_path", file_path])
 
@@ -75,13 +76,13 @@ def test_issn_record_removed(client):
     runner = app.test_cli_runner()
     # run day one
     file_path = os.path.join(
-        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-initial.txt"
+        app.root_path, SAMPLE_DIRECTORY, "ISSN-to-ISSN-L-initial.txt"
     )
     runner.invoke(import_issns, ["--file_path", file_path])
 
     # run day two with (0000-006X, 0000-006X) removed
     file_path = os.path.join(
-        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-removed.txt"
+        app.root_path, SAMPLE_DIRECTORY, "ISSN-to-ISSN-L-removed.txt"
     )
     runner.invoke(import_issns, ["--file_path", file_path])
 
@@ -103,7 +104,7 @@ def test_issn_mappings(client):
 
     # run initial issn-to-issn-l file
     file_path = os.path.join(
-        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-initial.txt"
+        app.root_path, SAMPLE_DIRECTORY, "ISSN-to-ISSN-L-initial.txt"
     )
     runner.invoke(import_issns, ["--file_path", file_path])
 
@@ -127,13 +128,13 @@ def test_issn_mapping_change(client):
 
     # run initial issn-to-issn-l file
     file_path = os.path.join(
-        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-initial.txt"
+        app.root_path, SAMPLE_DIRECTORY, "ISSN-to-ISSN-L-initial.txt"
     )
     runner.invoke(import_issns, ["--file_path", file_path])
 
     # run file with changed issns
     file_path = os.path.join(
-        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-changed.txt"
+        app.root_path, SAMPLE_DIRECTORY, "ISSN-to-ISSN-L-changed.txt"
     )
     runner.invoke(import_issns, ["--file_path", file_path])
 
@@ -146,9 +147,7 @@ def test_api_import(client):
     runner = app.test_cli_runner()
 
     # run initial issn-to-issn-l file
-    file_path = os.path.join(
-        app.root_path, "ingest/tests/sample_data", "ISSN-to-ISSN-L-api.txt"
-    )
+    file_path = os.path.join(app.root_path, SAMPLE_DIRECTORY, "ISSN-to-ISSN-L-api.txt")
     runner.invoke(import_issns, ["--file_path", file_path])
 
     runner.invoke(import_issn_apis)

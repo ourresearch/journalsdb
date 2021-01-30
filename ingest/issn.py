@@ -7,7 +7,7 @@ import click
 import requests
 
 from app import app, db
-from models.issn import ISSNToISSNL, ISSNTemp, ISSNHistory, ISSNMetaData
+from models.issn import ISSNHistory, ISSNMetaData, ISSNTemp, ISSNToISSNL
 
 
 @app.cli.command("import_issns")
@@ -23,48 +23,91 @@ def import_issns(file_path, initial_load):
     Run with: flask import_issns
     """
     zip_url = "https://www.issn.org/wp-content/uploads/2014/03/issnltables.zip"
-    issn_file = get_zipfile(zip_url) if not file_path else file_path
+    issn_tsv_file = get_zipfile(zip_url) if not file_path else file_path
 
-    # ensure temp ISSN table is empty
+    # ensure temp ISSN temp table is empty
+    clear_issn_temp_table()
+
+    # copy issn records into temp table
+    copy_tsv_to_temp_table(file_path, issn_tsv_file)
+
+    # sanity check
+    if not file_path and ISSNTemp.query.count() < 2000000:
+        print("not enough records in file")
+        clear_issn_temp_table()
+
+    # if initial load, simply copy the rows to the master issn_to_issnl table and map the issns
+    elif initial_load:
+        db.session.execute(
+            "INSERT INTO issn_to_issnl (issn, issn_l, created_at) SELECT issn, issn_l, NOW() FROM issn_temp;"
+        )
+        map_issns_to_issnl()
+        # finished, remove temp data
+        clear_issn_temp_table()
+
+    else:
+        # compare the regular ISSNtoISSNL table
+        # new ISSN records (in temp but not in ISSNtoISSNL)
+        new_records = db.session.execute(
+            "SELECT issn, issn_l FROM issn_temp EXCEPT SELECT issn, issn_l FROM issn_to_issnl;"
+        )
+        save_new_records(new_records)
+
+        # removed records (in ISSNtoISSNL but not in issn_temp)
+        removed_records = db.session.execute(
+            "SELECT issn, issn_l FROM issn_to_issnl EXCEPT SELECT issn, issn_l FROM issn_temp;"
+        )
+        remove_records(removed_records)
+
+        map_issns_to_issnl()
+
+        # finished, remove temp data
+        clear_issn_temp_table()
+
+
+def clear_issn_temp_table():
     db.session.query(ISSNTemp).delete()
     db.session.commit()
 
-    # copy issn records into temp table
+
+def get_zipfile(zip_url):
+    """
+    Fetches the remote zip file.
+    """
+    resp = urlopen(zip_url)
+    zipfile = ZipFile(BytesIO(resp.read()))
+    file_name = find_file_name(zipfile)
+    issn_tsv_file = zipfile.open(file_name)
+    return issn_tsv_file
+
+
+def find_file_name(zipfile):
+    """
+    Finds file from the zip archive ending with issn-to-issn-l.txt.
+    """
+    files = zipfile.namelist()
+    select_file = [f for f in files if f.lower().endswith("issn-to-issn-l.txt")]
+    file = select_file[0] if select_file else None
+    return file
+
+
+def copy_tsv_to_temp_table(file_path, issn_file):
+    """
+    Very fast way to copy 1 million or more rows into a table.
+    """
     copy_sql = "COPY issn_temp FROM STDOUT WITH (FORMAT CSV, DELIMITER '\t', HEADER)"
     conn = db.engine.raw_connection()
     with conn.cursor() as cur:
         if not file_path:
             cur.copy_expert(copy_sql, issn_file)
         else:
+            # used with test files
             with open(file_path, "rb") as f:
                 cur.copy_expert(copy_sql, f)
     conn.commit()
 
-    # sanity check
-    if not file_path and ISSNTemp.query.count() < 2000000:
-        print("not enough records in file")
-        db.session.query(ISSNTemp).delete()
-        db.session.commit()
-        return
 
-    # if initial load, simply copy the rows to the master table and map the issns
-    if initial_load:
-        db.session.execute(
-            "INSERT INTO issn_to_issnl (issn, issn_l, created_at) SELECT issn, issn_l, NOW() FROM issn_temp;"
-        )
-        map_issns_to_issnl()
-        # finished, remove temp data
-        db.session.query(ISSNTemp).delete()
-        db.session.commit()
-        return
-
-    # compare the regular ISSNtoISSNL table
-    # new ISSN records (in temp but not in ISSNtoISSNL)
-    new_records = db.session.execute(
-        "SELECT issn, issn_l FROM issn_temp EXCEPT SELECT issn, issn_l FROM issn_to_issnl;"
-    )
-
-    # save new records
+def save_new_records(new_records):
     objects = []
     history = []
     for new in new_records:
@@ -79,10 +122,8 @@ def import_issns(file_path, initial_load):
     db.session.bulk_save_objects(history)
     db.session.commit()
 
-    # removed records (in ISSNtoISSNL but not in issn_temp)
-    removed_records = db.session.execute(
-        "SELECT issn, issn_l FROM issn_to_issnl EXCEPT SELECT issn, issn_l FROM issn_temp;"
-    )
+
+def remove_records(removed_records):
     for removed in removed_records:
         r = ISSNToISSNL.query.filter_by(
             issn=removed.issn, issn_l=removed.issn_l
@@ -92,33 +133,6 @@ def import_issns(file_path, initial_load):
             ISSNHistory(issn_l=removed.issn_l, issn=removed.issn, status="removed")
         )
     db.session.commit()
-
-    map_issns_to_issnl()
-
-    # finished, remove temp data
-    db.session.query(ISSNTemp).delete()
-    db.session.commit()
-
-
-def get_zipfile(zip_url):
-    """
-    Gets the remote CSV file.
-    """
-    resp = urlopen(zip_url)
-    zipfile = ZipFile(BytesIO(resp.read()))
-    file_name = find_file_name(zipfile)
-    issn_file = zipfile.open(file_name)
-    return issn_file
-
-
-def find_file_name(zipfile):
-    """
-    Finds file from the zip archive ending with issn-to-issn-l.txt.
-    """
-    files = zipfile.namelist()
-    select_file = [f for f in files if f.lower().endswith("issn-to-issn-l.txt")]
-    file = select_file[0] if select_file else None
-    return file
 
 
 def map_issns_to_issnl():
@@ -142,23 +156,30 @@ def map_issns_to_issnl():
 
 @app.cli.command("import_issn_apis")
 def import_issn_apis():
+    """
+    Iterate over issn_metadata table, then fetch and store API data from issn.org and crossref.
+    """
     issns = ISSNMetaData.query.filter_by(updated_at=None).limit(100).all()
     for issn in issns:
-        # issn.org api
-        issn_org_url = "https://portal.issn.org/resource/ISSN/{}?format=json".format(
-            issn.issn_l
-        )
-        i = requests.get(issn_org_url)
-        if i.status_code == 200:
-            issn.issn_org_raw_api = i.json()
-            issn.updated_at = datetime.datetime.now()
-
-        # crossref api
-        crossref_url = "https://api.crossref.org/journals/{}".format(issn.issn_l)
-        c = requests.get(crossref_url)
-        if c.status_code == 200:
-            issn.crossref_raw_api = c.json()
-            issn.updated_at = datetime.datetime.now()
-            issn.crossref_issns = issn.issns_from_crossref_api
-
+        save_issn_org_api(issn)
+        save_crossref_api(issn)
         db.session.commit()
+
+
+def save_issn_org_api(issn):
+    issn_org_url = "https://portal.issn.org/resource/ISSN/{}?format=json".format(
+        issn.issn_l
+    )
+    r = requests.get(issn_org_url)
+    if r.status_code == 200:
+        issn.issn_org_raw_api = r.json()
+        issn.updated_at = datetime.datetime.now()
+
+
+def save_crossref_api(issn):
+    crossref_url = "https://api.crossref.org/journals/{}".format(issn.issn_l)
+    r = requests.get(crossref_url)
+    if r.status_code == 200:
+        issn.crossref_raw_api = r.json()
+        issn.updated_at = datetime.datetime.now()
+        issn.crossref_issns = issn.issns_from_crossref_api

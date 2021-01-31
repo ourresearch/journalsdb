@@ -2,12 +2,12 @@ import os
 
 from sqlalchemy import desc
 
-from app import app, db
+from app import app
 from ingest.issn import import_issns, import_issn_apis
-from ingest.tests.test_client import client
+from tests.ingest.test_client import client
 from models.issn import ISSNHistory, ISSNMetaData, ISSNToISSNL, LinkedISSNL
 
-SAMPLE_DIRECTORY = "ingest/tests/sample_data"
+SAMPLE_DIRECTORY = "tests/ingest/sample_data"
 
 
 def test_issn_to_issnl_import(client):

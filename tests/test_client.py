@@ -1,6 +1,7 @@
 import pytest
 
-from app import app, db
+from views import app
+from app import db
 
 
 @pytest.fixture

@@ -4,7 +4,7 @@ from sqlalchemy import desc
 
 from app import app
 from ingest.issn import import_issns, import_issn_apis
-from tests.ingest.test_client import client
+from tests.test_client import client
 from models.issn import ISSNHistory, ISSNMetaData, ISSNToISSNL, LinkedISSNL
 
 SAMPLE_DIRECTORY = "tests/ingest/sample_data"

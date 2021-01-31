@@ -2,7 +2,7 @@ import os
 
 from app import app
 from ingest.issn import import_issns, import_issn_apis
-from tests.ingest.test_client import client
+from tests.test_client import client
 from models.journal import Journal
 
 SAMPLE_DIRECTORY = "tests/ingest/sample_data"

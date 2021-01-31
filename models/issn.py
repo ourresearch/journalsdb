@@ -60,7 +60,7 @@ class ISSNMetaData(db.Model):
             if "mainTitle" in title_dict
             else title_dict.get("name")
         )
-        title = title[0] if isinstance(title, list) else title
+        title = title[0].strip() if isinstance(title, list) else title.strip()
         return title
 
     @property

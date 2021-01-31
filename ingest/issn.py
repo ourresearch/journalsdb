@@ -179,7 +179,10 @@ def save_issn_org_api(issn):
     issn_org_url = "https://portal.issn.org/resource/ISSN/{}?format=json".format(
         issn.issn_l
     )
-    r = requests.get(issn_org_url)
+    try:
+        r = requests.get(issn_org_url)
+    except requests.exceptions.ConnectionError:
+        return
     if r.status_code == 200:
         issn.issn_org_raw_api = r.json()
         issn.updated_at = datetime.datetime.now()
@@ -187,7 +190,10 @@ def save_issn_org_api(issn):
 
 def save_crossref_api(issn):
     crossref_url = "https://api.crossref.org/journals/{}".format(issn.issn_l)
-    r = requests.get(crossref_url)
+    try:
+        r = requests.get(crossref_url)
+    except requests.exceptions.ConnectionError:
+        return
     if r.status_code == 200:
         issn.crossref_raw_api = r.json()
         issn.updated_at = datetime.datetime.now()

@@ -47,6 +47,16 @@ All code is formatted with [black](https://github.com/psf/black).
 $ black .
 ```
 
+### Tests
+
+Run tests with:
+
+```bash
+$ pytest
+```
+
+You must point to a local postgresql database for testing, as sqlite does not support jsonb columsn.
+
 ### Database Migrations
 
 Migrations are managed with [flask-migrate](https://flask-migrate.readthedocs.io/en/latest/).

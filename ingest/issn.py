@@ -6,6 +6,7 @@ from zipfile import ZipFile
 
 import click
 import requests
+from sqlalchemy import func
 
 from app import app, db
 from models.issn import ISSNHistory, ISSNMetaData, ISSNTemp, ISSNToISSNL, LinkedISSNL
@@ -163,7 +164,7 @@ def import_issn_apis():
     Iterate over issn_metadata table, then fetch and store API data from issn.org and crossref.
     """
     while True:
-        chunk = ISSNMetaData.query.filter_by(updated_at=None).limit(100).all()
+        chunk = ISSNMetaData.query.filter_by(updated_at=None).order_by(func.random()).limit(100).all()
         if not chunk:
             break
         for issn in chunk:

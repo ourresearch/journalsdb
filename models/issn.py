@@ -50,11 +50,19 @@ class ISSNMetaData(db.Model):
 
     @property
     def title_from_issn_api(self):
-        title_dict = next(
-            d
-            for d in self.issn_org_raw_api["@graph"]
-            if "name" in d.keys() or "mainTitle" in d.keys()
-        )
+        if not self.issn_org_raw_api:
+            return
+        else:
+            try:
+                # find element with name or mainTitle
+                title_dict = next(
+                    d
+                    for d in self.issn_org_raw_api["@graph"]
+                    if "name" in d.keys() or "mainTitle" in d.keys()
+                )
+            except StopIteration:
+                return
+
         title = (
             title_dict["mainTitle"]
             if "mainTitle" in title_dict

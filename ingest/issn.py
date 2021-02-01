@@ -206,10 +206,10 @@ def save_crossref_api(issn):
 def set_title(issn):
     j = Journal.query.filter_by(issn_l=issn.issn_l).one_or_none()
     title = remove_control_characters(issn.title_from_issn_api)
-    if j:
+    if j and title:
         # update
         j.title = title
-    else:
+    elif title:
         j = Journal(issn_l=issn.issn_l, title=title)
         db.session.add(j)
 

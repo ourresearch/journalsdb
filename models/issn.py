@@ -60,7 +60,10 @@ class ISSNMetaData(db.Model):
             if "mainTitle" in title_dict
             else title_dict.get("name")
         )
-        title = title[0].strip() if isinstance(title, list) else title.strip()
+        if isinstance(title, list):
+            # get shortest title from the list
+            title = min(title, key=len)
+        title = title.strip()
         return title
 
     @property

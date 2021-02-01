@@ -187,6 +187,7 @@ def save_issn_org_api(issn):
     if r.status_code == 200:
         issn.issn_org_raw_api = r.json()
         issn.updated_at = datetime.datetime.now()
+        db.session.commit()
 
 
 def save_crossref_api(issn):
@@ -199,6 +200,7 @@ def save_crossref_api(issn):
         issn.crossref_raw_api = r.json()
         issn.updated_at = datetime.datetime.now()
         issn.crossref_issns = issn.issns_from_crossref_api
+        db.session.commit()
 
 
 def set_title(issn):

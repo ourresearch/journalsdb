@@ -6,7 +6,7 @@ from zipfile import ZipFile
 
 import click
 import requests
-from sqlalchemy import func
+from sqlalchemy import exc, func
 
 from app import app, db
 from models.issn import ISSNHistory, ISSNMetaData, ISSNTemp, ISSNToISSNL, LinkedISSNL
@@ -209,7 +209,10 @@ def save_crossref_api(issn):
 
 
 def set_title(issn):
-    j = Journal.query.filter_by(issn_l=issn.issn_l).one_or_none()
+    try:
+        j = Journal.query.filter_by(issn_l=issn.issn_l).one_or_none()
+    except exc.IntegrityError:
+        return
     title = remove_control_characters(issn.title_from_issn_api)
     if j and title:
         # update

@@ -86,11 +86,8 @@ def test_issn_record_removed(client):
     )
     runner.invoke(import_issns, ["--file_path", file_path])
 
-    assert ISSNToISSNL.query.count() == 4
-
-    # try to find removed record
-    issn = ISSNToISSNL.query.filter_by(issn_l="0000-006X").first()
-    assert issn is None
+    # record is still there, plan to remove manually
+    assert ISSNToISSNL.query.count() == 5
 
     # record added to history
     h = ISSNHistory.query.filter_by(

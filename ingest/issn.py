@@ -128,11 +128,10 @@ def save_new_records(new_records):
 
 
 def remove_records(removed_records):
+    """
+    Add to history table but do not delete.
+    """
     for removed in removed_records:
-        r = ISSNToISSNL.query.filter_by(
-            issn=removed.issn, issn_l=removed.issn_l
-        ).one_or_none()
-        db.session.delete(r)
         db.session.add(
             ISSNHistory(issn_l=removed.issn_l, issn=removed.issn, status="removed")
         )

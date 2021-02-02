@@ -187,39 +187,39 @@ def save_issn_org_api(issn):
     )
     try:
         r = requests.get(issn_org_url)
-    except requests.exceptions.ConnectionError:
+        if r.status_code == 200 and "@graph" in r.json():
+            issn.issn_org_raw_api = r.json()
+            issn.updated_at = datetime.datetime.now()
+            db.session.commit()
+    except (requests.exceptions.ConnectionError, json.JSONDecodeError):
         return
-    if r.status_code == 200 and "@graph" in r.json():
-        issn.issn_org_raw_api = r.json()
-        issn.updated_at = datetime.datetime.now()
-        db.session.commit()
 
 
 def save_crossref_api(issn):
     crossref_url = "https://api.crossref.org/journals/{}".format(issn.issn_l)
     try:
         r = requests.get(crossref_url)
+        if r.status_code == 200 and ISSNMetaData.issn_org_raw_api:
+            issn.crossref_raw_api = r.json()
+            issn.updated_at = datetime.datetime.now()
+            issn.crossref_issns = issn.issns_from_crossref_api
+            db.session.commit()
     except requests.exceptions.ConnectionError:
         return
-    if r.status_code == 200 and ISSNMetaData.issn_org_raw_api:
-        issn.crossref_raw_api = r.json()
-        issn.updated_at = datetime.datetime.now()
-        issn.crossref_issns = issn.issns_from_crossref_api
-        db.session.commit()
 
 
 def set_title(issn):
     try:
         j = Journal.query.filter_by(issn_l=issn.issn_l).one_or_none()
+        title = remove_control_characters(issn.title_from_issn_api)
+        if j and title:
+            # update
+            j.title = title
+        elif title:
+            j = Journal(issn_l=issn.issn_l, title=title)
+            db.session.add(j)
     except exc.IntegrityError:
         return
-    title = remove_control_characters(issn.title_from_issn_api)
-    if j and title:
-        # update
-        j.title = title
-    elif title:
-        j = Journal(issn_l=issn.issn_l, title=title)
-        db.session.add(j)
 
 
 def set_publisher(issn):

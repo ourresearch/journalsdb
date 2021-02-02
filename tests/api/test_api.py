@@ -10,8 +10,8 @@ SAMPLE_DIRECTORY = "tests/ingest/sample_data"
 
 
 def test_api_root(client):
-    rv = client.get('/')
-    msg = rv.get_json()['msg']
+    rv = client.get("/")
+    msg = rv.get_json()["msg"]
     assert rv.status_code == 200
     assert msg == "Don't panic"
 
@@ -19,24 +19,22 @@ def test_api_root(client):
 def test_find_issn(client):
     # setup
     runner = app.test_cli_runner()
-    file_path = os.path.join(
-        app.root_path, SAMPLE_DIRECTORY, "ISSN-to-ISSN-L-api.txt"
-    )
+    file_path = os.path.join(app.root_path, SAMPLE_DIRECTORY, "ISSN-to-ISSN-L-api.txt")
     runner.invoke(import_issns, ["--file_path", file_path])
     runner.invoke(import_issn_apis)
 
-    rv = client.get('/journal/2291-5222')
+    rv = client.get("/journal/2291-5222")
     json_data = rv.get_json()
     assert rv.status_code == 200
-    assert json_data['issn_l'] == '2291-5222'
-    assert json_data['issns'] == ['2291-5222']
-    assert json_data['title'] == 'JMIR mhealth and uhealth.'
-    assert json_data['publisher'] == 'JMIR Publications Inc.'
+    assert json_data["issn_l"] == "2291-5222"
+    assert json_data["issns"] == ["2291-5222"]
+    assert json_data["title"] == "JMIR mhealth and uhealth."
+    assert json_data["publisher"] == "JMIR Publications Inc."
 
-    rv = client.get('/journal/0000-0043')
+    rv = client.get("/journal/0000-0043")
     json_data = rv.get_json()
     assert rv.status_code == 200
-    assert json_data['issn_l'] == '0000-0043'
-    assert json_data['issns'] == ['0000-0043']
-    assert json_data['title'] == 'Irregular serials & annuals.'
-    assert json_data['publisher'] == ''
+    assert json_data["issn_l"] == "0000-0043"
+    assert json_data["issns"] == ["0000-0043"]
+    assert json_data["title"] == "Irregular serials & annuals."
+    assert json_data["publisher"] == ""

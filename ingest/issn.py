@@ -222,14 +222,17 @@ def set_title(issn):
 
 
 def set_publisher(issn):
-    publisher = (
-        get_or_create(db.session, Publisher, name=issn.publisher)
-        if issn.publisher
-        else None
-    )
-    j = Journal.query.filter_by(issn_l=issn.issn_l).one_or_none()
-    if j:
-        j.publisher_id = publisher.id if publisher else None
+    try:
+        publisher = (
+            get_or_create(db.session, Publisher, name=issn.publisher)
+            if issn.publisher
+            else None
+        )
+        j = Journal.query.filter_by(issn_l=issn.issn_l).one_or_none()
+        if j:
+            j.publisher_id = publisher.id if publisher else None
+    except exc.IntegrityError:
+        return
 
 
 def link_issn_l(issn):

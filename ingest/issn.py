@@ -161,6 +161,7 @@ def map_issns_to_issnl():
 def import_issn_apis():
     """
     Iterate over issn_metadata table, then fetch and store API data from issn.org and crossref.
+    Save title and publisher to journals table.
     """
     while True:
         chunk = (
@@ -218,6 +219,7 @@ def set_title(issn):
             j = Journal(issn_l=issn.issn_l, title=title)
             db.session.add(j)
     except exc.IntegrityError:
+        db.session.rollback()
         return
 
 
@@ -232,6 +234,7 @@ def set_publisher(issn):
         if j:
             j.publisher_id = publisher.id if publisher else None
     except exc.IntegrityError:
+        db.session.rollback()
         return
 
 

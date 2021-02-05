@@ -1,23 +1,8 @@
-import os
-
-from app import app
-from ingest.issn import import_issns, import_issn_apis
-from tests.test_client import client
 from models.journal import Journal
 
-SAMPLE_DIRECTORY = "tests/ingest/sample_data"
 
-
-def test_saved_publisher(client):
-    runner = app.test_cli_runner()
-
-    # run initial issn-to-issn-l file
-    file_path = os.path.join(
-        app.root_path, SAMPLE_DIRECTORY, "ISSN-to-ISSN-L-linked.txt"
-    )
-    runner.invoke(import_issns, ["--file_path", file_path])
-
-    runner.invoke(import_issn_apis)
+def test_saved_publisher(client, run_import_issns_with_api):
+    run_import_issns_with_api("ISSN-to-ISSN-L-linked.txt")
 
     j = Journal.query.filter_by(issn_l="2582-2810").one()
     assert j.publisher.name == "Shanlax International Journals"

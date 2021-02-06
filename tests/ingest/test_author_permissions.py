@@ -11,7 +11,7 @@ test_data = {
     "Has Policy?": ["Yes"],
     "Version(s) archivable": ["Postprint, Preprint"],
     "Archiving Locations Allowed": ["Institutional Repository"],
-    "Post-Print Embargo": [12],
+    "Post-Print Embargo": ["12"],
     "Licence(s) Allowed": ["CC-BY-NC-ND"],
     "Deposit Statement Required": [
         "© This manuscript version is made available under the CC-BY-NC-ND 4.0 license https://creativecommons.org/licenses/by-nc-nd/4.0/"

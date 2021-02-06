@@ -45,9 +45,13 @@ def import_author_permissions():
 
 
 def valid_data(row):
-    if type(row["post_print_embargo"]) is not int or row["id"] is None:
-        print("invalid data in row", dict(row))
+    if (
+        type(row["post_print_embargo"]) is not int
+        and row["post_print_embargo"].isnumeric() is False
+        or row["id"] is None
+    ):
         return False
+        print("invalid data in row", dict(row))
     else:
         return True
 

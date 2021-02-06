@@ -62,11 +62,9 @@ class Journal(db.Model, TimestampMixin):
             ISSNMetaData.crossref_issns.contains(json.dumps(issn))
         ).first()
 
-        journal = issn_in_issn_org or issn_in_crossref
-        if journal:
-            return journal
-        else:
-            return None
+        metadata_record = issn_in_issn_org or issn_in_crossref
+        if metadata_record:
+            return cls.query.filter_by(issn_l=metadata_record.issn_l).one_or_none()
 
     @classmethod
     def find_by_synonym(cls, synonym):

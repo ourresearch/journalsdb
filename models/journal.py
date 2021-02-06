@@ -47,14 +47,26 @@ class Journal(db.Model, TimestampMixin):
 
     @classmethod
     def find_by_issn(cls, issn):
-        issn_in_crossref = ISSNMetaData.query.filter(
-            ISSNMetaData.crossref_issns.contains(json.dumps(issn))
-        ).first()
+        # try to find by issn_l
+        journal = cls.query.filter_by(issn_l=issn).one_or_none()
+        if journal:
+            return journal
+
+        # find in issn_org issns
         issn_in_issn_org = ISSNMetaData.query.filter(
             ISSNMetaData.issn_org_issns.contains(json.dumps(issn))
         ).first()
-        found_issn_l = issn_in_crossref or issn_in_issn_org
-        return cls.query.filter_by(issn_l=found_issn_l.issn_l).first()
+
+        # find in crossref issns
+        issn_in_crossref = ISSNMetaData.query.filter(
+            ISSNMetaData.crossref_issns.contains(json.dumps(issn))
+        ).first()
+
+        journal = issn_in_issn_org or issn_in_crossref
+        if journal:
+            return journal
+        else:
+            return None
 
     @classmethod
     def find_by_synonym(cls, synonym):

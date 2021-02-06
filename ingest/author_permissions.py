@@ -45,7 +45,7 @@ def import_author_permissions():
 
 
 def valid_data(row):
-    if row["post_print_embargo"].isnumeric() is False or row["id"] is None:
+    if type(row["post_print_embargo"]) is not int or row["id"] is None:
         print("invalid data in row", dict(row))
         return False
     else:
@@ -84,8 +84,9 @@ def permissions_exists(journal):
 def update_existing_permissions(journal, row):
     permission = AuthorPermissions.query.filter_by(journal_id=journal.id).one_or_none()
     columns = AuthorPermissions.__table__.columns._data.keys()
+    fields_to_ignore = ["id", "journal_id", "created_at", "update_at"]
     for column in columns:
-        if column == "journal_id" or column == "id":
+        if column in fields_to_ignore:
             continue
         else:
             setattr(permission, column, row[column])
@@ -94,10 +95,11 @@ def update_existing_permissions(journal, row):
 def save_new_permission(journal, row):
     columns = AuthorPermissions.__table__.columns._data.keys()
     new_permission = AuthorPermissions()
+    fields_to_ignore = ["id", "created_at", "updated_at"]
     for column in columns:
         if column == "journal_id":
             new_permission.journal_id = journal.id
-        elif column == "id":
+        elif column in fields_to_ignore:
             continue
         else:
             setattr(new_permission, column, row[column])

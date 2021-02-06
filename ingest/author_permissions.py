@@ -88,7 +88,7 @@ def permissions_exists(journal):
 def update_existing_permissions(journal, row):
     permission = AuthorPermissions.query.filter_by(journal_id=journal.id).one_or_none()
     columns = AuthorPermissions.__table__.columns._data.keys()
-    fields_to_ignore = ["id", "journal_id", "created_at", "update_at"]
+    fields_to_ignore = ["id", "journal_id", "created_at", "updated_at"]
     for column in columns:
         if column in fields_to_ignore:
             continue

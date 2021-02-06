@@ -132,9 +132,13 @@ def remove_records(removed_records):
     Add to history table but do not delete.
     """
     for removed in removed_records:
-        db.session.add(
-            ISSNHistory(issn_l=removed.issn_l, issn=removed.issn, status="removed")
-        )
+        existing = ISSNHistory.query.filter_by(
+            issn_l=removed.issn_l, issn=removed.issn, status="removed"
+        ).one_or_none()
+        if not existing:
+            db.session.add(
+                ISSNHistory(issn_l=removed.issn_l, issn=removed.issn, status="removed")
+            )
     db.session.commit()
 
 

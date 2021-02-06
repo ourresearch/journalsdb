@@ -73,9 +73,7 @@ def find_journal(row):
     journal = None
     issns = row["id"].split(",")
     for issn in issns:
-        journal = Journal.query.filter_by(
-            issn_l=issn.strip()
-        ).one_or_none() or Journal.find_by_issn(issn.strip())
+        journal = Journal.find_by_issn(issn.strip())
         if journal:
             break
     return journal

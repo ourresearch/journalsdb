@@ -25,7 +25,6 @@ with app.app_context():
     # needed to make CLI ingest work
     from ingest.author_permissions import *
     from ingest.issn import *
-    from ingest.journals import *
     from ingest.open_access import *
     from ingest.readership import *
     from ingest.repositories import *

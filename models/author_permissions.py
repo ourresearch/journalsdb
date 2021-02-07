@@ -25,6 +25,8 @@ class AuthorPermissions(db.Model, TimestampMixin):
         for field in fields_to_remove:
             dict_.pop(field)
 
+        dict_["provenance"] = "https://shareyourpaper.org/permissions/about#data"
+
         return dict_
 
     # post_publication = db.Column(db.Boolean)

@@ -37,10 +37,9 @@ def import_open_access():
     """
     url = "https://api.unpaywall.org/journal_open_access.csv.gz"
     for chunk in pd.read_csv(
-        url, compression="gzip", keep_default_na=False, chunksize=10000
+        url, compression="gzip", keep_default_na=False, chunksize=1000
     ):
         new_records = []
-        updated_records = []
         for row in chunk.to_dict(orient="records"):
             if OpenAccess.query.filter_by(
                 hash=json.dumps(row, sort_keys=True)

@@ -147,15 +147,21 @@ class TestAPIImport:
         run_import_issns_with_api("ISSN-to-ISSN-L-linked.txt")
 
         # linked
-        l = LinkedISSNL.query.filter_by(
+        l_var_1 = LinkedISSNL.query.filter_by(
             issn_l_primary="0974-4061", issn_l_secondary="0974-4053"
         ).one_or_none()
-        assert l is not None
+        l_var_2 = LinkedISSNL.query.filter_by(
+            issn_l_primary="0974-4053", issn_l_secondary="0974-4061"
+        ).one_or_none()
+        assert l_var_1 is not None or l_var_2 is not None
 
-        l = LinkedISSNL.query.filter_by(
+        l_var_1 = LinkedISSNL.query.filter_by(
             issn_l_primary="2582-2810", issn_l_secondary="2454-3993"
         ).one_or_none()
-        assert l is not None
+        l_var_2 = LinkedISSNL.query.filter_by(
+            issn_l_primary="2454-3993", issn_l_secondary="2582-2810"
+        ).one_or_none()
+        assert l_var_1 is not None or l_var_2 is not None
 
         # not linked
         l = LinkedISSNL.query.filter_by(issn_l_primary="0000-0043").one_or_none()

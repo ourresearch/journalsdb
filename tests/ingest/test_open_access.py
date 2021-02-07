@@ -38,11 +38,31 @@ def test_import_open_access(client, run_import_issns_with_api, mocker):
     runner.invoke(import_open_access)
 
     j = Journal.query.filter_by(issn_l="1876-2859").one()
-    oas = OpenAccessStatus.query.filter_by(journal_id=j.id).one()
+    oas = OpenAccessStatus.query.filter_by(journal_id=j.id).first()
 
     assert oas.is_in_doaj is False
     assert oas.year == 2010
 
-    oap = OpenAccessPublishing.query.filter_by(journal_id=j.id).one()
+    oap = OpenAccessPublishing.query.filter_by(journal_id=j.id).first()
     assert oap.num_dois == 10
     assert oap.open_rate == 0.7
+
+
+def test_import_open_access_no_duplicate(client, run_import_issns_with_api, mocker):
+    mocker.patch(
+        "ingest.open_access.pd.read_csv",
+        return_value=pd.DataFrame(data=test_data),
+    )
+    run_import_issns_with_api("ISSN-to-ISSN-L-api.txt")
+
+    # run command
+    runner = app.test_cli_runner()
+    runner.invoke(import_open_access)
+
+    # run again
+    runner.invoke(import_open_access)
+
+    j = Journal.query.filter_by(issn_l="1876-2859").one()
+    oas = OpenAccessStatus.query.filter_by(journal_id=j.id).all()
+
+    assert len(oas) == 1

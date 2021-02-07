@@ -36,7 +36,11 @@ def import_open_access():
     Run with: flask import_open_access
     """
     url = "https://api.unpaywall.org/journal_open_access.csv.gz"
-    for chunk in pd.read_csv(url, compression="gzip", keep_default_na=False, chunksize=10000):
+    for chunk in pd.read_csv(
+        url, compression="gzip", keep_default_na=False, chunksize=10000
+    ):
+        new_records = []
+        updated_records = []
         for row in chunk.to_dict(orient="records"):
             if OpenAccess.query.filter_by(
                 hash=json.dumps(row, sort_keys=True)
@@ -55,8 +59,9 @@ def import_open_access():
             if existing_oa:
                 update_existing_oa(existing_oa, row)
             else:
-                save_new_oa(journal, row)
+                new_records.append(new_oa(journal, row))
 
+        db.session.bulk_insert_mappings(OpenAccess, new_records)
         db.session.commit()
 
 
@@ -68,6 +73,7 @@ def valid_data(row):
 
 
 def update_existing_oa(oa, row):
+    print("updating record {}".format(oa))
     # update hash
     oa.hash = json.dumps(row, sort_keys=True)
 
@@ -81,7 +87,7 @@ def update_existing_oa(oa, row):
         setattr(oa, key, value)
 
 
-def save_new_oa(journal, row):
+def new_oa(journal, row):
     if not journal:
         print("Journal not found for open access data")
         return
@@ -92,6 +98,5 @@ def save_new_oa(journal, row):
     for field in fields_to_remove:
         row.pop(field)
 
-    # save remaining fields to new object
-    oa = OpenAccess(**row, hash=hash_key, journal_id=journal.id)
-    db.session.add(oa)
+    # return remaining fields
+    return dict(**row, hash=hash_key, journal_id=journal.id)

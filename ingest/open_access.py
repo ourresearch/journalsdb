@@ -61,6 +61,8 @@ def import_open_access():
         else:
             save_new_oa_publishing(journal, row)
 
+        db.session.commit()
+
 
 def valid_oa_data(row):
     if not row["issn_l"] or not row["year"]:
@@ -72,7 +74,6 @@ def valid_oa_data(row):
 def update_existing_oa_status(status, row):
     status.is_in_doaj = row["is_in_doaj"]
     status.is_gold_journal = row["is_gold_journal"]
-    db.session.commit()
 
 
 def save_new_oa_status(journal, row):
@@ -87,7 +88,6 @@ def save_new_oa_status(journal, row):
         year=row["year"],
     )
     db.session.add(oa_status)
-    db.session.commit()
 
 
 def update_existing_oa_publishing(pub, row):
@@ -99,7 +99,6 @@ def update_existing_oa_publishing(pub, row):
     # update remaining fields
     for key, value in row.iteritems():
         setattr(pub, key, value)
-    db.session.commit()
 
 
 def save_new_oa_publishing(journal, row):
@@ -115,4 +114,3 @@ def save_new_oa_publishing(journal, row):
     oa_publishing = OpenAccessPublishing(**row, journal_id=journal.id)
 
     db.session.add(oa_publishing)
-    db.session.commit()

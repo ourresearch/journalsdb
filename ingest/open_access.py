@@ -35,7 +35,6 @@ def import_open_access():
     """
     url = "https://api.unpaywall.org/journal_open_access.csv.gz"
     df = pd.read_csv(url, compression="gzip", keep_default_na=False)
-    count = len(df.index)
 
     for index, row in df.iterrows():
         if not valid_oa_data(row):

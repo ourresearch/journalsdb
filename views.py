@@ -2,7 +2,7 @@ from flask import abort, jsonify, request
 
 from app import app
 from models.journal import Journal
-from models.usage import OpenAccessStatus
+from models.usage import OpenAccess
 
 
 @app.route("/")
@@ -45,7 +45,7 @@ def journal_detail(issn):
 def build_journal_dict(journal):
     journal_dict = journal.to_dict()
     journal_dict["open_access_status"] = (
-        OpenAccessStatus.recent_status(journal.id).to_dict()
+        OpenAccess.recent_status(journal.id).to_dict()
         if journal.open_access_status
         else None
     )

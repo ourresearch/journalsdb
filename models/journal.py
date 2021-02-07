@@ -41,8 +41,8 @@ class Journal(db.Model, TimestampMixin):
     subscription_prices = db.relationship(
         "SubscriptionPrice", secondary=journal_subscription_price, lazy="subquery"
     )
-    open_access_status = db.relationship(
-        "OpenAccessStatus", backref="journal", order_by="OpenAccessStatus.year.desc()"
+    open_access = db.relationship(
+        "OpenAccess", backref="journal", order_by="OpenAccess.year.desc()"
     )
 
     @classmethod

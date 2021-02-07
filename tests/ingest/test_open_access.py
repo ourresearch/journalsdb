@@ -1,7 +1,7 @@
 import pandas as pd
 
 from ingest.open_access import import_open_access
-from models.usage import OpenAccessPublishing, OpenAccessStatus
+from models.usage import OpenAccess
 from models.journal import Journal
 from views import app
 
@@ -38,14 +38,12 @@ def test_import_open_access(client, run_import_issns_with_api, mocker):
     runner.invoke(import_open_access)
 
     j = Journal.query.filter_by(issn_l="1876-2859").one()
-    oas = OpenAccessStatus.query.filter_by(journal_id=j.id).first()
+    oa = OpenAccess.query.filter_by(journal_id=j.id).first()
 
-    assert oas.is_in_doaj is False
-    assert oas.year == 2010
-
-    oap = OpenAccessPublishing.query.filter_by(journal_id=j.id).first()
-    assert oap.num_dois == 10
-    assert oap.open_rate == 0.7
+    assert oa.is_in_doaj is False
+    assert oa.year == 2010
+    assert oa.num_dois == 10
+    assert oa.open_rate == 0.7
 
 
 def test_import_open_access_no_duplicate(client, run_import_issns_with_api, mocker):
@@ -63,6 +61,6 @@ def test_import_open_access_no_duplicate(client, run_import_issns_with_api, mock
     runner.invoke(import_open_access)
 
     j = Journal.query.filter_by(issn_l="1876-2859").one()
-    oas = OpenAccessStatus.query.filter_by(journal_id=j.id).all()
+    oas = OpenAccess.query.filter_by(journal_id=j.id).all()
 
     assert len(oas) == 1

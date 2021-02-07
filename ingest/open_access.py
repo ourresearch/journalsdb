@@ -1,8 +1,10 @@
+import json
+
 import pandas as pd
 
 from app import app, db
 from ingest.utils import find_journal
-from models.usage import OpenAccessPublishing, OpenAccessStatus
+from models.usage import OpenAccess
 
 
 @app.cli.command("import_open_access")
@@ -37,80 +39,60 @@ def import_open_access():
     df = pd.read_csv(url, compression="gzip", keep_default_na=False)
 
     for row in df.to_dict(orient="records"):
-        if not valid_oa_data(row):
+        if OpenAccess.query.filter_by(
+            hash=json.dumps(row, sort_keys=True)
+        ).one_or_none():
+            continue
+
+        if not valid_data(row):
             continue
 
         # oa status
         journal = find_journal(row["issn_l"])
-        existing_oa_status = OpenAccessStatus.query.filter_by(
+        existing_oa = OpenAccess.query.filter_by(
             journal_id=journal.id, year=(int(row["year"]))
         ).one_or_none()
 
-        if existing_oa_status:
-            update_existing_oa_status(existing_oa_status, row)
+        if existing_oa:
+            update_existing_oa(existing_oa, row)
         else:
-            save_new_oa_status(journal, row)
-
-        # oa publishing
-        existing_oa_publishing = OpenAccessPublishing.query.filter_by(
-            journal_id=journal.id, year=(int(row["year"]))
-        ).one_or_none()
-
-        if existing_oa_publishing:
-            update_existing_oa_publishing(existing_oa_publishing, row)
-        else:
-            save_new_oa_publishing(journal, row)
+            save_new_oa(journal, row)
 
         db.session.commit()
 
 
-def valid_oa_data(row):
+def valid_data(row):
     if not row["issn_l"] or not row["year"]:
         return False
     else:
         return True
 
 
-def update_existing_oa_status(status, row):
-    status.is_in_doaj = row["is_in_doaj"]
-    status.is_gold_journal = row["is_gold_journal"]
+def update_existing_oa(oa, row):
+    # update hash
+    oa.hash = json.dumps(row, sort_keys=True)
 
-
-def save_new_oa_status(journal, row):
-    if not journal:
-        print("Journal not found for open access data")
-        return
-
-    oa_status = OpenAccessStatus(
-        journal_id=journal.id,
-        is_in_doaj=row["is_in_doaj"],
-        is_gold_journal=row["is_gold_journal"],
-        year=row["year"],
-    )
-    db.session.add(oa_status)
-
-
-def update_existing_oa_publishing(pub, row):
-    # remove status fields
-    fields_to_remove = ["is_in_doaj", "is_gold_journal", "issn_l", "title"]
+    # remove fields
+    fields_to_remove = ["issn_l", "title"]
     for field in fields_to_remove:
         row.pop(field)
 
     # update remaining fields
     for key, value in row.iteritems():
-        setattr(pub, key, value)
+        setattr(oa, key, value)
 
 
-def save_new_oa_publishing(journal, row):
+def save_new_oa(journal, row):
     if not journal:
         print("Journal not found for open access data")
         return
 
-    fields_to_remove = ["is_in_doaj", "is_gold_journal", "issn_l", "title"]
+    hash_key = json.dumps(row, sort_keys=True)
+
+    fields_to_remove = ["issn_l", "title"]
     for field in fields_to_remove:
         row.pop(field)
 
     # save remaining fields to new object
-    oa_publishing = OpenAccessPublishing(**row, journal_id=journal.id)
-
-    db.session.add(oa_publishing)
+    oa = OpenAccess(**row, hash=hash_key, journal_id=journal.id)
+    db.session.add(oa)

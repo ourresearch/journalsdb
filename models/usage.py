@@ -4,11 +4,16 @@ from app import db
 from models.mixins import TimestampMixin
 
 
-class OpenAccessPublishing(db.Model, TimestampMixin):
-    __tablename__ = "open_access_publishing"
+class OpenAccess(db.Model, TimestampMixin):
+    __tablename__ = "open_access"
 
     id = db.Column(db.Integer, primary_key=True)
     journal_id = db.Column(db.Integer, db.ForeignKey("journals.id"))
+    year = db.Column(db.Integer, nullable=False)
+    is_in_doaj = db.Column(db.Boolean)
+    is_hybrid_journal = db.Column(db.Boolean)
+    is_gold_journal = db.Column(db.Boolean)
+    is_diamond_oa = db.Column(db.Boolean)
     num_dois = db.Column(db.Integer)
     num_open = db.Column(db.Integer)
     open_rate = db.Column(db.Float)
@@ -20,19 +25,13 @@ class OpenAccessPublishing(db.Model, TimestampMixin):
     hybrid_rate = db.Column(db.Float)
     num_gold = db.Column(db.Integer)
     gold_rate = db.Column(db.Float)
-    year = db.Column(db.Integer, nullable=False)
+    hash = db.Column(db.Text)
 
-
-class OpenAccessStatus(db.Model, TimestampMixin):
-    __tablename__ = "open_access_status"
-
-    id = db.Column(db.Integer, primary_key=True)
-    journal_id = db.Column(db.Integer, db.ForeignKey("journals.id"))
-    is_in_doaj = db.Column(db.Boolean)
-    is_hybrid_journal = db.Column(db.Boolean)
-    is_gold_journal = db.Column(db.Boolean)
-    is_diamond_oa = db.Column(db.Boolean)
-    year = db.Column(db.Integer, nullable=False)
+    @classmethod
+    def recent_status(cls, journal_id):
+        return (
+            cls.query.filter_by(journal_id=journal_id).order_by(cls.year.desc()).first()
+        )
 
     def to_dict(self):
         return {
@@ -40,12 +39,6 @@ class OpenAccessStatus(db.Model, TimestampMixin):
             "is_in_doaj": self.is_in_doaj,
             "is_gold_journal": self.is_gold_journal,
         }
-
-    @classmethod
-    def recent_status(cls, journal_id):
-        return (
-            cls.query.filter_by(journal_id=journal_id).order_by(cls.year.desc()).first()
-        )
 
 
 class Repository(db.Model, TimestampMixin):

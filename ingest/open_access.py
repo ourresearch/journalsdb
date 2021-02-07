@@ -77,7 +77,7 @@ def update_existing_oa(oa, row):
         row.pop(field)
 
     # update remaining fields
-    for key, value in row.iteritems():
+    for key, value in row.items():
         setattr(oa, key, value)
 
 

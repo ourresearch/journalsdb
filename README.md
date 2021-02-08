@@ -1,14 +1,15 @@
 # JournalsDB API
 
-This is the API for JournalsDB.
+This is the API for [JournalsDB](http://journalsdb.org/).
 
 ## Developer Instructions
 
 ### Setup
 
 1. `pip install -f requirements.txt`
-2. Set `DATABASE_URL` environment variable to point to postgresql database
-3. Ingest data
+2. Set `DATABASE_URL` environment variable to point to a postgresql database
+3. Build database with command `flask db upgrade`
+4. Ingest initial data by running `flask import_issns`, followed by `flask import_issn_apis` (second command takes 6+ hours for initial load)
 
 ### Ingest data
 
@@ -20,20 +21,35 @@ To see a list of available cli commands:
 $ flask
 Commands:
   db                         Perform database migrations.
+  import_author_permissions  Google sheet from...
   import_extension_requests  Extension requests:...
-  import_journals            Journal metadata:...
+  import_issn_apis           Iterate over issn_metadata table, then fetch...
+  import_issns               Master ISSN list:...
   import_open_access         Open access data:...
-  import_permissions         Google sheet from...
   import_repositories        Repository article counts:...
 ```
 
-Run a command:
+### Database Migrations
+
+Migrations are managed with [flask-migrate](https://flask-migrate.readthedocs.io/en/latest/).
+
+Run the migration files to build the database:
 
 ```bash
-$ flask import_journals
+$ flask db upgrade
 ```
 
-Most data is imported from hosted CSV files using [Pandas `read_csv`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html).
+View current migration status with:
+
+```bash
+$ flask db current
+```
+
+To create migrations for changed models:
+
+```bash
+$ flask db migrate -m "Add title field"
+```
 
 ### CORS
 
@@ -49,33 +65,11 @@ $ black .
 
 ### Tests
 
+You must point to a local postgresql database for testing, as sqlite does not support jsonb columsn. 
+The default name is `journalsdb_test`.
+
 Run tests with:
 
 ```bash
 $ pytest
-```
-
-You must point to a local postgresql database for testing, as sqlite does not support jsonb columsn.
-
-### Database Migrations
-
-Migrations are managed with [flask-migrate](https://flask-migrate.readthedocs.io/en/latest/).
-
-View current migration status with:
-
-```bash
-$ flask db current
-```
-
-Add or remove models, then:
-
-1. Create a new migration file
-
-```bash
-$ flask db migrate -m "Add title field"
-```
-
-2. Run the migration file
-```bash
-$ flask db upgrade
 ```

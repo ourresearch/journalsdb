@@ -29,7 +29,7 @@ test_data = {
 def test_import_open_access(client, run_import_issns_with_api, mocker):
     mocker.patch(
         "ingest.open_access.pd.read_csv",
-        return_value=pd.DataFrame(data=test_data),
+        return_value=[pd.DataFrame(data=test_data)],
     )
     run_import_issns_with_api("ISSN-to-ISSN-L-api.txt")
 
@@ -49,7 +49,7 @@ def test_import_open_access(client, run_import_issns_with_api, mocker):
 def test_import_open_access_no_duplicate(client, run_import_issns_with_api, mocker):
     mocker.patch(
         "ingest.open_access.pd.read_csv",
-        return_value=pd.DataFrame(data=test_data),
+        return_value=[pd.DataFrame(data=test_data)],
     )
     run_import_issns_with_api("ISSN-to-ISSN-L-api.txt")
 

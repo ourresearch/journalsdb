@@ -6,7 +6,7 @@ This is the API for [JournalsDB](http://journalsdb.org/).
 
 ### Setup
 
-1. `pip install -f requirements.txt`
+1. `pip install -r requirements.txt`
 2. Set `DATABASE_URL` environment variable to point to a postgresql database
 3. Build database with command `flask db upgrade`
 4. Ingest initial data by running `flask import_issns`, followed by `flask import_issn_apis` (second command takes 6+ hours for initial load)

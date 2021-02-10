@@ -3,7 +3,7 @@ import json
 import pandas as pd
 
 from app import app, db
-from ingest.utils import find_journal
+from ingest.utils import CSVImporter, find_journal
 from models.usage import OpenAccess
 
 
@@ -36,32 +36,40 @@ def import_open_access():
     Run with: flask import_open_access
     """
     url = "https://api.unpaywall.org/journal_open_access.csv.gz"
-    for chunk in pd.read_csv(
-        url, compression="gzip", keep_default_na=False, chunksize=1000
-    ):
-        new_records = []
-        for row in chunk.to_dict(orient="records"):
-            if OpenAccess.query.filter_by(
-                hash=json.dumps(row, sort_keys=True)
-            ).one_or_none():
-                continue
-
-            if not valid_data(row):
-                continue
-
-            # oa status
-            journal = find_journal(row["issn_l"])
-            existing_oa = OpenAccess.query.filter_by(
-                journal_id=journal.id, year=(int(row["year"]))
-            ).one_or_none()
-
-            if existing_oa:
-                update_existing_oa(existing_oa, row)
-            else:
-                new_records.append(new_oa(journal, row))
-
-        db.session.bulk_insert_mappings(OpenAccess, new_records)
-        db.session.commit()
+    fields = OpenAccess.__table__.columns.keys()
+    fields.remove("id")
+    fields.remove("created_at")
+    fields.remove("updated_at")
+    fields = ",".join(fields)
+    print(fields)
+    c = CSVImporter(fields=fields, table="open_access", url=url)
+    c.import_data()
+    # for chunk in pd.read_csv(
+    #     url, compression="gzip", keep_default_na=False, chunksize=1000
+    # ):
+    #     new_records = []
+    #     for row in chunk.to_dict(orient="records"):
+    #         if OpenAccess.query.filter_by(
+    #             hash=json.dumps(row, sort_keys=True)
+    #         ).one_or_none():
+    #             continue
+    #
+    #         if not valid_data(row):
+    #             continue
+    #
+    #         # oa status
+    #         journal = find_journal(row["issn_l"])
+    #         existing_oa = OpenAccess.query.filter_by(
+    #             journal_id=journal.id, year=(int(row["year"]))
+    #         ).one_or_none()
+    #
+    #         if existing_oa:
+    #             update_existing_oa(existing_oa, row)
+    #         else:
+    #             new_records.append(new_oa(journal, row))
+    #
+    #     db.session.bulk_insert_mappings(OpenAccess, new_records)
+    #     db.session.commit()
 
 
 def valid_data(row):

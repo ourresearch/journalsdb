@@ -1,4 +1,3 @@
-import csv
 import gzip
 import unicodedata
 import urllib.request
@@ -8,7 +7,8 @@ from models.journal import Journal
 
 
 class CSVImporter:
-    def __init__(self, table, url):
+    def __init__(self, fields, table, url):
+        self.fields = fields
         self.table = table
         self.staging_table = table + "_staging"
         self.url = url
@@ -16,6 +16,8 @@ class CSVImporter:
     def import_data(self):
         self.create_temp_table()
         self.copy_csv_to_temp_table()
+        self.copy_temp_to_standard()
+        self.drop_temp_table()
 
     def get_file(self):
         """
@@ -29,8 +31,8 @@ class CSVImporter:
         """
         Very fast way to copy 1 million or more rows into a table.
         """
-        copy_sql = "COPY {} FROM STDOUT WITH (FORMAT CSV, DELIMITER ',', HEADER, ENCODING 'ISO_8859_5')".format(
-            self.staging_table
+        copy_sql = "COPY {}({}) FROM STDOUT WITH (FORMAT CSV, DELIMITER ',', HEADER, ENCODING 'ISO_8859_5')".format(
+            self.staging_table, self.fields
         )
         conn = db.engine.raw_connection()
         with conn.cursor() as cur:
@@ -38,8 +40,8 @@ class CSVImporter:
         conn.commit()
 
     def copy_temp_to_standard(self):
-        copy_sql = "INSERT INTO {} SELECT * FROM {} ON CONFLICT DO UPDATE;".format(
-            self.table, self.staging_table
+        copy_sql = "INSERT INTO {table} ({fields}) SELECT {fields} FROM {staging_table} WHERE year IS NOT NULL ON CONFLICT (issn_l, year) DO UPDATE SET num_dois=excluded.num_dois;".format(
+            table=self.table, fields=self.fields, staging_table=self.staging_table
         )
         db.session.execute(copy_sql)
         db.session.commit()
@@ -48,6 +50,11 @@ class CSVImporter:
         db.session.execute(
             "CREATE TABLE {} ( like {} including all)".format(
                 self.staging_table, self.table
+            )
+        )
+        db.session.execute(
+            "ALTER TABLE {} DROP COLUMN id, DROP COLUMN created_at, DROP COLUMN updated_at, ALTER year DROP NOT NULL;".format(
+                self.staging_table
             )
         )
         db.session.commit()

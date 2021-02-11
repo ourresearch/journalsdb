@@ -23,7 +23,6 @@ def upgrade():
     op.create_index(
         op.f("ix_open_access_issn_l"), "open_access", ["issn_l"], unique=False
     )
-    op.drop_constraint("open_access_journal_id_fkey", "open_access", type_="foreignkey")
     op.drop_column("open_access", "journal_id")
     # ### end Alembic commands ###
 

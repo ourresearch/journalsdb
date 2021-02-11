@@ -8,12 +8,9 @@ class OpenAccess(db.Model, TimestampMixin):
     __tablename__ = "open_access"
 
     id = db.Column(db.Integer, primary_key=True)
-    journal_id = db.Column(db.Integer, db.ForeignKey("journals.id"))
+    issn_l = db.Column(db.Text, nullable=False, index=True)
+    title = db.Column(db.Text)
     year = db.Column(db.Integer, nullable=False)
-    is_in_doaj = db.Column(db.Boolean)
-    is_hybrid_journal = db.Column(db.Boolean)
-    is_gold_journal = db.Column(db.Boolean)
-    is_diamond_oa = db.Column(db.Boolean)
     num_dois = db.Column(db.Integer)
     num_open = db.Column(db.Integer)
     open_rate = db.Column(db.Float)
@@ -25,7 +22,10 @@ class OpenAccess(db.Model, TimestampMixin):
     hybrid_rate = db.Column(db.Float)
     num_gold = db.Column(db.Integer)
     gold_rate = db.Column(db.Float)
-    hash = db.Column(db.Text)
+    is_in_doaj = db.Column(db.Boolean)
+    is_gold_journal = db.Column(db.Boolean)
+
+    __table_args__ = (db.UniqueConstraint("issn_l", "year"),)
 
     @classmethod
     def recent_status(cls, journal_id):

@@ -13,6 +13,8 @@ from models.issn import ISSNHistory, ISSNMetaData, ISSNTemp, ISSNToISSNL, Linked
 from models.journal import Journal, Publisher
 from ingest.utils import get_or_create, remove_control_characters
 
+from csv import reader
+
 
 @app.cli.command("import_issns")
 @click.option("--file_path")
@@ -67,6 +69,34 @@ def import_issns(file_path, initial_load):
 
         # finished, remove temp data
         clear_issn_temp_table()
+
+
+@app.cli.command("remove_issns")
+@click.option("--file_path")
+def remove_issns(file_path):
+    """
+    Takes a CSV file with each row containing an ISSN_L. Removes these ISSN_L entries
+    from the ISSNMetaData table.
+    Run with: flask remove_issns --file_path filename
+    """
+    issns_to_keep = set()
+
+    with open(file_path, "r") as file:
+        csv_reader = reader(file)
+        for row in csv_reader:
+            issns_to_keep.add(row[0])  # rows are lists, 0 position is the value
+
+    all_issns = set(
+        [entry.issn_l for entry in db.session.query(ISSNMetaData).distinct()]
+    )
+
+    issns_to_remove = all_issns - issns_to_keep
+
+    deletion = ISSNMetaData.__table__.delete().where(
+        ISSNMetaData.issn_l.in_(issns_to_remove)
+    )
+    db.session.execute(deletion)
+    db.session.commit()
 
 
 def clear_issn_temp_table():

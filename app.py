@@ -28,3 +28,4 @@ with app.app_context():
     from ingest.open_access import *
     from ingest.readership import *
     from ingest.repositories import *
+    from ingest.locations import *

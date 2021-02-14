@@ -1,9 +1,9 @@
-from app import app, db
-from models.location import Country, Continent
+import pandas as pd
 
 import click
 
-import pandas as pd
+from app import app, db
+from models.location import Country, Continent
 
 
 @app.cli.command("import_locations")

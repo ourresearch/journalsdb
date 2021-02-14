@@ -1,4 +1,4 @@
-import click
+import os
 import pandas as pd
 
 from app import app, db
@@ -6,8 +6,7 @@ from models.price import Currency
 
 
 @app.cli.command("import_currency")
-@click.option("--file_path")
-def import_currency(file_path):
+def import_currency():
     """
     Loads up a provided CSV file of world currencies and extracts the unicode symbol
     and text label associated with each currency. Loads these into the Currency table
@@ -18,9 +17,10 @@ def import_currency(file_path):
     The Serbia Dinar has a '.' at the end which is removed by this script.
     INR value should be updated manually with the _unicode-decimal value 8377
 
-    Run with 'flask import_currency --file_path /path/to/file'
+    Run with 'flask import_currency'
     """
-    df = pd.read_csv(file_path)
+    csv_file = os.path.join(app.root_path, "ingest/files/currency.csv")
+    df = pd.read_csv(csv_file)
     df = df.dropna()
 
     MAX_SYMBOL_LENGTH = 3

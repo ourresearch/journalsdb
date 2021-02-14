@@ -1,20 +1,20 @@
-import pandas as pd
+import os
 
-import click
+import pandas as pd
 
 from app import app, db
 from models.location import Country, Continent
 
 
 @app.cli.command("import_locations")
-@click.option("--file_path")
-def import_locations(file_path):
+def import_locations():
     """
     Imports location data from a specified CSV file.
     CSV data pulled from https://datahub.io/JohnSnowLabs/country-and-continent-codes-list
     run with flask import_locations
     """
-    df = pd.read_csv(file_path, keep_default_na=False)
+    csv_file = os.path.join(app.root_path, "ingest/files/locations.csv")
+    df = pd.read_csv(csv_file, keep_default_na=False)
 
     continents_and_ids = {}
 

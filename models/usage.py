@@ -28,9 +28,9 @@ class OpenAccess(db.Model, TimestampMixin):
     __table_args__ = (db.UniqueConstraint("issn_l", "year"),)
 
     @classmethod
-    def recent_status(cls, journal_id):
+    def recent_status(cls, issn_l):
         return (
-            cls.query.filter_by(journal_id=journal_id).order_by(cls.year.desc()).first()
+            cls.query.filter_by(issn_l=issn_l).order_by(cls.year.desc()).first()
         )
 
     def to_dict(self):

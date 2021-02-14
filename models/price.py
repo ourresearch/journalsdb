@@ -18,6 +18,17 @@ class SubscriptionPrice(db.Model, TimestampMixin):
     fte_to = db.Column(db.Integer)
     year = db.Column(db.Integer, nullable=False, index=True)
 
+    # relationships
+    currency = db.relationship("Currency")
+    region = db.relationship("Region")
+
+    def to_dict(self):
+        return {
+            "price": self.price,
+            "currency": self.currency.symbol,
+            "region": self.region.name,
+        }
+
 
 class APCPrice(db.Model, TimestampMixin):
     __tablename__ = "apc_price"

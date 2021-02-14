@@ -24,7 +24,7 @@ class SubscriptionPrice(db.Model, TimestampMixin):
 
     def to_dict(self):
         return {
-            "price": self.price,
+            "price": str(self.price),
             "currency": self.currency.symbol,
             "region": self.region.name,
         }

@@ -90,13 +90,16 @@ def remove_issns(file_path):
         [entry.issn_l for entry in db.session.query(ISSNMetaData).distinct()]
     )
 
+    print(len(issns_to_keep))
+    print(len(all_issns))
     issns_to_remove = all_issns - issns_to_keep
+    print(len(issns_to_remove))
 
-    deletion = ISSNMetaData.__table__.delete().where(
-        ISSNMetaData.issn_l.in_(issns_to_remove)
-    )
-    db.session.execute(deletion)
-    db.session.commit()
+    # deletion = ISSNMetaData.__table__.delete().where(
+    #    ISSNMetaData.issn_l.in_(issns_to_remove)
+    # )
+    # db.session.execute(deletion)
+    # db.session.commit()
 
 
 def clear_issn_temp_table():

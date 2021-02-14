@@ -29,3 +29,5 @@ with app.app_context():
     from ingest.readership import *
     from ingest.repositories import *
     from ingest.locations import *
+    from ingest.currency import *
+    from ingest.price import *

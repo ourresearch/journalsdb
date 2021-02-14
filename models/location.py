@@ -6,7 +6,7 @@ class Region(db.Model, TimestampMixin):
     __tablename__ = "regions"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text, unique=True, nullable=False)
+    name = db.Column(db.Text, unique=False, nullable=False)
     publisher_id = db.Column(db.Integer, db.ForeignKey("publishers.id"))
     publisher = db.relationship("Publisher", backref=db.backref("regions", lazy=True))
 

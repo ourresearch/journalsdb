@@ -1,0 +1,95 @@
+import numpy as np
+import pandas as pd
+
+from app import db
+from ingest.subscription_import import SubscriptionImport
+
+
+class TaylorFrancis(SubscriptionImport):
+    """
+    Takes an Excel File of Taylor Francis prices and adds them into the database.
+    """
+
+    def __init__(self, year):
+        """
+        Loads Taylor Francis specific data into a Publisher class.
+        """
+        currencies_and_regions = {
+            "USD": "USA",
+            "GBP": "GBR",
+            "EUR": "EUR",
+            "USD - ROW": "ROW",
+            "AUD": "AUS",
+            "CAD": "CAN",
+        }
+        regions_and_currencies = {
+            "USA": "USD",
+            "GBR": "GBP",
+            "EUR": "EUR",
+            "ROW": "USD",
+            "AUS": "AUD",
+            "CAN": "CAD",
+        }
+        super().__init__(
+            year,
+            currencies_and_regions,
+            regions_and_currencies,
+            "Informa UK (Taylor & Francis)",
+        )
+
+    def format_tf_dataframe(self, file_path):
+        """
+        Loads the Taylor Francis Price List into a parsable dataframe.
+
+        Note: Must be exported as a CSV and only one sheet. Original xlsx file is broken.
+        """
+        # df = pd.read_csv(file_path, na_filter=False)
+        xls = pd.ExcelFile(file_path)
+        df = pd.read_excel(xls, "2021 Prices")
+        df.replace("", np.nan, inplace=True)
+        self.df = df
+
+    def import_prices(self):
+        """
+        Iterate through the dataframe and import the Sage Price List into the
+        SubscriptionPrice model.
+        """
+        for index, row in self.df.iterrows():
+            self.set_journal_name(row["Journal Name "])
+            self.set_issn(row["ISSN"])
+            self.set_journal()
+            self.set_currency(row["Currency"])
+            if not self.currency:
+                continue
+            self.set_region()
+            self.process_fte(row["Price Group"])
+            print(row["2021 rate"])
+            self.set_price(row["2021 rate"])
+            self.add_price_to_db()
+
+        db.session.commit()
+
+    def process_fte(self, cell):
+        """
+        Parses the "Price Group" column from the Taylor and Francis price sheet and returns
+        the fte_from and fte_to values.
+        """
+        fte_data = cell.split()
+        fte_data = [data for data in fte_data if data.isdigit()]
+
+        if len(fte_data) == 3:  # 1 - 9 999
+            self.fte_from = int(fte_data[0])
+            self.fte_to = int(fte_data[1] + fte_data[2])
+
+        elif len(fte_data) == 4:  # 10 000 - 19 999 ... 40 000 - 49 999
+            self.fte_from = int(fte_data[0] + fte_data[1])
+            self.fte_to = int(fte_data[2] + fte_data[3])
+
+        elif len(fte_data) == 2:  # 50 000 and over
+            self.fte_from = int(fte_data[0] + fte_data[1])
+            self.fte_to = self.MAX_FTE
+
+        else:
+            self.fte_from = 1
+            self.fte_to = self.MAX_FTE
+            print("Failed to find fte_data for: ", cell)

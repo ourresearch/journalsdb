@@ -37,7 +37,9 @@ class Currency(db.Model):
     __tablename__ = "currency"
 
     id = db.Column(db.Integer, primary_key=True)
-    symbol = db.Column(db.String(3), unique=True, nullable=False)
+    symbol = db.Column(db.String(3), unique=False, nullable=False)
+    text = db.Column(db.String(128), unique=True, nullable=False)
+    acronym = db.Column(db.String(3), unique=True, nullable=False)
 
 
 # many to many tables

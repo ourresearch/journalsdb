@@ -2,7 +2,7 @@ from flask import abort, jsonify, request
 
 from app import app
 from models.journal import Journal
-from models.usage import OpenAccess
+from models.usage import OpenAccess, Repository
 
 
 @app.route("/")
@@ -48,7 +48,7 @@ def build_journal_dict(journal):
         journal.issn_l
     ).to_dict()
     journal_dict["repositories"] = [
-        repository.to_dict() for repository in journal.repositories[:20]
+        repository.to_dict() for repository in Repository.repositories(journal.issn_l)
     ]
     journal_dict["readership"] = [e.to_dict() for e in journal.extension_requests]
     journal_dict["author_permissions"] = (

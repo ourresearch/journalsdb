@@ -50,6 +50,10 @@ class Repository(db.Model):
     pmh_url = db.Column(db.Text)
     num_articles = db.Column(db.Integer, nullable=False)
 
+    @classmethod
+    def repositories(cls, issn_l):
+        return cls.query.filter_by(issn_l=issn_l).all()
+
     def to_dict(self):
         return {
             "endpoint_id": self.endpoint_id,

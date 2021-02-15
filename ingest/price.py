@@ -19,6 +19,7 @@ from ingest.wiley_blackwell import WileyBlackwell
 
 CSV_DIRECTORY = "ingest/files/"
 
+
 @app.cli.command("import_wb")
 @click.option("--file_name", required=True)
 @click.option("--year", required=True)

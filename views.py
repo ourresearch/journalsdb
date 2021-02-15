@@ -44,7 +44,9 @@ def journal_detail(issn):
 
 def build_journal_dict(journal):
     journal_dict = journal.to_dict()
-    journal_dict["open_access_status"] = OpenAccess.recent_status(journal.issn_l).to_dict()
+    journal_dict["open_access_status"] = OpenAccess.recent_status(
+        journal.issn_l
+    ).to_dict()
     journal_dict["repositories"] = [
         repository.to_dict() for repository in journal.repositories[:20]
     ]
@@ -52,9 +54,7 @@ def build_journal_dict(journal):
     journal_dict["author_permissions"] = (
         journal.permissions.to_dict() if journal.permissions else None
     )
-    journal_dict["pricing"] = [
-        price.to_dict() for price in journal.subscription_prices
-    ]
+    journal_dict["pricing"] = [price.to_dict() for price in journal.subscription_prices]
     return journal_dict
 
 

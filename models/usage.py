@@ -29,9 +29,7 @@ class OpenAccess(db.Model, TimestampMixin):
 
     @classmethod
     def recent_status(cls, issn_l):
-        return (
-            cls.query.filter_by(issn_l=issn_l).order_by(cls.year.desc()).first()
-        )
+        return cls.query.filter_by(issn_l=issn_l).order_by(cls.year.desc()).first()
 
     def to_dict(self):
         return {
@@ -41,15 +39,11 @@ class OpenAccess(db.Model, TimestampMixin):
         }
 
 
-class Repository(db.Model, TimestampMixin):
+class Repository(db.Model):
     __tablename__ = "repositories"
 
-    id = db.Column(db.Integer, primary_key=True)
-    journal_id = db.Column(
-        db.Integer, db.ForeignKey("journals.id"), nullable=False, index=True
-    )
-    journal = db.relationship("Journal", backref=db.backref("repositories", lazy=True))
-    endpoint_id = db.Column(db.Text, nullable=False)
+    issn_l = db.Column(db.Text, primary_key=True, index=True)
+    endpoint_id = db.Column(db.Text, primary_key=True, nullable=False)
     repository_name = db.Column(db.Text)
     institution_name = db.Column(db.Text)
     home_page = db.Column(db.Text)

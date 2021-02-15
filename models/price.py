@@ -29,7 +29,7 @@ class SubscriptionPrice(db.Model, TimestampMixin):
             "price": str(self.price),
             "currency": self.currency.acronym,
             "region": self.region.name,
-            "year": self.year
+            "year": self.year,
         }
 
 

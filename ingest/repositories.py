@@ -1,7 +1,5 @@
-import pandas as pd
-
 from app import app, db
-from ingest.utils import find_journal
+from ingest.utils import CSVImporter
 from models.usage import Repository
 
 
@@ -20,47 +18,28 @@ def import_repositories():
 
     Run with: flask import_repositories
     """
-    url = "https://api.unpaywall.org/repositories.csv.gz"
-    df = pd.read_csv(url, compression="gzip", keep_default_na=False)
 
-    for index, row in df.iterrows():
-        if not valid_repository_data(row):
-            continue
+    class RepositoryImporter(CSVImporter):
+        def create_temp_table(self):
+            db.session.execute(
+                "CREATE TABLE {} ( like {} including all)".format(
+                    self.staging_table, self.table
+                )
+            )
+            db.session.commit()
 
-        journal = find_journal(row["issn_l"])
-        if not journal:
-            print("journal with issn-l {} not found.".format(row["issn_l"]))
-        elif endpoint_exists(journal, row):
-            update_existing_endpoint(journal, row)
-        else:
-            save_new_repository(journal, row)
+        def copy_temp_to_standard(self):
+            copy_sql = "INSERT INTO {table} ({fields}) SELECT {fields} FROM {staging_table} ON CONFLICT (issn_l, endpoint_id) DO UPDATE SET repository_name=excluded.repository_name;".format(
+                table=self.table, fields=self.fields, staging_table=self.staging_table
+            )
+            db.session.execute(copy_sql)
+            db.session.commit()
 
-
-def valid_repository_data(row):
-    if not row["issn_l"]:
-        print("invalid data in row {}".format(row))
-        return False
-    else:
-        return True
-
-
-def endpoint_exists(journal, row):
-    return Repository.query.filter_by(
-        endpoint_id=row["endpoint_id"], journal=journal
-    ).one_or_none()
-
-
-def update_existing_endpoint(journal, row):
-    endpoint = Repository.query.filter_by(
-        endpoint_id=row["endpoint_id"], journal=journal
-    ).one_or_none()
-    for key, value in row.iteritems():
-        setattr(endpoint, key, value)
-    db.session.commit()
-
-
-def save_new_repository(journal, row):
-    row.pop("issn_l")
-    new_repository = Repository(**row, journal=journal)
-    db.session.add(new_repository)
-    db.session.commit()
+    fields = Repository.__table__.columns.keys()
+    fields = ",".join(fields)
+    importer = RepositoryImporter(
+        fields=fields,
+        table="repositories",
+        url="https://api.unpaywall.org/repositories.csv.gz",
+    )
+    importer.import_data()

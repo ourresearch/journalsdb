@@ -32,11 +32,15 @@ class OpenAccess(db.Model, TimestampMixin):
         return cls.query.filter_by(issn_l=issn_l).order_by(cls.year.desc()).first()
 
     def to_dict(self):
-        return {
-            "year": self.year,
-            "is_in_doaj": self.is_in_doaj,
-            "is_gold_journal": self.is_gold_journal,
-        }
+        dict_ = {}
+        for key in self.__mapper__.c.keys():
+            dict_[key] = getattr(self, key)
+
+        fields_to_remove = ["id", "created_at", "updated_at"]
+        for field in fields_to_remove:
+            dict_.pop(field)
+
+        return dict_
 
 
 class Repository(db.Model):

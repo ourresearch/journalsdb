@@ -36,7 +36,7 @@ class OpenAccess(db.Model, TimestampMixin):
         for key in self.__mapper__.c.keys():
             dict_[key] = getattr(self, key)
 
-        fields_to_remove = ["id", "created_at", "updated_at"]
+        fields_to_remove = ["id", "issn_l", "title", "created_at", "updated_at"]
         for field in fields_to_remove:
             dict_.pop(field)
 

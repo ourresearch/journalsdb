@@ -22,14 +22,14 @@ class TaylorFrancis(SubscriptionImport):
             "AUD": "AUS",
             "CAD": "CAN",
         }
-        regions_and_currencies = {
-            "USA": "USD",
-            "GBR": "GBP",
-            "EUR": "EUR",
-            "ROW": "USD",
-            "AUS": "AUD",
-            "CAN": "CAD",
-        }
+        regions_and_currencies = [
+            ("USA", "USD"),
+            ("GBR", "GBP"),
+            ("EUR", "EUR"),
+            ("ROW", "USD"),
+            ("AUS", "AUD"),
+            ("CAN", "CAD"),
+        ]
         super().__init__(
             year,
             currencies_and_regions,
@@ -62,8 +62,8 @@ class TaylorFrancis(SubscriptionImport):
             if not self.currency:
                 continue
             self.set_region()
+            self.set_country()
             self.process_fte(row["Price Group"])
-            print(row["2021 rate"])
             self.set_price(row["2021 rate"])
             self.add_price_to_db()
 
@@ -90,6 +90,6 @@ class TaylorFrancis(SubscriptionImport):
             self.fte_to = self.MAX_FTE
 
         else:
-            self.fte_from = 1
-            self.fte_to = self.MAX_FTE
+            self.fte_from = None
+            self.fte_to = None
             print("Failed to find fte_data for: ", cell)

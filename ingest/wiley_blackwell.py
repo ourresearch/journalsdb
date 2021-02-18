@@ -14,12 +14,12 @@ class WileyBlackwell(SubscriptionImport):
         self.media_type = None
         self.material_number = None
         self.electronic_mediums = ["Print & Online", "Online"]
-        regions_and_currencies = {
-            "USA": "USD",
-            "UK": "GBP",
-            "Europe": "EUR",
-            "Rest of World": "USD",
-        }
+        regions_and_currencies = [
+            ("USA", "USD"),
+            ("UK", "GBP"),
+            ("Europe", "EUR"),
+            ("Rest of World", "USD"),
+        ]
         super().__init__(
             year, None, regions_and_currencies, "Wiley (Blackwell Publishing)"
         )
@@ -62,15 +62,16 @@ class WileyBlackwell(SubscriptionImport):
             self.set_issn(row["Journal_Info"])
 
             if self.issn and self.journal_name and self.media_type:
-
+                
+                self.set_product_id(row["Material Number"])
                 self.set_journal()
-                self.set_material_number(row["Material Number"])
                 self.set_fte_range()
 
-                for region, currency_acronym in self.regions_and_currencies.items():
+                for region, currency_acronym in self.regions_and_currencies:
                     self.set_price(row[region])
                     self.set_currency(currency_acronym)
                     self.set_region(region)
+                    self.set_country()
                     self.add_price_to_db()
 
         db.session.commit()
@@ -136,16 +137,6 @@ class WileyBlackwell(SubscriptionImport):
             return True
         return False
 
-    def set_material_number(self, cell):
-        """
-        The "Material Number" is the internal ID for the journal. This should be added to
-        the database.
-        """
-        if pd.isnull(cell):
-            self.material_number = None
-        else:
-            self.material_number = str(cell)
-
     def set_fte_range(self):
         """
         Wiley Blackwell occasionally has different prices based on Full-Time Employee status.
@@ -153,17 +144,17 @@ class WileyBlackwell(SubscriptionImport):
         number. Returns the fte_from and fte_to values if they exist.
         """
 
-        if "SMALL" in self.material_number:
+        if "SMALL" in self.product_id:
             self.fte_from, self.fte_to = 1, 10000
 
-        elif "MEDIUM" in self.material_number:
+        elif "MEDIUM" in self.product_id:
             self.fte_from, self.fte_to = 100001, 40000
 
-        elif "LARGE" in self.material_number:
+        elif "LARGE" in self.product_id:
             self.fte_from, self.fte_to = 40001, self.MAX_FTE
 
         else:
-            self.fte_from, self.fte_to = 1, self.MAX_FTE
+            self.fte_from, self.fte_to = None, None
 
     def set_region(self, region):
         """

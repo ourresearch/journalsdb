@@ -10,12 +10,13 @@ import os
 
 import click
 
-from app import app
+from app import app, db
 from ingest.elsevier import Elsevier
 from ingest.sage import Sage
 from ingest.springer_nature import SpringerNature
 from ingest.taylor_francis import TaylorFrancis
 from ingest.wiley_blackwell import WileyBlackwell
+from models.price import SubscriptionPrice
 
 CSV_DIRECTORY = "ingest/files/"
 
@@ -73,3 +74,11 @@ def import_springer(file_name, year):
     s.format_springer_dataframe(file_path)
     s.add_regions_to_db()
     s.import_prices()
+
+
+@app.cli.command("delete_all_prices")
+def delete_prices():
+    prices = db.session.query(SubscriptionPrice).all()
+    for p in prices:
+        db.session.delete(p)
+    db.session.commit()

@@ -7,13 +7,20 @@ from models.location import Region
 
 class Elsevier(SubscriptionImport):
     def __init__(self, year):
-        regions_and_currencies = {
-            "USA": "USD",
-            "Canada": "USD",
-            "Mexico": "USD",
-            "Rest of World": "USD",
-        }
-        super().__init__(year, None, regions_and_currencies, "Elsevier ")
+        super().__init__(year, None, None, "Elsevier ")
+        self.regions_and_currencies = [
+            ("USA", "USD"),
+            ("Canada", "USD"),
+            ("Mexico", "USD"),
+            ("Rest of World", "USD"),
+            ("Japan", "YEN"),
+            ("Japan", "USD"),
+            ("Europe", "EUR"),
+            ("France", "EUR"),
+            ("UK", "GBP"),
+            ("Europe", "USD"),
+            ("D, A, CH", "EUR"),
+        ]
 
     def format_elsevier_dataframe(self, excel_file_path):
         """
@@ -21,6 +28,13 @@ class Elsevier(SubscriptionImport):
         """
         df = pd.read_excel(excel_file_path)
         self.df = df
+        to_remove = []
+        for region, currency_acronym in self.regions_and_currencies:
+            column = region + " - " + currency_acronym
+            if column not in df.columns:
+                to_remove.append((region, currency_acronym))
+        for pair in to_remove:
+            self.regions_and_currencies.remove(pair)
 
     def set_region(self, region):
         """
@@ -50,9 +64,11 @@ class Elsevier(SubscriptionImport):
             self.set_journal_name(row["Journal Title"])
             self.set_issn(row["ISSN"])
             self.set_journal()
-            for region, currency_acronym in self.regions_and_currencies.items():
+            self.set_product_id(row["Journal No."])
+            for region, currency_acronym in self.regions_and_currencies:
                 self.set_currency(currency_acronym)
                 self.set_region(region)
+                self.set_country()
                 column = region + " - " + currency_acronym
                 self.set_price(row[column])
                 if self.price:

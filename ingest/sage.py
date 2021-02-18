@@ -13,7 +13,7 @@ class Sage(SubscriptionImport):
 
     def __init__(self, year):
         self.year = int(year)
-        regions_and_currencies = {"USA": "USD", "GBR": "GBP"}
+        regions_and_currencies = [("USA", "USD"), ("GBR", "GBP")]
         super().__init__(year, None, regions_and_currencies, "SAGE Publications")
 
     def format_sage_dataframe(self, excel_file_path):
@@ -33,9 +33,11 @@ class Sage(SubscriptionImport):
                 self.set_journal_name(row["Title"])
                 self.set_issn(row["E-ISSN"])
                 self.set_journal()
-                for region, currency_acronym in self.regions_and_currencies.items():
+                self.set_product_id(row["Product"])
+                for region, currency_acronym in self.regions_and_currencies:
                     self.set_currency(currency_acronym)
                     self.set_region(region)
+                    self.set_country()
                     column = currency_acronym + " Price " + str(self.year)
                     self.set_price(row[column])
                     self.add_price_to_db()

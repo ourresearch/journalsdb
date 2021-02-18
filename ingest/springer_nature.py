@@ -9,7 +9,7 @@ from models.location import Region
 class SpringerNature(SubscriptionImport):
     def __init__(self, year):
         self.year = int(year)
-        regions_and_currencies = {"USA": "USD"}
+        regions_and_currencies = [("USA", "USD")]
         super().__init__(
             year,
             None,
@@ -43,16 +43,14 @@ class SpringerNature(SubscriptionImport):
         """
         Parses the Springer Nature Price List and adds entries to Database
         """
-        pd.set_option("display.max_columns", None)
-        print(self.df.head(20))
+        self.set_currency("USD")
+        self.set_region()
+        self.set_country()
         for index, row in self.df.iterrows():
             self.set_journal_name(row["Title"])
             self.set_issn(row["ISSN electronic"])
             self.set_journal()
-            region = "USA"
-            currency_acronym = "USD"
-            self.set_currency(currency_acronym)
-            self.set_region()
+            self.set_product_id(row["Product ID"])
             self.set_price(row["Institutional Price electronic only USD"])
             self.add_price_to_db()
 

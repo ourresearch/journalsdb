@@ -6,6 +6,7 @@ from app import db
 from models.journal import Journal, Publisher
 from models.location import Country, Region
 from models.price import SubscriptionPrice, Currency
+import datetime
 
 
 class SubscriptionImport:
@@ -27,8 +28,8 @@ class SubscriptionImport:
         self.issn = None
         self.product_id = None
         self.MAX_FTE = 1000000
-        self.fte_from = 1
-        self.fte_to = self.MAX_FTE
+        self.fte_from = None
+        self.fte_to = None
         self.price = None
         self.currencies_and_regions = currencies_and_regions
         self.regions_and_currencies = regions_and_currencies
@@ -37,7 +38,18 @@ class SubscriptionImport:
         self.current_region = None
         self.currency = None
         self.country = None
-
+        self.regions_to_countries = {
+            "France" : "France, French Republic",
+            "Japan" : "Japan",
+            "UK" : "United Kingdom of Great Britain & Northern Ireland",
+            "USA" : "United States of America",
+            "Mexico" : "Mexico",
+            "Canada" : "Canada",
+            "AUS" : "Australia, Commonwealth of",
+            "GBR" : "United Kingdom of Great Britain & Northern Ireland",
+        }    
+        
+        
     def set_publisher(self, name):
         """
         Loads the publisher model from the database
@@ -48,7 +60,7 @@ class SubscriptionImport:
         """
         Adds all publisher regions to the database if they do not already exist.
         """
-        for r in self.regions_and_currencies.keys():
+        for r, c in self.regions_and_currencies:
             exists = (
                 db.session.query(Region)
                 .filter_by(name=r, publisher_id=self.publisher.id)
@@ -56,7 +68,7 @@ class SubscriptionImport:
             )
             if not exists:
                 try:
-                    region = Region(name=r, publisher_id=self.publisher.id)
+                    region = Region(name=r, publisher_id=self.publisher.id, created_at=datetime.datetime.now())
                     db.session.add(region)
                     db.session.flush()
                 except:
@@ -90,6 +102,16 @@ class SubscriptionImport:
         Sets the Journal given an ISSN
         """
         self.journal = Journal.find_by_issn(self.issn)
+    
+    def set_product_id(self, cell):
+        """
+        Each publisher has a unique internal ID to represent the journal. This needs to
+        be added to the database in the journal model.
+        """
+        if pd.isnull(cell):
+            self.product_id = None
+        else:
+            self.product_id = str(cell)
 
     def set_currency(self, acronym):
         """
@@ -104,6 +126,9 @@ class SubscriptionImport:
         else:
             if acronym == "USD - ROW":
                 acronym = "USD"
+                
+            elif acronym == "YEN":
+                acronym = "JPY"
 
             self.currency = (
                 db.session.query(Currency).filter_by(acronym=acronym).first()
@@ -112,20 +137,17 @@ class SubscriptionImport:
             if not self.currency:
                 print("Currency Associated with " + acronym + " not found")
 
-    def set_country(self, cell):
+    def set_country(self):
         """
-        Gets a country given the provided currency acronym (or None for "Rest of World")
+        Gets a country given the provided acronym (or None for "Rest of World")
         """
-        if (
-            pd.isnull(cell)
-            or cell == "USD - ROW"
-            or cell == "EUR"
-            or cell != "Rest of World"
-        ):
+        region = self.current_region.name
+        if pd.isnull(region):
             self.country = None
+        elif region in self.regions_to_countries:
+            self.country = db.session.query(Country).filter_by(name=self.regions_to_countries[region]).first()
         else:
-            acronym = self.currencies_and_regions[cell]
-            self.country = db.session.query(Country).filter_by(iso3=acronym).first()
+            print("No country for region:", region)
 
     def set_region(self):
         """
@@ -187,10 +209,12 @@ class SubscriptionImport:
                         fte_from=self.fte_from,
                         fte_to=self.fte_to,
                         year=self.year,
+                        created_at=datetime.datetime.now(),
                     )
 
                     db.session.add(price_entry)
                     self.journal.subscription_prices.append(price_entry)
+                    self.journal.internal_publisher_id = self.product_id
                     db.session.flush()
 
                     print(

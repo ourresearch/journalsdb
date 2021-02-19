@@ -12,8 +12,14 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 sentry_sdk.init(dsn=os.environ.get("SENTRY_DSN"), integrations=[FlaskIntegration()])
 
 app = Flask(__name__)
-swagger = Swagger(app)
 CORS(app)
+
+# swagger
+template = {
+    "swagger": "2.0",
+    "info": {"title": "JournalsDB API", "description": "", "version": "0.0.1"},
+}
+swagger = Swagger(app, template=template)
 
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")

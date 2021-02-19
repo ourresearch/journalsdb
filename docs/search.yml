@@ -1,0 +1,21 @@
+parameters:
+  - name: query
+    in: path
+    type: string
+    required: true
+    default: all
+  - name: page
+    in: path
+    type: string
+    required: false
+    default: all
+
+responses:
+  200:
+    description: A list of journals matching the query
+    examples:
+      results:  {
+                "issn_l": "XXXX-XXXX",
+                "journal_title": "Journal Name",
+                "publisher": "Publisher Name",
+                }

@@ -3,14 +3,18 @@ from flask import abort, jsonify, request
 from app import app
 from models.journal import Journal
 from models.usage import OpenAccess, Repository
+from flasgger import swag_from
 
 
 @app.route("/")
 def index():
-    return jsonify({"version": "0.1", "documentation_url": "TBD", "msg": "Don't panic"})
+    return jsonify(
+        {"version": "0.1", "documentation_url": "/apidocs", "msg": "Don't panic"}
+    )
 
 
 @app.route("/search/")
+@swag_from("docs/search.yml")
 def search():
     query = request.args.get("query")
     page = request.args.get("page")
@@ -33,6 +37,7 @@ def search():
 
 
 @app.route("/journal/<issn>")
+@swag_from("docs/journal.yml")
 def journal_detail(issn):
     journal = Journal.find_by_issn(issn)
     if journal:

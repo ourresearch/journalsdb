@@ -40,9 +40,19 @@ class Sage(SubscriptionImport):
                     self.set_country()
                     column = currency_acronym + " Price " + str(self.year)
                     self.set_price(row[column])
-                    self.add_price_to_db()
-
+                    media_type = row["Product Description"]
+                    self.add_prices(media_type)
         db.session.commit()
+
+    def add_prices(self, media_type):
+        if self.journal:
+            if media_type == "Electronic Only":
+                self.journal.subscription_prices = []
+                db.session.commit()
+                self.add_price_to_db()
+            else:
+                if len(self.journal.subscription_prices) == 0:
+                    self.add_price_to_db()
 
     def is_electronic(self, cell):
         """
@@ -53,17 +63,6 @@ class Sage(SubscriptionImport):
                 return True
 
         return False
-
-    def set_region(self):
-        """
-        Finds the Region model entry for a given country.
-        """
-        try:
-            self.current_region = (
-                db.session.query(Region).filter_by(name=self.country.name).first()
-            )
-        except:
-            print("Could not find region associated with country")
 
     def set_region(self, region):
         """

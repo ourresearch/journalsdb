@@ -39,17 +39,16 @@ class SubscriptionImport:
         self.currency = None
         self.country = None
         self.regions_to_countries = {
-            "France" : "France, French Republic",
-            "Japan" : "Japan",
-            "UK" : "United Kingdom of Great Britain & Northern Ireland",
-            "USA" : "United States of America",
-            "Mexico" : "Mexico",
-            "Canada" : "Canada",
-            "AUS" : "Australia, Commonwealth of",
-            "GBR" : "United Kingdom of Great Britain & Northern Ireland",
-        }    
-        
-        
+            "France": "France, French Republic",
+            "Japan": "Japan",
+            "UK": "United Kingdom of Great Britain & Northern Ireland",
+            "USA": "United States of America",
+            "Mexico": "Mexico",
+            "Canada": "Canada",
+            "AUS": "Australia, Commonwealth of",
+            "GBR": "United Kingdom of Great Britain & Northern Ireland",
+        }
+
     def set_publisher(self, name):
         """
         Loads the publisher model from the database
@@ -68,7 +67,11 @@ class SubscriptionImport:
             )
             if not exists:
                 try:
-                    region = Region(name=r, publisher_id=self.publisher.id, created_at=datetime.datetime.now())
+                    region = Region(
+                        name=r,
+                        publisher_id=self.publisher.id,
+                        created_at=datetime.datetime.now(),
+                    )
                     db.session.add(region)
                     db.session.flush()
                 except:
@@ -102,7 +105,7 @@ class SubscriptionImport:
         Sets the Journal given an ISSN
         """
         self.journal = Journal.find_by_issn(self.issn)
-    
+
     def set_product_id(self, cell):
         """
         Each publisher has a unique internal ID to represent the journal. This needs to
@@ -126,7 +129,7 @@ class SubscriptionImport:
         else:
             if acronym == "USD - ROW":
                 acronym = "USD"
-                
+
             elif acronym == "YEN":
                 acronym = "JPY"
 
@@ -142,10 +145,14 @@ class SubscriptionImport:
         Gets a country given the provided acronym (or None for "Rest of World")
         """
         region = self.current_region.name
-        if pd.isnull(region):
+        if not region:
             self.country = None
         elif region in self.regions_to_countries:
-            self.country = db.session.query(Country).filter_by(name=self.regions_to_countries[region]).first()
+            self.country = (
+                db.session.query(Country)
+                .filter_by(name=self.regions_to_countries[region])
+                .first()
+            )
         else:
             print("No country for region:", region)
 
@@ -192,6 +199,7 @@ class SubscriptionImport:
                     price=self.price,
                     currency_id=self.currency.id,
                     region_id=self.current_region.id,
+                    country_id=self.country.id,
                     fte_from=self.fte_from,
                     fte_to=self.fte_to,
                     year=self.year,
@@ -206,6 +214,7 @@ class SubscriptionImport:
                         price=self.price,
                         currency_id=self.currency.id,
                         region_id=self.current_region.id,
+                        country_id=self.country.id,
                         fte_from=self.fte_from,
                         fte_to=self.fte_to,
                         year=self.year,

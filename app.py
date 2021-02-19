@@ -4,6 +4,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from flasgger import Swagger
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 
@@ -11,6 +12,7 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 sentry_sdk.init(dsn=os.environ.get("SENTRY_DSN"), integrations=[FlaskIntegration()])
 
 app = Flask(__name__)
+swagger = Swagger(app)
 CORS(app)
 
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
@@ -31,3 +33,4 @@ with app.app_context():
     from ingest.locations import *
     from ingest.currency import *
     from ingest.price import *
+    import views

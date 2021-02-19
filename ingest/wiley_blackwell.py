@@ -13,7 +13,8 @@ class WileyBlackwell(SubscriptionImport):
         self.journal_info = None
         self.media_type = None
         self.material_number = None
-        self.electronic_mediums = ["Print & Online", "Online"]
+        self.electronic_mediums = ["Online"]
+        self.online_found = False
         regions_and_currencies = [
             ("USA", "USD"),
             ("UK", "GBP"),
@@ -62,7 +63,6 @@ class WileyBlackwell(SubscriptionImport):
             self.set_issn(row["Journal_Info"])
 
             if self.issn and self.journal_name and self.media_type:
-                
                 self.set_product_id(row["Material Number"])
                 self.set_journal()
                 self.set_fte_range()
@@ -88,6 +88,7 @@ class WileyBlackwell(SubscriptionImport):
         self.product_group = None
         self.issn = None
         self.volume_info = None
+        self.online_found = False
 
     def set_journal_info(self, cell):
         """
@@ -112,12 +113,20 @@ class WileyBlackwell(SubscriptionImport):
     def set_media_type(self, cell):
         """
         Media types could contain "Print & Online", "Online", "Print" or an unrelated string.
-        Only mediums containing "Online" should be added to the database.
+        Only 'Online' mediums should be added to the database. If an online medium does not exist,
+        print should be added.
         """
-        if pd.isnull(cell) or cell not in self.electronic_mediums:
+        if pd.isnull(cell):
             self.media_type = None
-        else:
+        elif cell == "Online":
             self.media_type = cell
+            self.online_found = True
+        elif cell == "Print" and not self.online_found:
+            self.media_type = cell
+            print("Online pricing does not exist: ", self.issn)
+        else:
+            self.media_type = None
+            print("Online found or Print&Online:", self.issn)
 
     def set_issn(self, cell):
         """

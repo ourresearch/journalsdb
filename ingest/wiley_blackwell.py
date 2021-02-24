@@ -9,12 +9,14 @@ from models.location import Region
 
 class WileyBlackwell(SubscriptionImport):
     def __init__(self, year):
-        self.year = int(year)
         self.journal_info = None
         self.media_type = None
         self.material_number = None
         self.electronic_mediums = ["Online"]
         self.online_found = False
+        self.data_source = (
+            "https://onlinelibrary.wiley.com/library-info/products/price-lists"
+        )
         regions_and_currencies = [
             ("USA", "USD"),
             ("UK", "GBP"),

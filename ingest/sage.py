@@ -12,7 +12,9 @@ class Sage(SubscriptionImport):
     """
 
     def __init__(self, year):
-        self.year = int(year)
+        self.data_source = (
+            "https://us.sagepub.com/en-us/nam/sage-journals-and-subscription-info"
+        )
         regions_and_currencies = [("USA", "USD"), ("GBR", "GBP")]
         super().__init__(year, None, regions_and_currencies, "SAGE Publications")
 

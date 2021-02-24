@@ -7,6 +7,7 @@ from models.location import Region
 
 class Elsevier(SubscriptionImport):
     def __init__(self, year):
+        self.data_source = "https://www.elsevier.com/books-and-journals/journal-pricing/print-price-list"
         super().__init__(year, None, None, "Elsevier ")
         self.regions_and_currencies = [
             ("USA", "USD"),

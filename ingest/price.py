@@ -17,6 +17,7 @@ from ingest.springer_nature import SpringerNature
 from ingest.taylor_francis import TaylorFrancis
 from ingest.wiley_blackwell import WileyBlackwell
 from models.price import SubscriptionPrice
+from models.journal import Journal
 
 CSV_DIRECTORY = "ingest/files/"
 
@@ -78,6 +79,9 @@ def import_springer(file_name, year):
 
 @app.cli.command("delete_all_prices")
 def delete_prices():
+    journals = db.session.query(Journal).all()
+    for j in journals:
+        j.subscription_prices = []
     prices = db.session.query(SubscriptionPrice).all()
     for p in prices:
         db.session.delete(p)

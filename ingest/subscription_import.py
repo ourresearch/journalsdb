@@ -38,6 +38,7 @@ class SubscriptionImport:
         self.current_region = None
         self.currency = None
         self.country = None
+        self.country_id = None
         self.regions_to_countries = {
             "France": "France, French Republic",
             "Japan": "Japan",
@@ -54,6 +55,8 @@ class SubscriptionImport:
         Loads the publisher model from the database
         """
         self.publisher = db.session.query(Publisher).filter_by(name=name).first()
+        if self.publisher and not self.publisher.sub_data_source:
+            self.publisher.sub_data_source = self.data_source
 
     def add_regions_to_db(self):
         """
@@ -153,6 +156,7 @@ class SubscriptionImport:
                 .filter_by(name=self.regions_to_countries[region])
                 .first()
             )
+            self.country_id = self.country.id
         else:
             print("No country for region:", region)
 
@@ -199,7 +203,7 @@ class SubscriptionImport:
                     price=self.price,
                     currency_id=self.currency.id,
                     region_id=self.current_region.id,
-                    country_id=self.country.id,
+                    country_id=self.country_id,
                     fte_from=self.fte_from,
                     fte_to=self.fte_to,
                     year=self.year,
@@ -214,7 +218,7 @@ class SubscriptionImport:
                         price=self.price,
                         currency_id=self.currency.id,
                         region_id=self.current_region.id,
-                        country_id=self.country.id,
+                        country_id=self.country_id,
                         fte_from=self.fte_from,
                         fte_to=self.fte_to,
                         year=self.year,

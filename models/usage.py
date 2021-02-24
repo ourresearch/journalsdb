@@ -2,6 +2,7 @@ import datetime
 
 from app import db
 from models.mixins import TimestampMixin
+from sqlalchemy import UniqueConstraint
 
 
 class OpenAccess(db.Model, TimestampMixin):
@@ -53,6 +54,7 @@ class Repository(db.Model):
     home_page = db.Column(db.Text)
     pmh_url = db.Column(db.Text)
     num_articles = db.Column(db.Integer, nullable=False)
+    __table_args__ = (UniqueConstraint("issn_l", "endpoint_id", name="uix_1"),)
 
     @classmethod
     def repositories(cls, issn_l):

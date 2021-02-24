@@ -8,7 +8,7 @@ from models.location import Region
 
 class SpringerNature(SubscriptionImport):
     def __init__(self, year):
-        self.year = int(year)
+        self.data_source = "https://www.springernature.com/gp/librarians/licensing/journals-catalog/journal-price-lists"
         regions_and_currencies = [("USA", "USD")]
         super().__init__(
             year,

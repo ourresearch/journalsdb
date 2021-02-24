@@ -14,6 +14,7 @@ class TaylorFrancis(SubscriptionImport):
         """
         Loads Taylor Francis specific data into a Publisher class.
         """
+        self.data_source = "https://taylorandfrancis.com/journals/price-lists/"
         currencies_and_regions = {
             "USD": "USA",
             "GBP": "GBR",

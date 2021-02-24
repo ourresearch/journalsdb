@@ -90,3 +90,16 @@ class ExtensionRequests(db.Model, TimestampMixin):
             "year": datetime.datetime.strftime(self.month, "%Y"),
             "requests": self.requests,
         }
+
+
+class RetractionWatch(db.Model):
+    __tablename__ = "retraction_watch"
+
+    record_id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(500))
+    journal = db.Column(db.String(500), nullable=False)
+    publisher = db.Column(db.String(500), nullable=False)
+    retraction_date = db.Column(db.DateTime, nullable=False)
+    retraction_doi = db.Column(db.String(100), nullable=False)
+    paper_doi = db.Column(db.String(100), nullable=False)
+    issn = db.Column(db.String(9))

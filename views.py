@@ -13,6 +13,7 @@ def index():
         {"version": "0.1", "documentation_url": "/apidocs", "msg": "Don't panic"}
     )
 
+
 @app.route("/journal/<issn_l>/repositories")
 def repositories(issn_l):
     repositories = Repository.repositories(issn_l)
@@ -65,9 +66,11 @@ def process_metadata(metadata):
 
 def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
     journal_dict = journal.to_dict()
-    journal_dict["open_access"] = OpenAccess.recent_status(
-       journal.issn_l
-    ).to_dict() if OpenAccess.recent_status(journal.issn_l) else None
+    journal_dict["open_access"] = (
+        OpenAccess.recent_status(journal.issn_l).to_dict()
+        if OpenAccess.recent_status(journal.issn_l)
+        else None
+    )
     journal_dict["repositories"] = "https://journalsdb.org/" + issn_l + "/repositories"
     journal_dict["readership"] = [e.to_dict() for e in journal.extension_requests]
     journal_dict["author_permissions"] = (

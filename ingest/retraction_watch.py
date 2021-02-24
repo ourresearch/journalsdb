@@ -1,3 +1,5 @@
+import time
+
 import boto3
 import pandas as pd
 import requests
@@ -42,6 +44,7 @@ def get_issn(doi):
         "User-Agent": "JournalsDB/1.1 (https://journalsdb.org; mailto:team@ourresearch.org)"
     }
     r = requests.get(url, headers=headers)
+    time.sleep(0.5)
     if r.status_code == 200:
         message = r.json()["message"]
         return message["ISSN"][0] if message.get("ISSN") else None

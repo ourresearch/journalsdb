@@ -30,7 +30,7 @@ def import_retraction_watch():
             )
             print("adding doi {}".format(row["OriginalPaperDOI"]))
             db.session.add(r)
-        db.session.commit()
+            db.session.commit()
 
 
 def get_issn(doi):
@@ -44,7 +44,7 @@ def get_issn(doi):
     r = requests.get(url, headers=headers)
     if r.status_code == 200:
         message = r.json()["message"]
-        return message["ISSN"][0] if message["ISSN"] else None
+        return message["ISSN"][0] if message.get("ISSN") else None
     else:
         print("issn not found")
         return None

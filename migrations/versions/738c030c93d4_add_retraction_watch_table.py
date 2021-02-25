@@ -21,9 +21,9 @@ def upgrade():
     op.create_table(
         "retraction_watch",
         sa.Column("record_id", sa.Integer(), nullable=False),
-        sa.Column("title", sa.String(length=500), nullable=True),
-        sa.Column("journal", sa.String(length=500), nullable=False),
-        sa.Column("publisher", sa.String(length=500), nullable=False),
+        sa.Column("title", sa.Text(), nullable=True),
+        sa.Column("journal", sa.Text(), nullable=False),
+        sa.Column("publisher", sa.Text(), nullable=False),
         sa.Column("retraction_date", sa.DateTime(), nullable=False),
         sa.Column("retraction_doi", sa.String(length=100), nullable=False),
         sa.Column("paper_doi", sa.String(length=100), nullable=False),

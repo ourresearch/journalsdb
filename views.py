@@ -6,11 +6,12 @@ from models.usage import OpenAccess, Repository
 from models.issn import ISSNMetaData
 from flasgger import swag_from
 
+SITE_URL = "https://journalsdb.org"
 
 @app.route("/")
 def index():
     return jsonify(
-        {"version": "0.1", "documentation_url": "/apidocs", "msg": "Don't panic"}
+        {"version": "0.1", "documentation_url": "{}/apidocs".format(SITE_URL), "msg": "Don't panic"}
     )
 
 
@@ -18,7 +19,6 @@ def index():
 def repositories(issn_l):
     repositories = Repository.repositories(issn_l)
     results = [r.to_dict() for r in repositories]
-
     return jsonify(results)
 
 
@@ -71,7 +71,7 @@ def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
         if OpenAccess.recent_status(journal.issn_l)
         else None
     )
-    journal_dict["repositories"] = "https://journalsdb.org/" + issn_l + "/repositories"
+    journal_dict["repositories"] = "{}/{}/repositories".format(SITE_URL, issn_l)
     journal_dict["readership"] = [e.to_dict() for e in journal.extension_requests]
     journal_dict["author_permissions"] = (
         journal.permissions.to_dict() if journal.permissions else None

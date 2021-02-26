@@ -76,7 +76,7 @@ def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
         if OpenAccess.recent_status(journal.issn_l)
         else None
     )
-    journal_dict["repositories"] = "{}/{}/repositories".format(SITE_URL, issn_l)
+    journal_dict["repositories"] = "{}/journal/{}/repositories".format(SITE_URL, issn_l)
     journal_dict["readership"] = [e.to_dict() for e in journal.extension_requests]
     journal_dict["author_permissions"] = (
         journal.permissions.to_dict() if journal.permissions else None

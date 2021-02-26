@@ -3,12 +3,10 @@ parameters:
     in: path
     type: string
     required: true
-    default: all
   - name: page
     in: path
     type: string
     required: false
-    default: all
 
 responses:
   200:

@@ -17,7 +17,7 @@ CORS(app)
 # swagger
 template = {
     "swagger": "2.0",
-    "info": {"title": "JournalsDB API", "description": "", "version": "0.0.1"},
+    "info": {"title": "JournalsDB API", "description": "", "version": "0.1"},
 }
 swagger = Swagger(app, template=template)
 

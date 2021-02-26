@@ -8,10 +8,15 @@ from flasgger import swag_from
 
 SITE_URL = "https://journalsdb.org"
 
+
 @app.route("/")
 def index():
     return jsonify(
-        {"version": "0.1", "documentation_url": "{}/apidocs".format(SITE_URL), "msg": "Don't panic"}
+        {
+            "version": "0.1",
+            "documentation_url": "{}/apidocs".format(SITE_URL),
+            "msg": "Don't panic",
+        }
     )
 
 

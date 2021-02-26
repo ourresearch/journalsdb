@@ -3,15 +3,12 @@ parameters:
     in: path
     type: string
     required: true
-    default: all
 definitions:
   issn:
     type: string
-    properties:
-      palette_name:
-        type: array
 responses:
   200:
-    description: Pricing and Information about a scientific journal
+    description: Journal details
     schema:
-    examples: 
+    examples:
+      issn: ['0001-5172']

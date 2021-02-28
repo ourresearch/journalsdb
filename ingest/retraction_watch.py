@@ -67,12 +67,12 @@ def get_recent_file():
     return last_added
 
 
-@app.cli.command("calculate_retraction_watch")
-def calculate_retraction_watch():
+@app.cli.command("build_retraction_summary")
+def build_retraction_summary():
     """
-    Goes through retraction watch data to build a retraction percentage based on number of dois for a given year.
+    Goes through retraction watch data and builds a summary table that can be used to calculate a retraction percentage.
 
-    Run with: flask calculate_retraction_watch
+    Run with: flask build_retraction_summary
     """
     retractions = (
         db.session.query(

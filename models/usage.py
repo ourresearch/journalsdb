@@ -119,14 +119,14 @@ class RetractionSummary(db.Model):
 
     @classmethod
     def retractions_by_year(cls, issn_l):
-        result = []
+        retractions_by_year = []
 
         retractions = cls.retractions_by_issn(issn_l)
 
         if retractions:
             for r in retractions:
                 percent_retracted = r.retractions / r.num_dois
-                result.append(
+                retractions_by_year.append(
                     {
                         "year": r.year,
                         "retractions": r.retractions,
@@ -134,7 +134,14 @@ class RetractionSummary(db.Model):
                     }
                 )
 
-        return result
+        # provenance
+        if len(retractions_by_year) > 0:
+            return {
+                "provenance": "https://retractionwatch.com/",
+                "retractions_by_year": retractions_by_year,
+            }
+        else:
+            return None
 
     @classmethod
     def retractions_by_issn(cls, issn_l):

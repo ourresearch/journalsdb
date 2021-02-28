@@ -95,11 +95,11 @@ def remove_issns(file_path):
     issns_to_remove = all_issns - issns_to_keep
     print(len(issns_to_remove))
 
-    # deletion = ISSNMetaData.__table__.delete().where(
-    #    ISSNMetaData.issn_l.in_(issns_to_remove)
-    # )
-    # db.session.execute(deletion)
-    # db.session.commit()
+    deletion = ISSNMetaData.__table__.delete().where(
+        ISSNMetaData.issn_l.in_(issns_to_remove)
+    )
+    db.session.execute(deletion)
+    db.session.commit()
 
 
 def clear_issn_temp_table():
@@ -200,7 +200,9 @@ def import_issn_apis():
     Iterate over issn_metadata table, then fetch and store API data from issn.org and crossref.
     Save title and publisher to journals table.
     """
+    i = 0
     while True:
+        i += 100
         chunk = (
             ISSNMetaData.query.filter_by(updated_at=None)
             .order_by(func.random())
@@ -215,6 +217,8 @@ def import_issn_apis():
             set_title(issn)
             set_publisher(issn)
             link_issn_l(issn)
+        if i % 10000 == 0:
+            print("Chunk finished, number of ISSNs completed: ", 100 * i)
         db.session.commit()
 
 

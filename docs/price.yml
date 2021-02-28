@@ -1,0 +1,28 @@
+parameters:
+  - name: issn
+    in: path
+    type: string
+    required: true
+definitions:
+  issn:
+    type: string
+responses:
+  200:
+    description: Pricing information about a Journal specified by ISSN-L
+    schema:
+    examples: {
+        "ISSN-L": "1541-2040",
+        "Prices": 
+            [{
+                "country": "United Kingdom of Great Britain & Northern Ireland",
+                "country_id": 236,
+                "currency": "GBP",
+                "fte_from": null,
+                "fte_to": null,
+                "price": "315.00",
+                "region": null,
+                "region_id": null,
+                "year": 2021
+            }],
+        "Provenance": "https://us.sagepub.com/en-us/nam/sage-journals-and-subscription-info"
+    }

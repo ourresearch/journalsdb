@@ -1,9 +1,10 @@
 from flask import abort, jsonify, request
 
-from app import app
-from models.journal import Journal
+from app import app, db
+from models.journal import Journal, Publisher
 from models.usage import OpenAccess, Repository
 from models.issn import ISSNMetaData
+from models.location import Region, Country
 from flasgger import swag_from
 
 SITE_URL = "https://journalsdb.org"
@@ -22,8 +23,13 @@ def index():
 
 @app.route("/journal/<issn_l>/repositories")
 def repositories(issn_l):
+    journal = Journal.find_by_issn(issn_l)
     repositories = Repository.repositories(issn_l)
-    results = [r.to_dict() for r in repositories]
+    results = {
+        "issn_l": journal.issn_l,
+        "journal_title": journal.title,
+        "repositories": [r.to_dict() for r in repositories],
+    }
     return jsonify(results)
 
 
@@ -50,6 +56,53 @@ def search():
     return jsonify(results)
 
 
+@app.route("/price/<issn>")
+@swag_from("docs/price.yml")
+def price_detail(issn):
+    journal = Journal.find_by_issn(issn)
+    if journal:
+        results = {
+            "issn_l": journal.issn_l,
+            "provenance": get_provenance(journal),
+            "subscription_pricing": get_pricing(journal),
+        }
+        if results:
+            return jsonify(results), 200
+        else:
+            return abort(404, description="Pricing not found for Journal")
+    else:
+        return abort(404, description="Resource not found")
+
+
+def get_provenance(journal):
+    publisher = db.session.query(Publisher).filter_by(id=journal.publisher_id).first()
+    return publisher.sub_data_source
+
+
+def get_pricing(journal):
+    """
+    Returns a sorted list of price dictionaries by year.
+    Countries and Regions must be pulled from database since only IDs are included in
+    the SubscriptionPrice.
+    """
+    prices = []
+    for price in journal.subscription_prices:
+        p = price.to_dict()
+
+        if p["country_id"]:
+            country = db.session.query(Country).filter_by(id=p["country_id"]).first()
+            p["country"] = country.name
+            p["region"] = None
+
+        if p["region_id"]:
+            region = db.session.query(Region).filter_by(id=p["region_id"]).first()
+            p["region"] = region.name
+            p["country"] = None
+
+        prices.append(p)
+    return sorted(prices, key=lambda p: p["year"], reverse=True)
+
+
 @app.route("/journal/<issn>")
 @swag_from("docs/journal.yml")
 def journal_detail(issn):
@@ -60,7 +113,7 @@ def journal_detail(issn):
         journal_dict = build_journal_dict(journal, issn, dois_by_year, total_dois)
     else:
         return abort(404, description="Resource not found")
-    return jsonify(journal_dict)
+    return jsonify(journal_dict), 200
 
 
 def process_metadata(metadata):
@@ -85,6 +138,43 @@ def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
     journal_dict["dois_by_issued_year"] = dois_by_year
     journal_dict["total_dois"] = total_dois
     return journal_dict
+
+
+@app.route("/open-access/<issn>")
+@swag_from("docs/open_access.yml")
+def open_access(issn):
+    open_access, num_dois, num_green, num_hybrid = get_open_access(issn)
+    results = {
+        "ISSN-L": issn,
+        "open_access": open_access,
+        "summary": {
+            "num_dois": num_dois,
+            "num_green": num_green,
+            "num_hybrid": num_hybrid,
+        },
+    }
+    return jsonify(results), 200
+
+
+def get_open_access(issn):
+    open_access = (
+        db.session.query(OpenAccess)
+        .filter_by(issn_l=issn)
+        .filter(OpenAccess.year > 2009)
+        .all()
+    )
+    results = []
+    num_dois = 0
+    num_green = 0
+    num_hybrid = 0
+    for oa in open_access:
+        entry = oa.to_dict()
+        num_dois += entry["num_dois"]
+        num_green += entry["num_green"]
+        num_hybrid += entry["num_hybrid"]
+        results.append(entry)
+    final = sorted(results, key=lambda o: o["year"], reverse=True)
+    return final, num_dois, num_green, num_hybrid
 
 
 if __name__ == "__main__":

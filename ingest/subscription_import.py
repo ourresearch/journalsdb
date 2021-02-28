@@ -156,7 +156,8 @@ class SubscriptionImport:
                 .filter_by(name=self.regions_to_countries[region])
                 .first()
             )
-            self.country_id = self.country.id
+            if self.country:
+                self.country_id = self.country.id
         else:
             print("No country for region:", region)
 
@@ -195,21 +196,17 @@ class SubscriptionImport:
     def add_price_to_db(self):
         """
         Adds a SubscriptionPrice entry into the database.
+
+        Prices should only include a region or a country, but not both. If a country exists
+        it should be added without a region. Regions consist of many countries, so there
+        is no need to specify a specific country.
         """
         if self.journal and self.price:
-            entry = (
-                db.session.query(SubscriptionPrice)
-                .filter_by(
-                    price=self.price,
-                    currency_id=self.currency.id,
-                    region_id=self.current_region.id,
-                    country_id=self.country_id,
-                    fte_from=self.fte_from,
-                    fte_to=self.fte_to,
-                    year=self.year,
-                )
-                .first()
-            )
+
+            if self.country_id:
+                entry = self.get_country_entry()
+            else:
+                entry = self.get_region_entry()
 
             if not entry or entry not in self.journal.subscription_prices:
 
@@ -217,13 +214,17 @@ class SubscriptionImport:
                     price_entry = SubscriptionPrice(
                         price=self.price,
                         currency_id=self.currency.id,
-                        region_id=self.current_region.id,
-                        country_id=self.country_id,
                         fte_from=self.fte_from,
                         fte_to=self.fte_to,
                         year=self.year,
                         created_at=datetime.datetime.now(),
                     )
+                    if self.country_id:
+                        price_entry.country_id = self.country_id
+                        price_entry.region_id = None
+                    else:
+                        price_entry.country_id = None
+                        price_entry.region_id = self.current_region.id
 
                     db.session.add(price_entry)
                     self.journal.subscription_prices.append(price_entry)
@@ -247,3 +248,33 @@ class SubscriptionImport:
                 print("Price already in database: ", self.journal.title)
         else:
             print("Could not add price due to missing journal entry:", self.issn)
+
+    def get_country_entry(self):
+        return (
+            db.session.query(SubscriptionPrice)
+            .filter_by(
+                price=self.price,
+                currency_id=self.currency.id,
+                region_id=None,
+                country_id=self.country_id,
+                fte_from=self.fte_from,
+                fte_to=self.fte_to,
+                year=self.year,
+            )
+            .first()
+        )
+
+    def get_region_entry(self):
+        return (
+            db.session.query(SubscriptionPrice)
+            .filter_by(
+                price=self.price,
+                currency_id=None,
+                region_id=self.current_region.id,
+                country_id=None,
+                fte_from=self.fte_from,
+                fte_to=self.fte_to,
+                year=self.year,
+            )
+            .first()
+        )

@@ -1,0 +1,51 @@
+parameters:
+  - name: issn
+    in: path
+    type: string
+    required: true
+
+responses:
+  200:
+    description: An object containing Open Access information about a specified ISSN
+    examples:
+      results:  {
+        "ISSN-L": "0190-2407",
+        "Open Access": 
+            [{
+                "bronze_rate": 0,
+                "gold_rate": 0,
+                "green_rate": 0,
+                "hybrid_rate": 0,
+                "is_gold_journal": false,
+                "is_in_doaj": false,
+                "num_bronze": 0,
+                "num_dois": 40,
+                "num_gold": 0,
+                "num_green": 0,
+                "num_hybrid": 0,
+                "num_open": 0,
+                "open_rate": 0,
+                "year": 2020
+            },
+            {
+                "bronze_rate": 0,
+                "gold_rate": 0,
+                "green_rate": 0,
+                "hybrid_rate": 0,
+                "is_gold_journal": false,
+                "is_in_doaj": false,
+                "num_bronze": 0,
+                "num_dois": 40,
+                "num_gold": 0,
+                "num_green": 0,
+                "num_hybrid": 0,
+                "num_open": 0,
+                "open_rate": 0,
+                "year": 2020
+            }],
+        "Summary": {
+            "num_dois": 447,
+            "num_green": 13,
+            "num_hybrid": 0
+        }
+    }

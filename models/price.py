@@ -28,7 +28,8 @@ class SubscriptionPrice(db.Model, TimestampMixin):
             "fte_to": self.fte_to,
             "price": str(self.price),
             "currency": self.currency.acronym,
-            "region": self.region.name,
+            "region_id": self.region_id,
+            "country_id": self.country_id,
             "year": self.year,
         }
 

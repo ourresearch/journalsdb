@@ -1,8 +1,8 @@
 """add retraction watch summary table
 
-Revision ID: 7bf2cfcf13bd
+Revision ID: 89df7caa1e08
 Revises: 738c030c93d4
-Create Date: 2021-02-28 11:51:04.741794
+Create Date: 2021-02-28 12:13:29.644467
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = "7bf2cfcf13bd"
+revision = "89df7caa1e08"
 down_revision = "738c030c93d4"
 branch_labels = None
 depends_on = None
@@ -27,6 +27,7 @@ def upgrade():
         sa.Column("retractions", sa.Integer(), nullable=False),
         sa.Column("num_dois", sa.Integer(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("issn", "year"),
     )
     # ### end Alembic commands ###
 

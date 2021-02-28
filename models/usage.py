@@ -114,3 +114,4 @@ class RetractionSummary(db.Model):
     year = db.Column(db.Integer, nullable=False)
     retractions = db.Column(db.Integer, nullable=False)
     num_dois = db.Column(db.Integer)
+    __table_args__ = (db.UniqueConstraint("issn", "year"),)

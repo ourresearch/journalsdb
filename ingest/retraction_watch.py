@@ -3,7 +3,7 @@ import time
 import boto3
 import pandas as pd
 import requests
-from sqlalchemy import func, extract
+from sqlalchemy import exc, extract, func
 
 from app import app, db
 from models.journal import Journal
@@ -91,6 +91,8 @@ def build_retraction_summary():
 
     for r in retractions:
         journal = Journal.find_by_issn(r.issn)
+        if not journal:
+            continue
         metadata = journal.issn_metadata.crossref_raw_api
         if not metadata:
             continue
@@ -106,5 +108,10 @@ def build_retraction_summary():
                     retractions=r.count,
                     num_dois=num_dois,
                 )
-                db.session.add(s)
-    db.session.commit()
+                try:
+                    db.session.add(s)
+                    db.session.commit()
+                except exc.IntegrityError:
+                    # handle issn, year already exists
+                    # need to change to update the row instead
+                    db.session.rollback()

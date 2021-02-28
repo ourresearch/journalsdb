@@ -1,6 +1,7 @@
 import datetime
 
 from app import db
+from models.journal import Journal
 from models.mixins import TimestampMixin
 from sqlalchemy import UniqueConstraint
 
@@ -115,3 +116,41 @@ class RetractionSummary(db.Model):
     retractions = db.Column(db.Integer, nullable=False)
     num_dois = db.Column(db.Integer)
     __table_args__ = (db.UniqueConstraint("issn", "year"),)
+
+    @classmethod
+    def retractions_by_year(cls, issn_l):
+        result = []
+
+        retractions = cls.retractions_by_issn(issn_l)
+
+        if retractions:
+            for r in retractions:
+                percent_retracted = r.retractions / r.num_dois
+                result.append(
+                    {
+                        "year": r.year,
+                        "retractions": r.retractions,
+                        "percent_retracted": float("{:.2}".format(percent_retracted)),
+                    }
+                )
+
+        return result
+
+    @classmethod
+    def retractions_by_issn(cls, issn_l):
+        """
+        Go through all available journal ISSNs to try and match it to retractions.
+        """
+        # try issn_l
+        retractions = cls.query.filter_by(issn=issn_l).all()
+        if retractions:
+            return retractions
+
+        # try other associated issns
+        journal = Journal.find_by_issn(issn_l)
+        if journal:
+            for issn in journal.issns:
+                retractions = cls.query.filter_by(issn=issn).all()
+                if retractions:
+                    return retractions
+            return None

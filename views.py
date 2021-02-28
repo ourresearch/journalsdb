@@ -2,7 +2,7 @@ from flask import abort, jsonify, request
 
 from app import app, db
 from models.journal import Journal, Publisher
-from models.usage import OpenAccess, Repository
+from models.usage import OpenAccess, Repository, RetractionSummary
 from models.issn import ISSNMetaData
 from models.location import Region, Country
 from flasgger import swag_from
@@ -135,6 +135,7 @@ def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
         journal.permissions.to_dict() if journal.permissions else None
     )
     journal_dict["pricing"] = [price.to_dict() for price in journal.subscription_prices]
+    journal_dict["retractions"] = RetractionSummary.retractions_by_year(issn_l)
     journal_dict["dois_by_issued_year"] = dois_by_year
     journal_dict["total_dois"] = total_dois
     return journal_dict

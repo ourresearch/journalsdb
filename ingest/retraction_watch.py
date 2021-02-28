@@ -3,9 +3,11 @@ import time
 import boto3
 import pandas as pd
 import requests
+from sqlalchemy import exc, extract, func
 
 from app import app, db
-from models.usage import RetractionWatch
+from models.journal import Journal
+from models.usage import RetractionSummary, RetractionWatch
 
 
 @app.cli.command("import_retraction_watch")
@@ -63,3 +65,53 @@ def get_recent_file():
     objs = s3.list_objects_v2(Bucket=bucket)["Contents"]
     last_added = [obj["Key"] for obj in sorted(objs, key=get_last_modified)][0]
     return last_added
+
+
+@app.cli.command("build_retraction_summary")
+def build_retraction_summary():
+    """
+    Goes through retraction watch data and builds a summary table that can be used to calculate a retraction percentage.
+
+    Run with: flask build_retraction_summary
+    """
+    retractions = (
+        db.session.query(
+            RetractionWatch.journal,
+            RetractionWatch.issn,
+            extract("year", RetractionWatch.retraction_date).label("year"),
+            func.count(RetractionWatch.record_id).label("count"),
+        )
+        .group_by(
+            RetractionWatch.issn,
+            extract("year", RetractionWatch.retraction_date),
+            RetractionWatch.journal,
+        )
+        .all()
+    )
+
+    for r in retractions:
+        journal = Journal.find_by_issn(r.issn)
+        if not journal:
+            continue
+        metadata = journal.issn_metadata.crossref_raw_api
+        if not metadata:
+            continue
+
+        dois_by_year = metadata["message"]["breakdowns"]["dois-by-issued-year"]
+
+        for year, num_dois in dois_by_year:
+            if year == int(r.year):
+                s = RetractionSummary(
+                    issn=r.issn,
+                    journal=r.journal,
+                    year=int(r.year),
+                    retractions=r.count,
+                    num_dois=num_dois,
+                )
+                try:
+                    db.session.add(s)
+                    db.session.commit()
+                except exc.IntegrityError:
+                    # handle issn, year already exists
+                    # need to change to update the row instead
+                    db.session.rollback()

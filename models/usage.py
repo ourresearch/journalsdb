@@ -103,3 +103,15 @@ class RetractionWatch(db.Model):
     retraction_doi = db.Column(db.String(100), nullable=False)
     paper_doi = db.Column(db.String(100), nullable=False)
     issn = db.Column(db.String(9))
+
+
+class RetractionSummary(db.Model):
+    __tablename__ = "retraction_summary"
+
+    id = db.Column(db.Integer, primary_key=True)
+    issn = db.Column(db.String(9))
+    journal = db.Column(db.Text, nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    retractions = db.Column(db.Integer, nullable=False)
+    num_dois = db.Column(db.Integer)
+    __table_args__ = (db.UniqueConstraint("issn", "year"),)

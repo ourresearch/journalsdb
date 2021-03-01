@@ -125,12 +125,12 @@ class RetractionSummary(db.Model):
 
         if retractions:
             for r in retractions:
-                percent_retracted = r.retractions / r.num_dois
+                percent_retracted = (r.retractions / r.num_dois) * 100
                 retractions_by_year.append(
                     {
                         "year": r.year,
                         "retractions": r.retractions,
-                        "percent_retracted": float("{:.2}".format(percent_retracted)),
+                        "percent_retracted": float("{:.3}".format(percent_retracted)),
                     }
                 )
 

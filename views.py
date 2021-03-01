@@ -87,7 +87,7 @@ def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
     journal_dict["author_permissions"] = (
         journal.permissions.to_dict() if journal.permissions else None
     )
-    journal_dict["pricing"] = {
+    journal_dict["subscription_pricing"] = {
         "provenance": journal.publisher.sub_data_source,
         "prices": sorted(
             [p.to_dict() for p in journal.subscription_prices],

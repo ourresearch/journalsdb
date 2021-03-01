@@ -217,8 +217,9 @@ def import_issn_apis():
             set_title(issn)
             set_publisher(issn)
             link_issn_l(issn)
+
         if i % 10000 == 0:
-            print("Chunk finished, number of ISSNs completed: ", 100 * i)
+            print("Chunk finished, number of ISSNs completed: ", i)
         db.session.commit()
 
 

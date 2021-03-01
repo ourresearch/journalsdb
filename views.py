@@ -56,53 +56,6 @@ def search():
     return jsonify(results)
 
 
-@app.route("/price/<issn>")
-@swag_from("docs/price.yml")
-def price_detail(issn):
-    journal = Journal.find_by_issn(issn)
-    if journal:
-        results = {
-            "issn_l": journal.issn_l,
-            "provenance": get_provenance(journal),
-            "subscription_pricing": get_pricing(journal),
-        }
-        if results:
-            return jsonify(results), 200
-        else:
-            return abort(404, description="Pricing not found for Journal")
-    else:
-        return abort(404, description="Resource not found")
-
-
-def get_provenance(journal):
-    publisher = db.session.query(Publisher).filter_by(id=journal.publisher_id).first()
-    return publisher.sub_data_source
-
-
-def get_pricing(journal):
-    """
-    Returns a sorted list of price dictionaries by year.
-    Countries and Regions must be pulled from database since only IDs are included in
-    the SubscriptionPrice.
-    """
-    prices = []
-    for price in journal.subscription_prices:
-        p = price.to_dict()
-
-        if p["country_id"]:
-            country = db.session.query(Country).filter_by(id=p["country_id"]).first()
-            p["country"] = country.name
-            p["region"] = None
-
-        if p["region_id"]:
-            region = db.session.query(Region).filter_by(id=p["region_id"]).first()
-            p["region"] = region.name
-            p["country"] = None
-
-        prices.append(p)
-    return sorted(prices, key=lambda p: p["year"], reverse=True)
-
-
 @app.route("/journal/<issn>")
 @swag_from("docs/journal.yml")
 def journal_detail(issn):
@@ -134,10 +87,18 @@ def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
     journal_dict["author_permissions"] = (
         journal.permissions.to_dict() if journal.permissions else None
     )
-    journal_dict["pricing"] = [price.to_dict() for price in journal.subscription_prices]
+    journal_dict["pricing"] = {
+        "provenance": journal.publisher.sub_data_source,
+        "prices": sorted(
+            [p.to_dict() for p in journal.subscription_prices],
+            key=lambda p: p["year"],
+            reverse=True,
+        ),
+    }
     journal_dict["retractions"] = RetractionSummary.retractions_by_year(issn_l)
     journal_dict["dois_by_issued_year"] = dois_by_year
     journal_dict["total_dois"] = total_dois
+    journal_dict["open_access"] = "{}/open-access/{}".format(SITE_URL, issn_l)
     return journal_dict
 
 
@@ -146,7 +107,7 @@ def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
 def open_access(issn):
     open_access, num_dois, num_green, num_hybrid = get_open_access(issn)
     results = {
-        "ISSN-L": issn,
+        "issn_l": issn,
         "open_access": open_access,
         "summary": {
             "num_dois": num_dois,

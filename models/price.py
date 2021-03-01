@@ -19,6 +19,7 @@ class SubscriptionPrice(db.Model, TimestampMixin):
     year = db.Column(db.Integer, nullable=False, index=True)
 
     # relationships
+    country = db.relationship("Country")
     currency = db.relationship("Currency")
     region = db.relationship("Region")
 
@@ -28,8 +29,8 @@ class SubscriptionPrice(db.Model, TimestampMixin):
             "fte_to": self.fte_to,
             "price": str(self.price),
             "currency": self.currency.acronym,
-            "region_id": self.region_id,
-            "country_id": self.country_id,
+            "region": self.region.name if self.region else None,
+            "country": self.country.name if self.country else None,
             "year": self.year,
         }
 

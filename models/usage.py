@@ -103,6 +103,7 @@ class RetractionWatch(db.Model):
     retraction_date = db.Column(db.DateTime, nullable=False)
     retraction_doi = db.Column(db.String(100), nullable=False)
     paper_doi = db.Column(db.String(100), nullable=False)
+    published_year = db.Column(db.Integer)
     issn = db.Column(db.String(9))
 
 

@@ -99,12 +99,12 @@ def build_retraction_summary():
         db.session.query(
             RetractionWatch.journal,
             RetractionWatch.issn,
-            extract("year", RetractionWatch.retraction_date).label("year"),
+            RetractionWatch.published_year,
             func.count(RetractionWatch.record_id).label("count"),
         )
         .group_by(
             RetractionWatch.issn,
-            extract("year", RetractionWatch.retraction_date),
+            RetractionWatch.published_year,
             RetractionWatch.journal,
         )
         .all()

@@ -121,11 +121,11 @@ def build_retraction_summary():
         dois_by_year = metadata["message"]["breakdowns"]["dois-by-issued-year"]
 
         for year, num_dois in dois_by_year:
-            if year == int(r.year):
+            if year == r.published_year:
                 s = RetractionSummary(
                     issn=r.issn,
                     journal=r.journal,
-                    year=int(r.year),
+                    year=r.published_year,
                     retractions=r.count,
                     num_dois=num_dois,
                 )

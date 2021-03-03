@@ -40,4 +40,5 @@ with app.app_context():
     from ingest.currency import *
     from ingest.price import *
     from ingest.retraction_watch import *
+    from ingest.apc.import_apc_pricing import *
     import views

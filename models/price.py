@@ -47,6 +47,19 @@ class APCPrice(db.Model, TimestampMixin):
     region_id = db.Column(db.Integer, db.ForeignKey("regions.id"), index=True)
     year = db.Column(db.Integer, nullable=False, index=True)
     notes = db.Column(db.Text)
+    country = db.relationship("Country")
+    currency = db.relationship("Currency")
+    region = db.relationship("Region")
+
+    def to_dict(self):
+        return {
+            "price": str(self.price),
+            "currency": self.currency.acronym,
+            "region": self.region.name if self.region else None,
+            "country": self.country.name if self.country else None,
+            "notes": self.notes,
+            "year": self.year,
+        }
 
 
 class Currency(db.Model):

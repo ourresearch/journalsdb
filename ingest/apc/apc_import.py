@@ -13,6 +13,7 @@ class ImportAPC:
 
     def __init__(self, year):
         self.row = {}
+        self.row["note"] = None
         self.df = None
         self.year = int(year)
 
@@ -91,6 +92,14 @@ class ImportAPC:
             if price != "":
                 self.row["price"] = float(price)
 
+    def set_notes(self, cell):
+        """
+        Adds Notes column
+        """
+        self.row["note"] = None
+        if not pd.isnull(cell):
+            self.row["note"] = cell
+
     def save_price(self):
         """
         Adds an APC price to the database.
@@ -106,6 +115,7 @@ class ImportAPC:
                     country_id=self.row["country_id"],
                     region_id=self.row["region_id"],
                     year=self.year,
+                    notes=self.row["note"],
                 )
                 .first()
             )
@@ -122,6 +132,7 @@ class ImportAPC:
                     country_id=self.row["country_id"],
                     region_id=self.row["region_id"],
                     year=self.year,
+                    notes=self.row["note"],
                 )
 
                 db.session.add(entry)

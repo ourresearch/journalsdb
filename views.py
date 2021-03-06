@@ -60,9 +60,9 @@ def search():
 @swag_from("docs/journal.yml")
 def journal_detail(issn):
     journal = Journal.find_by_issn(issn)
-    metadata = journal.issn_metadata.crossref_raw_api
-    dois_by_year, total_dois = process_metadata(metadata)
     if journal:
+        metadata = journal.issn_metadata.crossref_raw_api
+        dois_by_year, total_dois = process_metadata(metadata)
         journal_dict = build_journal_dict(journal, issn, dois_by_year, total_dois)
     else:
         return abort(404, description="Resource not found")
@@ -91,6 +91,14 @@ def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
         "provenance": journal.publisher.sub_data_source,
         "prices": sorted(
             [p.to_dict() for p in journal.subscription_prices],
+            key=lambda p: p["year"],
+            reverse=True,
+        ),
+    }
+    journal_dict["apc_pricing"] = {
+        "provenance": journal.publisher.sub_data_source,
+        "apc_prices": sorted(
+            [p.to_dict() for p in journal.apc_prices],
             key=lambda p: p["year"],
             reverse=True,
         ),

@@ -4,7 +4,10 @@ from ingest.apc.apc_import import ImportAPC
 
 class SpringerAPC(ImportAPC):
     def __init__(self, year):
-        super().__init__(year)
+        self.data_source = (
+            "https://www.springernature.com/gp/open-research/journals-books/journals"
+        )
+        super().__init__(year, "Springer Science and Business Media LLC")
         self.currencies = set(["USD", "EUR", "GBP"])
         self.currency_to_country = {
             "USD": "USA",

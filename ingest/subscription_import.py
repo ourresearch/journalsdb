@@ -44,11 +44,14 @@ class SubscriptionImport:
             "Japan": "Japan",
             "UK": "United Kingdom of Great Britain & Northern Ireland",
             "USA": "United States of America",
-            "Mexico": "Mexico",
+            "Mexico": "Mexico, United Mexican States",
             "Canada": "Canada",
             "AUS": "Australia, Commonwealth of",
             "GBR": "United Kingdom of Great Britain & Northern Ireland",
         }
+        self.countries = set(
+            ["USA", "Canada", "Mexico", "Japan", "France", "UK", "AUS", "GBR"]
+        )
 
     def set_publisher(self, name):
         """
@@ -143,14 +146,13 @@ class SubscriptionImport:
             if not self.currency:
                 print("Currency Associated with " + acronym + " not found")
 
-    def set_country(self):
+    def set_country(self, region):
         """
         Gets a country given the provided acronym (or None for "Rest of World")
         """
-        region = self.current_region.name
-        if not region:
-            self.country = None
-        elif region in self.regions_to_countries:
+        self.country = None
+        self.country_id = None
+        if not self.current_region:
             self.country = (
                 db.session.query(Country)
                 .filter_by(name=self.regions_to_countries[region])
@@ -158,24 +160,21 @@ class SubscriptionImport:
             )
             if self.country:
                 self.country_id = self.country.id
-        else:
-            print("No country for region:", region)
+            else:
+                print("No country for region:", region)
 
-    def set_region(self):
+    def set_region(self, region):
         """
         Finds the Region model entry for a given region.
         """
-        if self.currency.acronym == "EUR":
-            acronym = "EUR"
-        elif self.currency.acronym == "ROW":
-            acronym = "ROW"
-        else:
-            acronym = self.currencies_and_regions[self.currency.acronym]
-        self.current_region = (
-            db.session.query(Region)
-            .filter_by(name=acronym, publisher_id=self.publisher.id)
-            .first()
-        )
+        self.current_region = None
+        if region not in self.countries:
+            try:
+                self.current_region = (
+                    db.session.query(Region).filter_by(name=region).first()
+                )
+            except:
+                print("Region missing from DB: ", region)
 
     def set_price(self, cell):
         """
@@ -207,7 +206,6 @@ class SubscriptionImport:
                 entry = self.get_country_entry()
             else:
                 entry = self.get_region_entry()
-
             if not entry or entry not in self.journal.subscription_prices:
 
                 try:
@@ -227,9 +225,11 @@ class SubscriptionImport:
                         price_entry.region_id = self.current_region.id
 
                     db.session.add(price_entry)
-                    self.journal.subscription_prices.append(price_entry)
+                    self.journal.subscription_prices = self.journal.subscription_prices[
+                        :
+                    ] + [price_entry]
                     self.journal.internal_publisher_id = self.product_id
-                    db.session.flush()
+                    db.session.commit()
 
                     print(
                         "Added SubscriptionPrice: ",

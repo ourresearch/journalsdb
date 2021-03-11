@@ -4,7 +4,8 @@ from ingest.apc.apc_import import ImportAPC
 
 class WileyAPC(ImportAPC):
     def __init__(self, year):
-        super().__init__(year)
+        self.data_source = "https://authorservices.wiley.com/author-resources/Journal-Authors/open-access/article-publication-charges.html"
+        super().__init__(year, "Wiley (Blackwell Publishing)")
         self.currencies = set(["USD", "EUR", "GBP"])
         self.currency_to_country = {
             "USD": "USA",

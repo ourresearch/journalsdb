@@ -17,6 +17,7 @@ class Sage(SubscriptionImport):
         )
         regions_and_currencies = [("USA", "USD"), ("GBR", "GBP")]
         super().__init__(year, None, regions_and_currencies, "SAGE Publications")
+        self.in_electronic_price = True
 
     def format_sage_dataframe(self, excel_file_path):
         """
@@ -35,10 +36,10 @@ class Sage(SubscriptionImport):
             self.set_issn(row["E-ISSN"])
             self.set_journal()
             self.set_product_id(row["Product"])
+            self.in_electronic_price = False
             for region, currency_acronym in self.regions_and_currencies:
                 self.set_currency(currency_acronym)
-                self.set_region(region)
-                self.set_country()
+                self.set_country(region)
                 column = currency_acronym + " Price " + str(self.year)
                 self.set_price(row[column])
                 media_type = row["Product Description"]
@@ -48,9 +49,11 @@ class Sage(SubscriptionImport):
     def add_prices(self, media_type):
         if self.journal:
             if media_type == "Electronic Only":
-                self.journal.subscription_prices = []
+                if not self.in_electronic_price:
+                    self.journal.subscription_prices = []
                 db.session.commit()
                 self.add_price_to_db()
+                self.in_electronic_price = True
             else:
                 if len(self.journal.subscription_prices) == 0:
                     self.add_price_to_db()

@@ -22,6 +22,7 @@ class Elsevier(SubscriptionImport):
             ("Europe", "USD"),
             ("D, A, CH", "EUR"),
         ]
+        self.countries = set(["USA", "Canada", "Mexico", "Japan", "France", "UK"])
 
     def format_elsevier_dataframe(self, excel_file_path):
         """
@@ -36,17 +37,6 @@ class Elsevier(SubscriptionImport):
                 to_remove.append((region, currency_acronym))
         for pair in to_remove:
             self.regions_and_currencies.remove(pair)
-
-    def set_region(self, region):
-        """
-        Finds the Region model entry for a given region.
-        """
-        try:
-            self.current_region = (
-                db.session.query(Region).filter_by(name=region).first()
-            )
-        except:
-            print("Could not find region associated with country")
 
     def import_elsevier_prices(self):
         """
@@ -69,7 +59,7 @@ class Elsevier(SubscriptionImport):
             for region, currency_acronym in self.regions_and_currencies:
                 self.set_currency(currency_acronym)
                 self.set_region(region)
-                self.set_country()
+                self.set_country(region)
                 column = region + " - " + currency_acronym
                 self.set_price(row[column])
                 if self.price:

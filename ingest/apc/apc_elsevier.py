@@ -10,7 +10,10 @@ class ElsevierAPC(ImportAPC):
     """
 
     def __init__(self, year):
-        super().__init__(year)
+        self.data_source = (
+            "https://www.elsevier.com/books-and-journals/journal-pricing/apc-pricelist"
+        )
+        super().__init__(year, "Elsevier ")
         self.currencies = set(["USD", "EUR", "GBP", "JPY"])
         self.currency_to_country = {
             "USD": "USA",

@@ -3,7 +3,7 @@ import numpy as np
 
 from app import db
 from ingest.subscription_import import SubscriptionImport
-from models.location import Region
+from models.location import Region, Country
 
 
 class SpringerNature(SubscriptionImport):
@@ -26,25 +26,28 @@ class SpringerNature(SubscriptionImport):
         df.replace("", np.nan, inplace=True)
         self.df = df
 
-    def set_region(self):
+    def set_country(self):
         """
-        Finds the Region model entry for a given country.
+        Gets a country given the provided acronym
         """
-        try:
-            self.current_region = (
-                db.session.query(Region)
-                .filter_by(name="USA", publisher_id=self.publisher.id)
+        self.country = None
+        self.country_id = None
+        if not self.current_region:
+            self.country = (
+                db.session.query(Country)
+                .filter_by(name="United States of America")
                 .first()
             )
-        except:
-            print("Could not find region associated with country")
+            if self.country:
+                self.country_id = self.country.id
+            else:
+                print("No country for region:", self.country)
 
     def import_prices(self):
         """
         Parses the Springer Nature Price List and adds entries to Database
         """
         self.set_currency("USD")
-        self.set_region()
         self.set_country()
         for index, row in self.df.iterrows():
             self.set_journal_name(row["Title"])

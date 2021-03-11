@@ -73,7 +73,7 @@ class WileyBlackwell(SubscriptionImport):
                     self.set_price(row[region])
                     self.set_currency(currency_acronym)
                     self.set_region(region)
-                    self.set_country()
+                    self.set_country(region)
                     self.add_price_to_db()
 
         db.session.commit()
@@ -166,14 +166,3 @@ class WileyBlackwell(SubscriptionImport):
 
         else:
             self.fte_from, self.fte_to = None, None
-
-    def set_region(self, region):
-        """
-        Queries the region from the database and sets this as a class variable.
-        """
-        try:
-            self.current_region = (
-                db.session.query(Region).filter_by(name=region).first()
-            )
-        except:
-            print("Could not find region:", region)

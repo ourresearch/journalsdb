@@ -9,6 +9,7 @@ Goal is to import journal pricing data from the top five academic journal publis
 import os
 
 import click
+from sqlalchemy import func
 
 from app import app, db
 from ingest.elsevier import Elsevier
@@ -79,10 +80,7 @@ def import_springer(file_name, year):
 
 @app.cli.command("delete_all_prices")
 def delete_prices():
-    journals = db.session.query(Journal).all()
-    for j in journals:
-        j.subscription_prices = []
-    prices = db.session.query(SubscriptionPrice).all()
-    for p in prices:
-        db.session.delete(p)
+    db.session.query(Journal).update({Journal.subscription_prices: []})
+    num_rows_deleted = db.session.query(SubscriptionPrice).delete()
+    print("Deleted {} Prices".format(num_rows_deleted))
     db.session.commit()

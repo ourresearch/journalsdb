@@ -55,6 +55,7 @@ class TaylorFrancis(SubscriptionImport):
         Iterate through the dataframe and import the Sage Price List into the
         SubscriptionPrice model.
         """
+        temp = dict(self.currencies_and_regions)
         for index, row in self.df.iterrows():
             self.set_journal_name(row["Journal Name "])
             self.set_issn(row["ISSN"])
@@ -62,13 +63,21 @@ class TaylorFrancis(SubscriptionImport):
             self.set_currency(row["Currency"])
             if not self.currency:
                 continue
-            self.set_region()
-            self.set_country()
+            cur = self.get_raw_currency(row["Currency"])
+            region = temp[cur]
+            self.set_region(region)
+            self.set_country(region)
             self.process_fte(row["Price Group"])
             self.set_price(row["2021 rate"])
             self.add_price_to_db()
 
         db.session.commit()
+
+    def get_raw_currency(self, cell):
+        if pd.isnull(cell):
+            return None
+        else:
+            return cell
 
     def process_fte(self, cell):
         """

@@ -1,6 +1,6 @@
 import pandas as pd
 from app import db
-from models.journal import Journal
+from models.journal import Journal, Publisher
 from models.location import Country, Region
 from models.price import APCPrice, Currency
 import regex as re
@@ -11,11 +11,24 @@ class ImportAPC:
     Base class for importing APC Pricing for various publishers.
     """
 
-    def __init__(self, year):
+    def __init__(self, year, publisher):
+        self.data_source = None
         self.row = {}
         self.row["note"] = None
         self.df = None
         self.year = int(year)
+        self.publisher = None
+        self.set_publisher(publisher)
+
+    def set_publisher(self, name):
+        """
+        Loads the publisher model from the database
+        """
+        self.publisher = db.session.query(Publisher).filter_by(name=name).first()
+        if self.publisher and not self.publisher.apc_data_source:
+            breakpoint()
+            self.publisher.apc_data_source = self.data_source
+            db.session.commit()
 
     def set_issn(self, cell):
         """

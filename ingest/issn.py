@@ -213,10 +213,11 @@ def import_issn_apis():
             break
         for issn in chunk:
             save_issn_org_api(issn)
-            save_crossref_api(issn)
-            set_title(issn)
-            set_publisher(issn)
-            link_issn_l(issn)
+            connection_status = save_crossref_api(issn)
+            if connection_status == 200:
+                set_title(issn)
+                set_publisher(issn)
+                link_issn_l(issn)
 
         if i % 10000 == 0:
             print("Chunk finished, number of ISSNs completed: ", i)
@@ -246,14 +247,19 @@ def save_crossref_api(issn):
             issn.updated_at = datetime.datetime.now()
             issn.crossref_issns = issn.issns_from_crossref_api
             db.session.commit()
+            return 200
+        elif r.status_code == 404:
+            return 404
     except requests.exceptions.ConnectionError:
-        return
+        return None
 
 
 def set_title(issn):
     try:
         j = Journal.query.filter_by(issn_l=issn.issn_l).one_or_none()
         title = remove_control_characters(issn.title_from_issn_api)
+        if title and title[-1] == ".":
+            title = title[:-1]
         if j and title:
             # update
             j.title = title

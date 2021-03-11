@@ -103,6 +103,7 @@ class Publisher(db.Model, TimestampMixin):
     synonyms = db.Column(JSONB)
     uuid = db.Column(db.Text, default=shortuuid.uuid, unique=True)
     sub_data_source = db.Column(db.String(500), nullable=True, index=False)
+    apc_data_source = db.Column(db.String(500), nullable=True, index=False)
 
     def __repr__(self):
         return self.name

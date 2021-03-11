@@ -96,7 +96,7 @@ def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
         ),
     }
     journal_dict["apc_pricing"] = {
-        "provenance": journal.publisher.sub_data_source,
+        "provenance": journal.publisher.apc_data_source,
         "apc_prices": sorted(
             [p.to_dict() for p in journal.apc_prices],
             key=lambda p: p["year"],

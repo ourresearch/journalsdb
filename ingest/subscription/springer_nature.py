@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 
 from app import db
-from ingest.subscription_import import SubscriptionImport
-from models.location import Region, Country
+from ingest.subscription.subscription_import import SubscriptionImport
+from models.location import Country
 
 
 class SpringerNature(SubscriptionImport):

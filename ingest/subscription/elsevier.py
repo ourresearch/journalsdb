@@ -1,8 +1,7 @@
 import pandas as pd
 
 from app import db
-from ingest.subscription_import import SubscriptionImport
-from models.location import Region
+from ingest.subscription.subscription_import import SubscriptionImport
 
 
 class Elsevier(SubscriptionImport):

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from app import db
-from ingest.subscription_import import SubscriptionImport
+from ingest.subscription.subscription_import import SubscriptionImport
 
 
 class TaylorFrancis(SubscriptionImport):

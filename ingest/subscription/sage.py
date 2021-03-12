@@ -2,7 +2,7 @@ import pandas as pd
 
 from app import db
 from models.location import Region
-from ingest.subscription_import import SubscriptionImport
+from ingest.subscription.subscription_import import SubscriptionImport
 
 
 class Sage(SubscriptionImport):

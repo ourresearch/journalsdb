@@ -9,22 +9,21 @@ Goal is to import journal pricing data from the top five academic journal publis
 import os
 
 import click
-from sqlalchemy import func
 
 from app import app, db
-from ingest.elsevier import Elsevier
-from ingest.sage import Sage
-from ingest.springer_nature import SpringerNature
-from ingest.taylor_francis import TaylorFrancis
-from ingest.wiley_blackwell import WileyBlackwell
+from ingest.subscription.elsevier import Elsevier
+from ingest.subscription.sage import Sage
+from ingest.subscription.springer_nature import SpringerNature
+from ingest.subscription.taylor_francis import TaylorFrancis
+from ingest.subscription.wiley_blackwell import WileyBlackwell
 from models.price import SubscriptionPrice
 from models.journal import Journal
 
-CSV_DIRECTORY = "ingest/files/"
+CSV_DIRECTORY = "ingest/subscription/files/"
 
 
 @app.cli.command("import_wb")
-@click.option("--file_name", required=True)
+@click.option("--file_name", default="wiley_sub_2021.xlsx")
 @click.option("--year", required=True)
 def import_wb(file_name, year):
     file_path = os.path.join(app.root_path, CSV_DIRECTORY, file_name)
@@ -46,7 +45,7 @@ def import_elsevier(file_name, year):
 
 
 @app.cli.command("import_tf")
-@click.option("--file_name", required=True)
+@click.option("--file_name", default="taylor_francis_sub_2021.xlsx")
 @click.option("--year", required=True)
 def import_tf(file_name, year):
     file_path = os.path.join(app.root_path, CSV_DIRECTORY, file_name)
@@ -57,7 +56,7 @@ def import_tf(file_name, year):
 
 
 @app.cli.command("import_sage")
-@click.option("--file_name", required=True)
+@click.option("--file_name", default="sage_sub_2021.xlsx")
 @click.option("--year", required=True)
 def import_sage(file_name, year):
     file_path = os.path.join(app.root_path, CSV_DIRECTORY, file_name)
@@ -68,7 +67,7 @@ def import_sage(file_name, year):
 
 
 @app.cli.command("import_springer")
-@click.option("--file_name", required=True)
+@click.option("--file_name", default="springer_sub_2021.xlsx")
 @click.option("--year", required=True)
 def import_springer(file_name, year):
     file_path = os.path.join(app.root_path, CSV_DIRECTORY, file_name)

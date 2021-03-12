@@ -9,7 +9,3 @@ def test_saved_publisher(client, run_import_issns_with_api):
 
     j = Journal.query.filter_by(issn_l="0974-4061").one()
     assert j.publisher.name == "Informa UK (Taylor & Francis)"
-
-    # no publisher
-    j = Journal.query.filter_by(issn_l="0000-0043").one()
-    assert j.publisher is None

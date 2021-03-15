@@ -52,6 +52,11 @@ def journals():
                 del result["crossref_issns"]
                 del result["issn_org_issns"]
 
+            # set publisher key name
+            if attrs and publisher_attrs and "name" in publisher_attrs:
+                result["publisher_name"] = result["name"]
+                del result["name"]
+
             journal_results.append(result)
 
         response = {"journals": journal_results, "count": len(journals)}

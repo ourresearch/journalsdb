@@ -183,11 +183,11 @@ def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
     journal_dict["retractions"] = RetractionSummary.retractions_by_year(issn_l)
     journal_dict["dois_by_issued_year"] = dois_by_year
     journal_dict["total_dois"] = total_dois
-    journal_dict["open_access"] = "{}/open-access/{}".format(SITE_URL, issn_l)
+    journal_dict["open_access"] = "{}/journal/{}/open-access".format(SITE_URL, issn_l)
     return journal_dict
 
 
-@app.route("/open-access/<issn>")
+@app.route("/journal/<issn>/open-access")
 @swag_from("docs/open_access.yml")
 def open_access(issn):
     open_access, num_dois, num_green, num_hybrid = get_open_access(issn)

@@ -22,6 +22,7 @@ def index():
 
 
 @app.route("/journals")
+@swag_from("docs/journals.yml")
 def journals():
     attrs = request.args.get("attrs")
     if attrs:
@@ -39,7 +40,21 @@ def journals():
         journals = db.session.query(Journal).with_entities(column).all()
 
     try:
-        response = {"journals": [j._asdict() for j in journals], "count": len(journals)}
+        journal_results = []
+        for j in journals:
+            result = j._asdict()
+
+            # handle issns
+            if attrs and metadata_attrs and "issns" in metadata_attrs:
+                result["issns"] = list(
+                    set(result["crossref_issns"] + result["issn_org_issns"])
+                )
+                del result["crossref_issns"]
+                del result["issn_org_issns"]
+
+            journal_results.append(result)
+
+        response = {"journals": journal_results, "count": len(journals)}
         return jsonify(response)
     except:
         return {"error": "Unable to format journals data"}, 400
@@ -48,9 +63,9 @@ def journals():
 def process_attrs(attrs):
     attrs = set(attrs.split(","))
 
-    valid_journal_attrs = {"id", "title", "synonyms", "issn_l"}
+    valid_journal_attrs = {"issn_l", "synonyms", "title", "uuid"}
     valid_publisher_attrs = {"publisher_name", "publisher_synonyms"}
-    valid_metadata_attrs = {"issn_org_issns", "crossref_issns"}
+    valid_metadata_attrs = {"issns"}
 
     journal_attrs = attrs.intersection(valid_journal_attrs)
     publisher_attrs = attrs.intersection(valid_publisher_attrs)
@@ -65,8 +80,9 @@ def get_journals(journal_attrs, publisher_attrs, metadata_attrs):
     if publisher_attrs:
         columns.extend([getattr(Publisher, i) for i in publisher_attrs])
 
-    if metadata_attrs:
-        columns.extend([getattr(ISSNMetaData, i) for i in metadata_attrs])
+    if "issns" in metadata_attrs:
+        metadata_columns = ["issn_org_issns", "crossref_issns"]
+        columns.extend([getattr(ISSNMetaData, i) for i in metadata_columns])
 
     return (
         db.session.query(Journal)

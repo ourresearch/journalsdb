@@ -1,0 +1,13 @@
+parameters:
+  - name: attrs
+    in: query
+    type: array
+    items:
+      type: string
+      enum: ['issn_l', 'issns', 'synonyms', 'title', 'uuid', 'publisher_name', 'publisher_synonyms']
+    collectionFormat: csv
+    required: false
+    default: 'issn_l'
+responses:
+  '200':
+    description: List of journals in the database

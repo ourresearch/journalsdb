@@ -5,7 +5,19 @@ from ingest.apc.apc_import import ImportAPC
 class WileyAPC(ImportAPC):
     def __init__(self, year):
         self.data_source = "https://authorservices.wiley.com/author-resources/Journal-Authors/open-access/article-publication-charges.html"
-        super().__init__(year, "Wiley (Blackwell Publishing)")
+        publisher_names = [
+            "Wiley (John Wiley & Sons)",
+            "Wiley (Physiological Reports)",
+            "Wiley (AHRC Research Centre)",
+            "Wiley (Opulus Press)",
+            "Wiley (American Cancer Society) ",
+            "Wiley (The Wildlife Society)",
+            "Wiley (The Physiological Society)",
+            "Wiley (Canadian Academic Accounting Association)",
+            "Wiley (Robotic Publications)",
+            "Wiley (Blackwell Publishing)",
+        ]
+        super().__init__(year, publisher_names)
         self.currencies = set(["USD", "EUR", "GBP"])
         self.currency_to_country = {
             "USD": "USA",

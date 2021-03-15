@@ -19,7 +19,7 @@ class SubscriptionImport:
         year,
         currencies_and_regions=None,
         regions_and_currencies=None,
-        publisher=None,
+        publisher_names=None,
     ):
         self.df = None
         self.year = int(year)
@@ -34,7 +34,7 @@ class SubscriptionImport:
         self.currencies_and_regions = currencies_and_regions
         self.regions_and_currencies = regions_and_currencies
         self.publisher = None
-        self.set_publisher(publisher)
+        self.set_publisher(publisher_names)
         self.current_region = None
         self.currency = None
         self.country = None
@@ -53,13 +53,15 @@ class SubscriptionImport:
             ["USA", "Canada", "Mexico", "Japan", "France", "UK", "AUS", "GBR"]
         )
 
-    def set_publisher(self, name):
+    def set_publisher(self, names):
         """
         Loads the publisher model from the database
         """
-        self.publisher = db.session.query(Publisher).filter_by(name=name).first()
-        if self.publisher and not self.publisher.sub_data_source:
-            self.publisher.sub_data_source = self.data_source
+        for name in names:
+            self.publisher = db.session.query(Publisher).filter_by(name=name).first()
+            if self.publisher and not self.publisher.sub_data_source:
+                self.publisher.sub_data_source = self.data_source
+            db.session.commit()
 
     def add_regions_to_db(self):
         """

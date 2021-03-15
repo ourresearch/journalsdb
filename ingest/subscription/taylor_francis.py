@@ -35,7 +35,7 @@ class TaylorFrancis(SubscriptionImport):
             year,
             currencies_and_regions,
             regions_and_currencies,
-            "Informa UK (Taylor & Francis)",
+            ["Informa UK (Taylor & Francis)"],
         )
 
     def format_tf_dataframe(self, file_path):

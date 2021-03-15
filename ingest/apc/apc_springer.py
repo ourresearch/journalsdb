@@ -7,7 +7,21 @@ class SpringerAPC(ImportAPC):
         self.data_source = (
             "https://www.springernature.com/gp/open-research/journals-books/journals"
         )
-        super().__init__(year, "Springer Science and Business Media LLC")
+        publisher_names = [
+            "Springer-Verlag",
+            "Springer (Biomed Central Ltd.)",
+            "Springer - Global Science Journals",
+            "Springer - Psychonomic Society",
+            "Springer (Kluwer Academic Publishers)",
+            "Springer Fachmedien Wiesbaden GmbH",
+            "Springer - RILEM Publishing",
+            "Springer Publishing Company",
+            "Springer - Society of Surgical Oncology",
+            "Springer - Adis",
+            "Springer - Humana Press",
+            "Springer Science and Business Media LLC",
+        ]
+        super().__init__(year, publisher_names)
         self.currencies = set(["USD", "EUR", "GBP"])
         self.currency_to_country = {
             "USD": "USA",

@@ -10,11 +10,25 @@ class SpringerNature(SubscriptionImport):
     def __init__(self, year):
         self.data_source = "https://www.springernature.com/gp/librarians/licensing/journals-catalog/journal-price-lists"
         regions_and_currencies = [("USA", "USD")]
+        publisher_names = [
+            "Springer-Verlag",
+            "Springer (Biomed Central Ltd.)",
+            "Springer - Global Science Journals",
+            "Springer - Psychonomic Society",
+            "Springer (Kluwer Academic Publishers)",
+            "Springer Fachmedien Wiesbaden GmbH",
+            "Springer - RILEM Publishing",
+            "Springer Publishing Company",
+            "Springer - Society of Surgical Oncology",
+            "Springer - Adis",
+            "Springer - Humana Press",
+            "Springer Science and Business Media LLC",
+        ]
         super().__init__(
             year,
             None,
             regions_and_currencies,
-            "Springer Science and Business Media LLC",
+            publisher_names,
         )
 
     def format_springer_dataframe(self, file_path):

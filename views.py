@@ -21,6 +21,62 @@ def index():
     )
 
 
+@app.route("/journals")
+def journals():
+    attrs = request.args.get("attrs")
+    if attrs:
+        try:
+            journal_attrs, publisher_attrs, metadata_attrs = process_attrs(attrs)
+        except:
+            return {"error": "Invalid attributes"}, 400
+
+        try:
+            journals = get_journals(journal_attrs, publisher_attrs, metadata_attrs)
+        except:
+            return {"error": "Unable to fetch journals data"}, 400
+    else:
+        column = getattr(Journal, "issn_l")
+        journals = db.session.query(Journal).with_entities(column).all()
+
+    try:
+        response = {"journals": [j._asdict() for j in journals], "count": len(journals)}
+        return jsonify(response)
+    except:
+        return {"error": "Unable to format journals data"}, 400
+
+
+def process_attrs(attrs):
+    attrs = set(attrs.split(","))
+
+    valid_journal_attrs = {"id", "title", "synonyms", "issn_l"}
+    valid_publisher_attrs = {"publisher_name", "publisher_synonyms"}
+    valid_metadata_attrs = {"issn_org_issns", "crossref_issns"}
+
+    journal_attrs = attrs.intersection(valid_journal_attrs)
+    publisher_attrs = attrs.intersection(valid_publisher_attrs)
+    publisher_attrs = [a.replace("publisher_", "") for a in publisher_attrs]
+    metadata_attrs = attrs.intersection(valid_metadata_attrs)
+    return journal_attrs, publisher_attrs, metadata_attrs
+
+
+def get_journals(journal_attrs, publisher_attrs, metadata_attrs):
+    columns = [getattr(Journal, i) for i in journal_attrs]
+
+    if publisher_attrs:
+        columns.extend([getattr(Publisher, i) for i in publisher_attrs])
+
+    if metadata_attrs:
+        columns.extend([getattr(ISSNMetaData, i) for i in metadata_attrs])
+
+    return (
+        db.session.query(Journal)
+        .join(Journal.publisher)
+        .join(Journal.issn_metadata)
+        .with_entities(*columns)
+        .all()
+    )
+
+
 @app.route("/journal/<issn_l>/repositories")
 def repositories(issn_l):
     journal = Journal.find_by_issn(issn_l)

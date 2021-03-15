@@ -1,11 +1,10 @@
+tags:
+  - Endpoints
 parameters:
   - name: issn
     in: path
     type: string
     required: true
-definitions:
-  issn:
-    type: string
 responses:
   200:
     description: Journal details

@@ -98,7 +98,7 @@ def get_journals(journal_attrs, publisher_attrs, metadata_attrs):
     )
 
 
-@app.route("/journal/<issn_l>/repositories")
+@app.route("/journals/<issn_l>/repositories")
 def repositories(issn_l):
     journal = Journal.find_by_issn(issn_l)
     repositories = Repository.repositories(issn_l)
@@ -110,7 +110,7 @@ def repositories(issn_l):
     return jsonify(results)
 
 
-@app.route("/search/")
+@app.route("/journals/search/")
 @swag_from("docs/search.yml")
 def search():
     query = request.args.get("query")
@@ -133,7 +133,7 @@ def search():
     return jsonify(results)
 
 
-@app.route("/journal/<issn>")
+@app.route("/journals/<issn>")
 @swag_from("docs/journal.yml")
 def journal_detail(issn):
     journal = Journal.find_by_issn(issn)
@@ -159,7 +159,9 @@ def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
         if OpenAccess.recent_status(journal.issn_l)
         else None
     )
-    journal_dict["repositories"] = "{}/journal/{}/repositories".format(SITE_URL, issn_l)
+    journal_dict["repositories"] = "{}/journals/{}/repositories".format(
+        SITE_URL, issn_l
+    )
     journal_dict["readership"] = [e.to_dict() for e in journal.extension_requests]
     journal_dict["author_permissions"] = (
         journal.permissions.to_dict() if journal.permissions else None
@@ -183,11 +185,11 @@ def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
     journal_dict["retractions"] = RetractionSummary.retractions_by_year(issn_l)
     journal_dict["dois_by_issued_year"] = dois_by_year
     journal_dict["total_dois"] = total_dois
-    journal_dict["open_access"] = "{}/journal/{}/open-access".format(SITE_URL, issn_l)
+    journal_dict["open_access"] = "{}/journals/{}/open-access".format(SITE_URL, issn_l)
     return journal_dict
 
 
-@app.route("/journal/<issn>/open-access")
+@app.route("/journals/<issn>/open-access")
 @swag_from("docs/open_access.yml")
 def open_access(issn):
     open_access, num_dois, num_green, num_hybrid = get_open_access(issn)

@@ -22,9 +22,10 @@ template = {
 }
 swagger = Swagger(app, template=template)
 
-env = os.getenv("FLASK_ENV")
 app.config["CACHE_REDIS_URL"] = os.getenv("REDISCLOUD_URL")
-app.config["CACHE_TYPE"] = "RedisCache" if env == "production" else "NullCache"
+app.config["CACHE_TYPE"] = (
+    "RedisCache" if app.config["ENV"] == "production" else "NullCache"
+)
 app.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")

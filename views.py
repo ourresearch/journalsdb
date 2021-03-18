@@ -1,11 +1,11 @@
 from flask import abort, jsonify, request
+from flasgger import swag_from
 
-from app import app, db
+from app import app, cache, db
 from models.journal import Journal, Publisher
 from models.usage import OpenAccess, Repository, RetractionSummary
 from models.issn import ISSNMetaData
 from models.location import Region, Country
-from flasgger import swag_from
 
 SITE_URL = "https://journalsdb.org"
 
@@ -22,6 +22,7 @@ def index():
 
 
 @app.route("/journals")
+@cache.cached(timeout=60 * 60 * 6, query_string=True)
 @swag_from("docs/journals.yml")
 def journals():
     attrs = request.args.get("attrs")

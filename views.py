@@ -63,13 +63,13 @@ def journals():
 def process_attrs(attrs):
     attrs = set(attrs.split(","))
 
-    valid_journal_attrs = {"issn_l", "synonyms", "title", "uuid"}
+    valid_journal_attrs = {"issn_l", "journal_synonyms", "title", "uuid"}
     valid_publisher_attrs = {"publisher_name", "publisher_synonyms"}
     valid_metadata_attrs = {"issns"}
 
     journal_attrs = attrs.intersection(valid_journal_attrs)
     publisher_attrs = attrs.intersection(valid_publisher_attrs)
-    publisher_attrs = [a.replace("publisher_", "") for a in publisher_attrs]
+    publisher_attrs = [a.replace("publisher_name", "name") for a in publisher_attrs]
     metadata_attrs = attrs.intersection(valid_metadata_attrs)
     return journal_attrs, publisher_attrs, metadata_attrs
 

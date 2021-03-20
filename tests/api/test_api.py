@@ -48,7 +48,7 @@ class TestAPI:
 
     def test_journals_with_attributes_synonyms(self, client, run_import_issns_with_api):
         run_import_issns_with_api("ISSN-to-ISSN-L-api.txt")
-        attrs = "issn_l,synonyms,publisher_synonyms"
+        attrs = "issn_l,journal_synonyms,publisher_synonyms"
         rv = client.get("/journals?attrs={}".format(attrs))
         json_data = rv.get_json()
         assert rv.status_code == 200
@@ -58,5 +58,5 @@ class TestAPI:
             None,
         )
         assert sample["issn_l"] == "1907-1760"
-        assert sample["synonyms"] is None
+        assert sample["journal_synonyms"] is None
         assert sample["publisher_synonyms"] is None

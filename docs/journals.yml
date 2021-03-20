@@ -6,7 +6,7 @@ parameters:
     type: array
     items:
       type: string
-      enum: ['issn_l', 'issns', 'synonyms', 'title', 'uuid', 'publisher_name', 'publisher_synonyms']
+      enum: ['issn_l', 'issns', 'journal_synonyms', 'title', 'uuid', 'publisher_name', 'publisher_synonyms']
     collectionFormat: csv
     required: false
     default: 'issn_l'
@@ -18,10 +18,10 @@ responses:
         count: 79879,
         journals: [{
           'issn_l': '1907-1760', 
-          'issns': ['2460-6626', '1907-1760'], 
+          'issns': ['2460-6626', '1907-1760'],
+          'journal_synonyms': null,
           'publisher_name': 'Universitas Andalas', 
-          'publisher_synonyms': null, 
-          'synonyms': null, 
+          'publisher_synonyms': null,
           'title': 'Jurnal peternakan Indonesia', 
           'uuid': 'F27TZDt8RAeL4QGAWXPEQi',
           }

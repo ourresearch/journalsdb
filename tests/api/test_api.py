@@ -15,7 +15,7 @@ class TestAPI:
         assert json_data["title"] == "JMIR mhealth and uhealth"
         assert json_data["publisher"] == "JMIR Publications Inc."
 
-    def test_journals(self, client, run_import_issns_with_api):
+    def test_journals_no_attributes(self, client, run_import_issns_with_api):
         run_import_issns_with_api("ISSN-to-ISSN-L-api.txt")
         rv = client.get("/journals")
         json_data = rv.get_json()
@@ -24,14 +24,13 @@ class TestAPI:
             (item for item in json_data["journals"] if item["issn_l"] == "1907-1760"),
             None,
         )
-        assert sample
+        assert sample["issn_l"] == "1907-1760"
 
-        attrs = "issn_l,title"
-        rv = client.get("/journals?attrs={}".format(attrs))
-        json_data = rv.get_json()
-        assert rv.status_code == 200
-
-        attrs = "issn_l,title,uuid,publisher_name,publisher_synonyms,issns"
+    def test_journals_with_attributes_no_synonyms(
+        self, client, run_import_issns_with_api
+    ):
+        run_import_issns_with_api("ISSN-to-ISSN-L-api.txt")
+        attrs = "issn_l,title,uuid,publisher_name,issns"
         rv = client.get("/journals?attrs={}".format(attrs))
         json_data = rv.get_json()
         assert rv.status_code == 200
@@ -40,9 +39,24 @@ class TestAPI:
             (item for item in json_data["journals"] if item["issn_l"] == "1907-1760"),
             None,
         )
+        assert sample["issn_l"] == "1907-1760"
         assert sample["publisher_name"] == "Universitas Andalas"
-        assert sample["synonyms"] == None
         assert "2460-6626" in sample["issns"]
         assert "1907-1760" in sample["issns"]
         assert sample["title"] == "Jurnal peternakan Indonesia"
         assert sample["uuid"]
+
+    def test_journals_with_attributes_synonyms(self, client, run_import_issns_with_api):
+        run_import_issns_with_api("ISSN-to-ISSN-L-api.txt")
+        attrs = "issn_l,synonyms,publisher_synonyms"
+        rv = client.get("/journals?attrs={}".format(attrs))
+        json_data = rv.get_json()
+        assert rv.status_code == 200
+
+        sample = next(
+            (item for item in json_data["journals"] if item["issn_l"] == "1907-1760"),
+            None,
+        )
+        assert sample["issn_l"] == "1907-1760"
+        assert sample["synonyms"] is None
+        assert sample["publisher_synonyms"] is None

@@ -32,38 +32,32 @@ def journals():
         except:
             return {"error": "Invalid attributes"}, 400
 
-        try:
-            journals = get_journals(journal_attrs, publisher_attrs, metadata_attrs)
-        except:
-            return {"error": "Unable to fetch journals data"}, 400
+        journals = get_journals(journal_attrs, publisher_attrs, metadata_attrs)
     else:
         column = getattr(Journal, "issn_l")
         journals = db.session.query(Journal).with_entities(column).all()
 
-    try:
-        journal_results = []
-        for j in journals:
-            result = j._asdict()
+    journal_results = []
+    for j in journals:
+        result = j._asdict()
 
-            # handle issns
-            if attrs and metadata_attrs and "issns" in metadata_attrs:
-                result["issns"] = list(
-                    set(result["crossref_issns"] + result["issn_org_issns"])
-                )
-                del result["crossref_issns"]
-                del result["issn_org_issns"]
+        # handle issns
+        if attrs and metadata_attrs and "issns" in metadata_attrs:
+            result["issns"] = list(
+                set(result["crossref_issns"] + result["issn_org_issns"])
+            )
+            del result["crossref_issns"]
+            del result["issn_org_issns"]
 
-            # set publisher key name
-            if attrs and publisher_attrs and "name" in publisher_attrs:
-                result["publisher_name"] = result["name"]
-                del result["name"]
+        # set publisher key name
+        if attrs and publisher_attrs and "name" in publisher_attrs:
+            result["publisher_name"] = result["name"]
+            del result["name"]
 
-            journal_results.append(result)
+        journal_results.append(result)
 
-        response = {"journals": journal_results, "count": len(journals)}
-        return jsonify(response)
-    except:
-        return {"error": "Unable to format journals data"}, 400
+    response = {"journals": journal_results, "count": len(journals)}
+    return jsonify(response)
 
 
 def process_attrs(attrs):

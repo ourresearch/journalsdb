@@ -13,3 +13,16 @@ parameters:
 responses:
   '200':
     description: List of journals in the database
+    examples:
+      application/json: {
+        count: 79879,
+        journals: [{
+          'issn_l': '1907-1760', 
+          'issns': ['2460-6626', '1907-1760'], 
+          'publisher_name': 'Universitas Andalas', 
+          'publisher_synonyms': null, 
+          'synonyms': null, 
+          'title': 'Jurnal peternakan Indonesia', 
+          'uuid': 'F27TZDt8RAeL4QGAWXPEQi',
+          }
+        ]}

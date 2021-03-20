@@ -10,9 +10,9 @@ responses:
   200:
     description: An object containing Open Access information about a specified ISSN
     examples:
-      results:  {
+      application/json:  {
         "ISSN-L": "0190-2407",
-        "Open Access": 
+        "open_access":
             [{
                 "bronze_rate": 0,
                 "gold_rate": 0,
@@ -43,9 +43,9 @@ responses:
                 "num_hybrid": 0,
                 "num_open": 0,
                 "open_rate": 0,
-                "year": 2020
+                "year": 2019
             }],
-        "Summary": {
+        "summary": {
             "num_dois": 447,
             "num_green": 13,
             "num_hybrid": 0

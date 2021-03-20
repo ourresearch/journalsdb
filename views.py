@@ -100,6 +100,7 @@ def get_journals(journal_attrs, publisher_attrs, metadata_attrs):
 
 
 @app.route("/journals/<issn_l>/repositories")
+@swag_from("docs/repositories.yml")
 def repositories(issn_l):
     journal = Journal.find_by_issn(issn_l)
     repositories = Repository.repositories(issn_l)

@@ -1,0 +1,82 @@
+tags:
+  - Endpoints
+parameters:
+  - name: issn
+    in: path
+    type: string
+    required: true
+
+responses:
+  200:
+    description: An object containing repository information about a specified ISSN
+    examples:
+      application/json: {
+        "issn_l":"1541-2040",
+        "journal_title":"Youth violence and juvenile justice",
+        "repositories":[
+          {
+            "endpoint_id":"36174eaa1e23509e9d5",
+            "home_page":null,
+            "institution_name":null,
+            "num_articles":1,
+            "pmh_url":"http://scholarworks.boisestate.edu/do/oai/",
+            "repository_name":null
+          },
+          {
+            "endpoint_id":"5ae9f225287388f2391",
+            "home_page":null,
+            "institution_name":null,
+            "num_articles":2,
+            "pmh_url":"http://digitalcommons.unl.edu/do/oai/",
+            "repository_name":null
+          },
+          {
+            "endpoint_id":"6ad02870b003b57b4b1",
+            "home_page":"https://scholarworks.iu.edu/dspace/",
+            "institution_name":"Indiana University",
+            "num_articles":1,
+            "pmh_url":"http://scholarworks.iupui.edu/oai/request",
+            "repository_name":"IUScholarWorks"
+          },
+          {
+            "endpoint_id":"7e4fec42e1147584aae",
+            "home_page":"http://citeseerx.ist.psu.edu/index",
+            "institution_name":"The Pennsylvania State University",
+            "num_articles":3,
+            "pmh_url":"http://citeseerx.ist.psu.edu/oai2",
+            "repository_name":"CiteSeer X"
+          },
+          {
+            "endpoint_id":"8f5f5482dc982449a7f",
+            "home_page":null,
+            "institution_name":null,
+            "num_articles":1,
+            "pmh_url":"http://digitalcommons.newhaven.edu/do/oai/",
+            "repository_name":null
+          },
+          {
+            "endpoint_id":"b358deda76b334a1c77",
+            "home_page":"https://open.bu.edu",
+            "institution_name":"Boston University",
+            "num_articles":1,
+            "pmh_url":"http://open.bu.edu/oai/request",
+            "repository_name":"OpenBU/Boston University Institutional Repository"
+          },
+          {
+            "endpoint_id":"b5e840539009389b1a6",
+            "home_page":"http://europepmc.org/",
+            "institution_name":"PubMed Central",
+            "num_articles":17,
+            "pmh_url":"http://europepmc.org/oai.cgi",
+            "repository_name":"Europe PMC"
+          },
+          {
+            "endpoint_id":"df47e2fced6bfe99587",
+            "home_page":"https://digitalcommons.unl.edu/",
+            "institution_name":"University of Nebraska - Lincoln",
+            "num_articles":1,
+            "pmh_url":"http://digitalcommons.unl.edu/cgi/oai2.cgi",
+            "repository_name":"DigitalCommons@University of Nebraska - Lincoln"
+          }
+        ]
+      }

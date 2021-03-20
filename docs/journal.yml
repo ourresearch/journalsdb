@@ -10,4 +10,32 @@ responses:
     description: Journal details
     schema:
     examples:
-      issn: ['0001-5172']
+      application/json: {
+        "apc_pricing": {
+          "apc_prices": [],
+          "provenance": null
+        },
+        "author_permissions": null,
+        "dois_by_issued_year": [
+          [
+            2016,
+            45
+          ],
+        ],
+        "issn_l": "1541-2040",
+        "issns": [
+          "1556-9330",
+          "1541-2040"
+        ],
+        "open_access": "https://journalsdb.org/journal/1541-2040/open-access",
+        "publisher": "SAGE Publications",
+        "readership": [],
+        "repositories": "https://journalsdb.org/journal/1541-2040/repositories",
+        "retractions": null,
+        "subscription_pricing": {
+          "prices": [],
+          "provenance": "https://us.sagepub.com/en-us/nam/sage-journals-and-subscription-info"
+        },
+        "title": "Youth violence and juvenile justice",
+        "total_dois": 434
+      }

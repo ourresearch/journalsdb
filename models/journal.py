@@ -27,19 +27,22 @@ class Journal(db.Model, TimestampMixin):
 
     # relationships
     apc_prices = db.relationship(
-        "APCPrice", secondary=journal_apc_price, lazy="subquery"
+        "APCPrice", secondary=journal_apc_price, lazy="subquery", backref="journals"
     )
-    author_permissions = db.relationship("AuthorPermissions")
-    imprint = db.relationship("Imprint")
+    author_permissions = db.relationship("AuthorPermissions", cascade="all, delete")
+    imprint = db.relationship("Imprint", cascade="all, delete")
     issn_metadata = db.relationship("ISSNMetaData")
     journal_metadata = db.relationship(
-        "JournalMetadata", lazy="joined", backref="journal"
+        "JournalMetadata", lazy="joined", backref="journal", cascade="all, delete"
     )
     permissions = db.relationship("AuthorPermissions", uselist=False, backref="journal")
     publisher = db.relationship("Publisher", backref=db.backref("journals", lazy=True))
     subjects = db.relationship("Subject", secondary=journal_subjects, lazy="subquery")
     subscription_prices = db.relationship(
-        "SubscriptionPrice", secondary=journal_subscription_price, lazy="subquery"
+        "SubscriptionPrice",
+        secondary=journal_subscription_price,
+        lazy="subquery",
+        backref="journals",
     )
 
     @classmethod

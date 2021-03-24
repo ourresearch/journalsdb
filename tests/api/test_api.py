@@ -60,3 +60,11 @@ class TestAPI:
         assert sample["issn_l"] == "1907-1760"
         assert sample["journal_synonyms"] is None
         assert sample["publisher_synonyms"] is None
+
+    def test_journals_with_invalid_attributes(self, client, run_import_issns_with_api):
+        run_import_issns_with_api("ISSN-to-ISSN-L-api.txt")
+        attrs = "issn_l,title,uuid,publisher_secrets,issns"
+        rv = client.get("/journals?attrs={}".format(attrs))
+        json_data = rv.get_json()
+        assert rv.status_code == 400
+        assert json_data["error"]

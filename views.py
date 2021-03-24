@@ -27,11 +27,10 @@ def index():
 def journals():
     attrs = request.args.get("attrs")
     if attrs:
-        try:
-            journal_attrs, publisher_attrs, metadata_attrs = process_attrs(attrs)
-        except:
-            return {"error": "Invalid attributes"}, 400
-
+        attrs = set(attrs.split(","))
+        if not is_valid_attrs(attrs):
+            return jsonify({"error": "Invalid attributes"}), 400
+        journal_attrs, publisher_attrs, metadata_attrs = process_attrs(attrs)
         journals = get_journals(journal_attrs, publisher_attrs, metadata_attrs)
     else:
         column = getattr(Journal, "issn_l")
@@ -60,9 +59,24 @@ def journals():
     return jsonify(response)
 
 
-def process_attrs(attrs):
-    attrs = set(attrs.split(","))
+def is_valid_attrs(attrs):
+    valid_attrs = {
+        "issn_l",
+        "journal_synonyms",
+        "title",
+        "uuid",
+        "publisher_name",
+        "publisher_synonyms",
+        "issns",
+    }
+    if attrs.difference(valid_attrs):
+        is_valid = False
+    else:
+        is_valid = True
+    return is_valid
 
+
+def process_attrs(attrs):
     valid_journal_attrs = {"issn_l", "journal_synonyms", "title", "uuid"}
     valid_publisher_attrs = {"publisher_name", "publisher_synonyms"}
     valid_metadata_attrs = {"issns"}

@@ -3,7 +3,7 @@ import time
 import boto3
 import pandas as pd
 import requests
-from sqlalchemy import exc, extract, func
+from sqlalchemy import exc, func
 
 from app import app, db
 from models.journal import Journal
@@ -21,7 +21,8 @@ def import_retraction_watch():
     df = pd.read_csv("s3://journalsdb/{}".format(file), encoding="ISO-8859-1")
 
     for index, row in df.iterrows():
-        if not db.session.query(RetractionWatch).get(row["Record ID"]):
+        entry = db.session.query(RetractionWatch).get(row["Record ID"])
+        if not entry:
             crossref_doi_api = call_crossref_api(row["OriginalPaperDOI"])
             r = RetractionWatch(
                 record_id=row["Record ID"],
@@ -37,6 +38,30 @@ def import_retraction_watch():
             print("adding doi {}".format(row["OriginalPaperDOI"]))
             db.session.add(r)
             db.session.commit()
+        else:
+            update_retraction_watch(row)
+            db.session.commit()
+
+
+def update_retraction_watch(row):
+    entry = (
+        db.session.query(RetractionWatch)
+        .filter_by(record_id=row["Record ID"])
+        .one_or_none()
+    )
+    column_map = {
+        "record_id": "Record ID",
+        "title": "Title",
+        "journal": "Journal",
+        "publisher": "Publisher",
+        "retraction_date": "RetractionDate",
+        "retraction_doi": "RetractionDOI",
+        "paper_doi": "OriginalPaperDOI",
+    }
+
+    for column, header in column_map.items():
+        setattr(entry, column, row[header])
+        print("Updating {} with value {}".format(column, row[header]))
 
 
 def call_crossref_api(doi):
@@ -122,17 +147,31 @@ def build_retraction_summary():
 
         for year, num_dois in dois_by_year:
             if year == r.published_year:
-                s = RetractionSummary(
-                    issn=r.issn,
-                    journal=r.journal,
-                    year=r.published_year,
-                    retractions=r.count,
-                    num_dois=num_dois,
+                entry = (
+                    db.session.query(RetractionSummary)
+                    .filter_by(issn=r.issn, year=year)
+                    .one_or_none()
                 )
-                try:
-                    db.session.add(s)
+                if not entry:
+                    s = RetractionSummary(
+                        issn=r.issn,
+                        journal=r.journal,
+                        year=r.published_year,
+                        retractions=r.count,
+                        num_dois=num_dois,
+                    )
+                    try:
+                        db.session.add(s)
+                        db.session.commit()
+                    except exc.IntegrityError:
+                        db.session.rollback()
+                else:
+                    entry.journal = r.journal
+                    entry.retractions = r.count
+                    entry.num_dois = num_dois
                     db.session.commit()
-                except exc.IntegrityError:
-                    # handle issn, year already exists
-                    # need to change to update the row instead
-                    db.session.rollback()
+                    print(
+                        "Updating issn: {} with count: {} and num_dois: {}".format(
+                            entry.issn, r.count, num_dois
+                        )
+                    )

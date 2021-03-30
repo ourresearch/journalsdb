@@ -1,3 +1,7 @@
+from app import db
+from models.journal import Publisher
+
+
 class TestAPI:
     def test_api_root(self, client):
         rv = client.get("/")
@@ -65,6 +69,46 @@ class TestAPI:
         run_import_issns_with_api("ISSN-to-ISSN-L-api.txt")
         attrs = "issn_l,title,uuid,publisher_secrets,issns"
         rv = client.get("/journals?attrs={}".format(attrs))
+        json_data = rv.get_json()
+        assert rv.status_code == 400
+        assert json_data["error"]
+
+    def test_journals_with_publisher_filter(self, client, run_import_issns_with_api):
+        run_import_issns_with_api("ISSN-to-ISSN-L-api.txt")
+        pubs = (
+            db.session.query(Publisher).filter(Publisher.name.contains("Wiley")).all()
+        )
+        for p in pubs:
+            p.publisher_synonyms = ["wiley"]
+        db.session.commit()
+
+        attrs = "issn_l,title,publisher_name"
+        filter = "wiley"
+        rv = client.get("/journals?attrs={}&publisher_name={}".format(attrs, filter))
+        json_data = rv.get_json()
+        assert rv.status_code == 200
+        sample = next(
+            (item for item in json_data["journals"] if item["issn_l"] == "1354-7798"),
+            None,
+        )
+        assert sample["issn_l"] == "1354-7798"
+        assert sample["publisher_name"] == "Wiley (Blackwell Publishing)"
+        assert sample["title"] == "European financial management"
+        sample = next(
+            (
+                item
+                for item in json_data["journals"]
+                if item["publisher_name"] == "Universitas Andalas"
+            ),
+            None,
+        )
+        assert not sample
+
+    def test_journals_with_invalid_pub_filter(self, client, run_import_issns_with_api):
+        run_import_issns_with_api("ISSN-to-ISSN-L-api.txt")
+        attrs = "issn_l,title,publisher_name"
+        filter = "Wiley (Blackwell Publashing)"
+        rv = client.get("/journals?attrs={}&publisher_name={}".format(attrs, filter))
         json_data = rv.get_json()
         assert rv.status_code == 400
         assert json_data["error"]

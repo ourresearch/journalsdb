@@ -1,5 +1,6 @@
 from flask import abort, jsonify, request
 from flasgger import swag_from
+import json
 
 from app import app, cache, db
 from models.journal import Journal, Publisher
@@ -26,12 +27,30 @@ def index():
 @swag_from("docs/journals.yml")
 def journals():
     attrs = request.args.get("attrs")
+    pub_name = request.args.get("publisher_name")
+    filter = {"name": pub_name}
+    multi_pubs = True
+    if pub_name:
+        publishers = (
+            db.session.query(Publisher)
+            .filter(Publisher.publisher_synonyms.contains(json.dumps(pub_name)))
+            .all()
+        )
+        if not publishers:
+            publisher = (
+                db.session.query(Publisher).filter_by(name=pub_name).one_or_none()
+            )
+            multi_pubs = False
+            if not publisher:
+                return jsonify({"error": "Invalid publisher"}), 400
     if attrs:
         attrs = set(attrs.split(","))
         if not is_valid_attrs(attrs):
             return jsonify({"error": "Invalid attributes"}), 400
         journal_attrs, publisher_attrs, metadata_attrs = process_attrs(attrs)
-        journals = get_journals(journal_attrs, publisher_attrs, metadata_attrs)
+        journals = get_journals(
+            journal_attrs, publisher_attrs, metadata_attrs, filter, multi_pubs
+        )
     else:
         column = getattr(Journal, "issn_l")
         journals = db.session.query(Journal).with_entities(column).all()
@@ -69,6 +88,7 @@ def is_valid_attrs(attrs):
         "publisher_synonyms",
         "issns",
     }
+
     if attrs.difference(valid_attrs):
         is_valid = False
     else:
@@ -88,7 +108,7 @@ def process_attrs(attrs):
     return journal_attrs, publisher_attrs, metadata_attrs
 
 
-def get_journals(journal_attrs, publisher_attrs, metadata_attrs):
+def get_journals(journal_attrs, publisher_attrs, metadata_attrs, filters, multi_pubs):
     columns = [getattr(Journal, i) for i in journal_attrs]
 
     if publisher_attrs:
@@ -97,6 +117,26 @@ def get_journals(journal_attrs, publisher_attrs, metadata_attrs):
     if "issns" in metadata_attrs:
         metadata_columns = ["issn_org_issns", "crossref_issns"]
         columns.extend([getattr(ISSNMetaData, i) for i in metadata_columns])
+
+    if not multi_pubs:
+        return (
+            db.session.query(Journal)
+            .join(Journal.publisher)
+            .filter_by(**filters)
+            .join(Journal.issn_metadata)
+            .with_entities(*columns)
+            .all()
+        )
+
+    if filters["name"]:
+        return (
+            db.session.query(Journal)
+            .join(Journal.publisher)
+            .filter(Publisher.publisher_synonyms.contains(json.dumps(filters["name"])))
+            .join(Journal.issn_metadata)
+            .with_entities(*columns)
+            .all()
+        )
 
     return (
         db.session.query(Journal)

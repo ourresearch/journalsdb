@@ -1,3 +1,5 @@
+import pandas as pd
+
 from app import app
 from ingest.utils import CSVImporter
 from models.usage import OpenAccess
@@ -31,15 +33,51 @@ def import_open_access():
 
     Run with: flask import_open_access
     """
+
+    class OpenAccessImporter(CSVImporter):
+        def organize_chunk(self, chunk):
+            """
+            Chunks may contain null values which should be replaced with None.
+            SQLalchemy doesn't keep column names in order, so the chunk must be fitted to
+            SQLalchemy's default order
+            """
+            chunk = chunk.where(pd.notnull(chunk), None)
+            chunk = chunk.dropna(axis=0, subset=["issn_l", "year"])
+            chunk = chunk[
+                [
+                    "issn_l",
+                    "title",
+                    "year",
+                    "num_dois",
+                    "num_open",
+                    "open_rate",
+                    "num_green",
+                    "green_rate",
+                    "num_bronze",
+                    "bronze_rate",
+                    "num_hybrid",
+                    "hybrid_rate",
+                    "num_gold",
+                    "gold_rate",
+                    "is_in_doaj",
+                    "is_gold_journal",
+                ]
+            ]
+            return chunk.values.tolist()
+
     url = "https://api.unpaywall.org/journal_open_access.csv.gz"
 
     # field setup
     fields = OpenAccess.__table__.columns.keys()
-    fields_to_remove = ["id", "created_at", "updated_at"]
+    fields_to_remove = ["created_at", "updated_at"]
     for field in fields_to_remove:
         fields.remove(field)
     fields = ",".join(fields)
-
-    # import TODO: need to ensure all fields are updated on update not just one
-    c = CSVImporter(fields=fields, table="open_access", url=url)
-    c.import_data()
+    primary_keys = ["issn_l", "year"]
+    importer = OpenAccessImporter(
+        fields=fields,
+        table="open_access",
+        url=url,
+        primary_keys=primary_keys,
+    )
+    importer.import_data()

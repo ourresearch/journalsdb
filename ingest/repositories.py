@@ -1,4 +1,6 @@
-from app import app, db
+import pandas as pd
+
+from app import app
 from ingest.utils import CSVImporter
 from models.usage import Repository
 
@@ -20,26 +22,33 @@ def import_repositories():
     """
 
     class RepositoryImporter(CSVImporter):
-        def create_temp_table(self):
-            db.session.execute(
-                "CREATE TABLE {} ( like {} including all)".format(
-                    self.staging_table, self.table
-                )
-            )
-            db.session.commit()
-
-        def copy_temp_to_standard(self):
-            copy_sql = "INSERT INTO {table} ({fields}) SELECT {fields} FROM {staging_table} ON CONFLICT (issn_l, endpoint_id) DO UPDATE SET repository_name=excluded.repository_name;".format(
-                table=self.table, fields=self.fields, staging_table=self.staging_table
-            )
-            db.session.execute(copy_sql)
-            db.session.commit()
+        def organize_chunk(self, chunk):
+            """
+            Chunks may contain null values which should be replaced with None.
+            SQLalchemy doesn't keep column names in order, so the chunk must be fitted to
+            SQLalchemy's default order
+            """
+            chunk = chunk.where(pd.notnull(chunk), None)
+            chunk = chunk[
+                [
+                    "issn_l",
+                    "endpoint_id",
+                    "repository_name",
+                    "institution_name",
+                    "home_page",
+                    "pmh_url",
+                    "num_articles",
+                ]
+            ]
+            return chunk.values.tolist()
 
     fields = Repository.__table__.columns.keys()
     fields = ",".join(fields)
+    primary_keys = ["issn_l", "endpoint_id"]
     importer = RepositoryImporter(
         fields=fields,
         table="repositories",
         url="https://api.unpaywall.org/repositories.csv.gz",
+        primary_keys=primary_keys,
     )
     importer.import_data()

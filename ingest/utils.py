@@ -1,67 +1,70 @@
-import gzip
 import unicodedata
 import urllib.request
+
+import pandas as pd
+from sqlalchemy import MetaData
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.dialects import postgresql
 
 from app import db
 from models.journal import Journal
 
 
 class CSVImporter:
-    def __init__(self, fields, table, url):
+    def __init__(self, fields, table, url, primary_keys=None):
         self.fields = fields
-        self.staging_table = table + "_staging"
         self.table = table
         self.url = url
+        self.primary_keys = primary_keys
+        self.chunksize = 50000  # Update based on memory constraints
+        self.base = declarative_base()
+        self.metadata = MetaData(db.engine, reflect=True)
 
     def import_data(self):
-        self.create_temp_table()
-        self.copy_csv_to_temp_table()
-        self.copy_temp_to_standard()
-        self.drop_temp_table()
-
-    def create_temp_table(self):
-        db.session.execute(
-            "CREATE TABLE {} ( like {} including all)".format(
-                self.staging_table, self.table
-            )
-        )
-        db.session.execute(
-            "ALTER TABLE {} DROP COLUMN id, DROP COLUMN created_at, DROP COLUMN updated_at, ALTER year DROP NOT NULL;".format(
-                self.staging_table
-            )
-        )
-        db.session.commit()
-
-    def copy_csv_to_temp_table(self):
         """
         Very fast way to copy 1 million or more rows into a table.
         """
-        copy_sql = "COPY {}({}) FROM STDOUT WITH (FORMAT CSV, DELIMITER ',', HEADER, ENCODING 'ISO_8859_5')".format(
-            self.staging_table, self.fields
+        chunks = pd.read_csv(
+            self.get_file(),
+            compression="gzip",
+            sep=",",
+            quotechar='"',
+            error_bad_lines=False,
+            chunksize=self.chunksize,
         )
-        conn = db.engine.raw_connection()
-        with conn.cursor() as cur:
-            cur.copy_expert(copy_sql, self.get_file())
-        conn.commit()
+        for chunk in chunks:
+            chunk = self.organize_chunk(chunk)
+            self.upsert(chunk)
+
+    def organize_chunk(self, chunk):
+        """
+        Overridden in inherited objects.
+        """
+        pass
+
+    def upsert(self, chunk):
+        """
+        Performs a Postgresql Upsert.
+
+        Will update all columns based on the provided primary keys.
+        """
+        table = self.metadata.tables.get(self.table)
+        update_cols = [c.name for c in table.c if c not in self.primary_keys]
+        stmt = postgresql.insert(table).values(chunk)
+
+        on_conflict_stmt = stmt.on_conflict_do_update(
+            index_elements=self.primary_keys,
+            set_={k: getattr(stmt.excluded, k) for k in update_cols},
+        )
+        db.session.execute(on_conflict_stmt)
+        db.session.commit()
 
     def get_file(self):
         """
         Opens remote file.
         """
         response = urllib.request.urlopen(self.url)
-        gzip_file = gzip.GzipFile(fileobj=response)
-        return gzip_file
-
-    def copy_temp_to_standard(self):
-        copy_sql = "INSERT INTO {table} ({fields}) SELECT {fields} FROM {staging_table} WHERE year IS NOT NULL ON CONFLICT (issn_l, year) DO UPDATE SET num_dois=excluded.num_dois;".format(
-            table=self.table, fields=self.fields, staging_table=self.staging_table
-        )
-        db.session.execute(copy_sql)
-        db.session.commit()
-
-    def drop_temp_table(self):
-        db.session.execute("DROP TABLE IF EXISTS {}".format(self.staging_table))
-        db.session.commit()
+        return response
 
 
 def find_journal(issn):

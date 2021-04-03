@@ -9,10 +9,9 @@ from sqlalchemy import UniqueConstraint
 class OpenAccess(db.Model, TimestampMixin):
     __tablename__ = "open_access"
 
-    id = db.Column(db.Integer, primary_key=True)
-    issn_l = db.Column(db.Text, nullable=False, index=True)
+    issn_l = db.Column(db.Text, primary_key=True, nullable=False, index=True)
     title = db.Column(db.Text)
-    year = db.Column(db.Integer, nullable=False)
+    year = db.Column(db.Integer, primary_key=True, nullable=False)
     num_dois = db.Column(db.Integer)
     num_open = db.Column(db.Integer)
     open_rate = db.Column(db.Float)

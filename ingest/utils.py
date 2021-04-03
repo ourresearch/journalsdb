@@ -16,7 +16,7 @@ class CSVImporter:
         self.table = table
         self.url = url
         self.primary_keys = primary_keys
-        self.chunksize = 50000  # Update based on memory constraints
+        self.chunksize = 10000  # Update based on memory constraints
         self.base = declarative_base()
         self.metadata = MetaData(db.engine, reflect=True)
 

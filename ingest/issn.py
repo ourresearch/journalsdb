@@ -5,6 +5,7 @@ from urllib.request import urlopen
 from zipfile import ZipFile
 
 import click
+import pandas as pd
 import requests
 from sqlalchemy import exc, func
 
@@ -47,11 +48,13 @@ def import_issns(file_path, initial_load):
         db.session.execute(
             "INSERT INTO issn_to_issnl (issn, issn_l, created_at) SELECT issn, issn_l, NOW() FROM issn_temp;"
         )
+        filter_to_crossref_only()
         map_issns_to_issnl()
         # finished, remove temp data
         clear_issn_temp_table()
 
     else:
+        filter_to_crossref_only()
         # compare the regular ISSNtoISSNL table
         # new ISSN records (in temp but not in ISSNtoISSNL)
         new_records = db.session.execute(
@@ -191,6 +194,20 @@ def map_issns_to_issnl():
     set issn_org_issns = excluded.issn_org_issns;
     """
     db.session.execute(sql)
+    db.session.commit()
+
+
+def filter_to_crossref_only():
+    """
+    Filter issn_to_issnl table so it only has ISSNs that are in crossref.
+    https://api.unpaywall.org/crossref_issns.csv.gz
+    """
+    file = urlopen('https://api.unpaywall.org/crossref_issns.csv.gz')
+    data = pd.read_csv(file, compression="gzip")
+    crossref_issns = data['issn'].tolist()
+
+    stmt = ISSNToISSNL.__table__.delete().where(ISSNToISSNL.issn.not_in_(crossref_issns))
+    db.session.execute(stmt)
     db.session.commit()
 
 

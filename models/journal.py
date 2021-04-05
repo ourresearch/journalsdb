@@ -90,12 +90,16 @@ class JournalMetadata(db.Model, TimestampMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     journal_id = db.Column(db.Integer, db.ForeignKey("journals.id"), nullable=False)
-    author_page_url = db.Column(db.Text)
-    editorial_page_url = db.Column(db.Text)
-    twitter_id = db.Column(db.Text)
-    wikidata_id = db.Column(db.Text)
+    home_page_url = db.Column(db.String(500))
+    author_instructions_url = db.Column(db.String(500))
+    editorial_page_url = db.Column(db.String(500))
+    facebook_url = db.Column(db.String(500))
+    linkedin_url = db.Column(db.String(500))
+    twitter_url = db.Column(db.String(500))
+    wikidata_url = db.Column(db.String(500))
     society_journal = db.Column(db.Boolean)
     society_journal_name = db.Column(db.Text)
+    society_journal_url = db.Column(db.String(500))
 
 
 class Publisher(db.Model, TimestampMixin):

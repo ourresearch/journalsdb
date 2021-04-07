@@ -1,3 +1,4 @@
+import os
 import datetime
 from io import BytesIO
 import json
@@ -5,11 +6,19 @@ from urllib.request import urlopen
 from zipfile import ZipFile
 
 import click
+import pandas as pd
 import requests
 from sqlalchemy import exc, func
 
 from app import app, db
-from models.issn import ISSNHistory, ISSNMetaData, ISSNTemp, ISSNToISSNL, LinkedISSNL
+from models.issn import (
+    ISSNHistory,
+    ISSNMetaData,
+    ISSNTemp,
+    ISSNToISSNL,
+    LinkedISSNL,
+    CrossrefTemp,
+)
 from models.journal import Journal, Publisher
 from ingest.utils import get_or_create, remove_control_characters
 
@@ -47,11 +56,16 @@ def import_issns(file_path, initial_load):
         db.session.execute(
             "INSERT INTO issn_to_issnl (issn, issn_l, created_at) SELECT issn, issn_l, NOW() FROM issn_temp;"
         )
+        if not "PYTEST_CURRENT_TEST" in os.environ:
+            filter_to_crossref_only()
         map_issns_to_issnl()
         # finished, remove temp data
         clear_issn_temp_table()
 
     else:
+        if not "PYTEST_CURRENT_TEST" in os.environ:
+            print("filtering to crossref")
+            filter_to_crossref_only()
         # compare the regular ISSNtoISSNL table
         # new ISSN records (in temp but not in ISSNtoISSNL)
         new_records = db.session.execute(
@@ -194,6 +208,32 @@ def map_issns_to_issnl():
     db.session.commit()
 
 
+def filter_to_crossref_only():
+    """
+    Filter issn_to_issnl table so it only has ISSNs that are in crossref.
+    https://api.unpaywall.org/crossref_issns.csv.gz
+    """
+    file = urlopen("https://api.unpaywall.org/crossref_issns.csv.gz")
+    data = pd.read_csv(file, compression="gzip")
+    crossref_issns = data["issn"].tolist()
+    for issn in crossref_issns:
+        if not db.session.query(CrossrefTemp).filter_by(issn=issn).one_or_none():
+            c = CrossrefTemp(issn=issn)
+            db.session.add(c)
+            db.session.flush()
+    db.session.commit()
+    sql = """
+    delete from issn_temp
+        where not exists (
+            select null
+            from crossref_temp
+            where issn_temp.issn = crossref_temp.issn
+    )
+    """
+    db.session.execute(sql)
+    db.session.commit()
+
+
 @app.cli.command("import_issn_apis")
 def import_issn_apis():
     """
@@ -213,11 +253,10 @@ def import_issn_apis():
             break
         for issn in chunk:
             save_issn_org_api(issn)
-            connection_status = save_crossref_api(issn)
-            if connection_status == 200:
-                set_title(issn)
-                set_publisher(issn)
-                link_issn_l(issn)
+            save_crossref_api(issn)
+            set_title(issn)
+            set_publisher(issn)
+            link_issn_l(issn)
 
         if i % 10000 == 0:
             print("Chunk finished, number of ISSNs completed: ", i)
@@ -247,9 +286,6 @@ def save_crossref_api(issn):
             issn.updated_at = datetime.datetime.now()
             issn.crossref_issns = issn.issns_from_crossref_api
             db.session.commit()
-            return 200
-        elif r.status_code == 404:
-            return 404
     except requests.exceptions.ConnectionError:
         return None
 
@@ -266,6 +302,7 @@ def set_title(issn):
         elif title:
             j = Journal(issn_l=issn.issn_l, title=title)
             db.session.add(j)
+            db.session.commit()
     except exc.IntegrityError:
         db.session.rollback()
         return
@@ -281,6 +318,7 @@ def set_publisher(issn):
         j = Journal.query.filter_by(issn_l=issn.issn_l).one_or_none()
         if j:
             j.publisher_id = publisher.id if publisher else None
+        db.session.commit()
     except exc.IntegrityError:
         db.session.rollback()
         return
@@ -300,3 +338,4 @@ def link_issn_l(issn):
                     reason="crossref",
                 )
             )
+        db.session.commit()

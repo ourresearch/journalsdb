@@ -61,9 +61,7 @@ def journals():
 
         # handle issns
         if attrs and metadata_attrs and "issns" in metadata_attrs:
-            result["issns"] = list(
-                set(result["crossref_issns"] + result["issn_org_issns"])
-            )
+            result["issns"] = list(set(result["issn_org_issns"]))
             del result["crossref_issns"]
             del result["issn_org_issns"]
 

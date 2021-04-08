@@ -75,6 +75,8 @@ class ISSNMetaData(db.Model):
         )
         if isinstance(title, list):
             # get shortest title from the list
+            if "." in title:
+                title.remove(".")
             title = min(title, key=len)
         title = title.strip()
         return title

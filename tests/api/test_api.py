@@ -24,6 +24,7 @@ class TestAPI:
         rv = client.get("/journals")
         json_data = rv.get_json()
         assert rv.status_code == 200
+        assert json_data["count"] == 13
         sample = next(
             (item for item in json_data["journals"] if item["issn_l"] == "1907-1760"),
             None,
@@ -38,6 +39,7 @@ class TestAPI:
         rv = client.get("/journals?attrs={}".format(attrs))
         json_data = rv.get_json()
         assert rv.status_code == 200
+        assert json_data["count"] == 13
 
         sample = next(
             (item for item in json_data["journals"] if item["issn_l"] == "1907-1760"),
@@ -56,6 +58,7 @@ class TestAPI:
         rv = client.get("/journals?attrs={}".format(attrs))
         json_data = rv.get_json()
         assert rv.status_code == 200
+        assert json_data["count"] == 13
 
         sample = next(
             (item for item in json_data["journals"] if item["issn_l"] == "1907-1760"),
@@ -87,6 +90,7 @@ class TestAPI:
         rv = client.get("/journals?attrs={}&publisher_name={}".format(attrs, filter))
         json_data = rv.get_json()
         assert rv.status_code == 200
+        assert json_data["count"] == 1
         sample = next(
             (item for item in json_data["journals"] if item["issn_l"] == "1354-7798"),
             None,

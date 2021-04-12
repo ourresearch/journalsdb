@@ -119,7 +119,7 @@ def get_journals(journal_attrs, publisher_attrs, metadata_attrs, filters, multi_
     if not multi_pubs:
         return (
             db.session.query(Journal)
-            # .join(Journal.publisher)
+            .outerjoin(Journal.publisher)
             .filter_by(**filters)
             .join(Journal.issn_metadata)
             .with_entities(*columns)
@@ -138,7 +138,7 @@ def get_journals(journal_attrs, publisher_attrs, metadata_attrs, filters, multi_
 
     return (
         db.session.query(Journal)
-        # .join(Journal.publisher)
+        .outerjoin(Journal.publisher)
         .join(Journal.issn_metadata)
         .with_entities(*columns)
         .all()

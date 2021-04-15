@@ -24,6 +24,7 @@ class Journal(db.Model, TimestampMixin):
     imprint_id = db.Column(db.Integer, db.ForeignKey("imprints.id"))
     discount_waiver_exception = db.Column(db.Boolean, default=False, nullable=False)
     uuid = db.Column(db.Text, default=shortuuid.uuid, unique=True)
+    is_modified_title = db.Column(db.Boolean, default=False)
 
     # relationships
     apc_prices = db.relationship(
@@ -97,9 +98,22 @@ class JournalMetadata(db.Model, TimestampMixin):
     linkedin_url = db.Column(db.String(500))
     twitter_url = db.Column(db.String(500))
     wikidata_url = db.Column(db.String(500))
-    society_journal = db.Column(db.Boolean)
-    society_journal_name = db.Column(db.Text)
-    society_journal_url = db.Column(db.String(500))
+    is_society_journal = db.Column(db.Boolean)
+    society_journal_organizations = db.Column(JSONB)
+
+    def to_dict(self):
+        dict_ = {}
+        for key in self.__mapper__.c.keys():
+            dict_[key] = getattr(self, key)
+
+        fields_to_remove = ["id", "journal_id", "created_at", "updated_at"]
+        for field in fields_to_remove:
+            dict_.pop(field)
+
+        if dict_["society_journal_name"]:
+            dict_["society_journal_name"] = json.loads(dict_["society_journal_name"])
+
+        return dict_
 
 
 class Publisher(db.Model, TimestampMixin):

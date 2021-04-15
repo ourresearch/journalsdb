@@ -296,7 +296,7 @@ def set_title(issn):
         title = remove_control_characters(issn.title_from_issn_api)
         if title and title[-1] == ".":
             title = title[:-1]
-        if j and title:
+        if j and title and not j.is_modified_title:
             # update
             j.title = title
         elif title:

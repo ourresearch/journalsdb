@@ -48,4 +48,5 @@ with app.app_context():
     from ingest.retraction_watch import *
     from ingest.apc.import_apc_pricing import *
     from ingest.subscription.import_subscription_pricing import *
+    from ingest.journal_metadata.import_journal_metadata import *
     import views

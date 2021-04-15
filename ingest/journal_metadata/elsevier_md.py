@@ -125,10 +125,10 @@ def ingest_journal_metadata(df):
                 md.wikidata_url = wikidata_url
 
                 update_society(md, society_organization, society_organization_url)
+                db.session.add(md)
+                db.session.commit()
             else:
                 print("Could not find Journal for ISSN: ", issn)
-        db.session.add(md)
-        db.session.commit()
 
 
 def update_society(md, society_organization, society_organization_url):

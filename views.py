@@ -195,8 +195,12 @@ def journal_detail(issn):
 
 
 def process_metadata(metadata):
-    dois_by_year = metadata["message"]["breakdowns"]["dois-by-issued-year"]
-    total_dois = metadata["message"]["counts"]["total-dois"]
+    try:
+        dois_by_year = metadata["message"]["breakdowns"]["dois-by-issued-year"]
+        total_dois = metadata["message"]["counts"]["total-dois"]
+    except TypeError:
+        dois_by_year = None
+        total_dois = None
     return dois_by_year, total_dois
 
 
@@ -219,7 +223,7 @@ def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
             m.to_dict() for m in journal.journal_metadata
         ]
     journal_dict["subscription_pricing"] = {
-        "provenance": journal.publisher.sub_data_source,
+        "provenance": journal.publisher.sub_data_source if journal.publisher else None,
         "prices": sorted(
             [p.to_dict() for p in journal.subscription_prices],
             key=lambda p: p["year"],
@@ -227,7 +231,7 @@ def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
         ),
     }
     journal_dict["apc_pricing"] = {
-        "provenance": journal.publisher.apc_data_source,
+        "provenance": journal.publisher.apc_data_source if journal.publisher else None,
         "apc_prices": sorted(
             [p.to_dict() for p in journal.apc_prices],
             key=lambda p: p["year"],

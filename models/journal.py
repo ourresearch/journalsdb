@@ -110,9 +110,6 @@ class JournalMetadata(db.Model, TimestampMixin):
         for field in fields_to_remove:
             dict_.pop(field)
 
-        if dict_["society_journal_name"]:
-            dict_["society_journal_name"] = json.loads(dict_["society_journal_name"])
-
         return dict_
 
 

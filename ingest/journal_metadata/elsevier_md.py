@@ -3,6 +3,8 @@ import pandas as pd
 from app import db
 from models.journal import Journal, JournalMetadata
 
+from ingest.journal_metadata.journal_metadata import JournalMetaDataImporter
+
 
 def cleanse_data(df):
     """
@@ -88,73 +90,38 @@ def cleanse_data(df):
     return df
 
 
-def ingest_journal_metadata(df):
-    """
-    Iterates through the CSV and saves journal metadata into the database.
-    """
-    for index, row in df.iterrows():
-        issn = row["issn"]
-        if issn:
-            j = db.session.query(Journal).filter_by(issn_l=issn).one_or_none()
-            if j:
-                home_page_url = row["home_page_url"]
-                author_instructions_url = row["author_instructions"]
-                editorial_page_url = row["editorial_board"]
-                facebook_url = row["facebook_url"]
-                linkedin_url = row["linkedin_url"]
-                twitter_url = row["twitter_page_url"]
-                wikidata_url = row["wikidata_url"]
-                society_organization = row["society_organization"]
-                society_organization_url = row["society_organization_url"]
-                md = (
-                    db.session.query(JournalMetadata)
-                    .filter_by(journal_id=j.id)
-                    .one_or_none()
-                )
+class ElsevierMD(JournalMetaDataImporter):
+    def __init__(self, df):
+        super().__init__(df)
 
-                if not md:
-                    md = JournalMetadata()
-                    md.journal_id = j.id
+    def update_society(self, row):
+        """
+        Creates a list of dictionaries to store in the journal's society journal
+        information.
 
-                md.home_page_url = home_page_url
-                md.author_instructions_url = author_instructions_url
-                md.editorial_page_url = editorial_page_url
-                md.facebook_url = facebook_url
-                md.linkedin_url = linkedin_url
-                md.twitter_url = twitter_url
-                md.wikidata_url = wikidata_url
-
-                update_society(md, society_organization, society_organization_url)
-                db.session.add(md)
-                db.session.commit()
-            else:
-                print("Could not find Journal for ISSN: ", issn)
-
-
-def update_society(md, society_organization, society_organization_url):
-    """
-    Creates a list of dictionaries to store in the journal's society journal
-    information.
-
-    Format
-    [
-        {
-            "organization": Name,
-            "url": https://url.com,
-        },
-    ]
-    """
-    if society_organization:
-        md.is_society_journal = True
-        org_list = [
-            {"organization": s.strip()} for s in society_organization.split(";")
+        Format
+        [
+            {
+                "organization": Name,
+                "url": https://url.com,
+            },
         ]
-        if society_organization_url:
-            url_list = [{"url": s.strip()} for s in society_organization_url.split(";")]
+        """
+        society_organization = row["society_organization"]
+        society_organization_url = row["society_organization_url"]
+        if society_organization:
+            self.md.is_society_journal = True
+            self.org_list = [
+                {"organization": s.strip()} for s in society_organization.split(";")
+            ]
+            if society_organization_url:
+                url_list = [
+                    {"url": s.strip()} for s in society_organization_url.split(";")
+                ]
+            else:
+                url_list = [{"url": None}] * len(self.org_list)
+            [self.org_list[i].update(url_list[i]) for i in range(0, len(self.org_list))]
+            self.md.society_journal_organizations = self.org_list
         else:
-            url_list = [{"url": None}] * len(org_list)
-        [org_list[i].update(url_list[i]) for i in range(0, len(org_list))]
-        md.society_journal_organizations = org_list
-    else:
-        md.society_journal = False
-        md.society_journal_organizations = None
+            self.md.society_journal = False
+            self.md.society_journal_organizations = None

@@ -47,8 +47,7 @@ class ImportAPC:
         issn_l = self.row["issn-l"]
         self.journal = None
         if issn_l:
-            journal = db.session.query(Journal).filter_by(issn_l=issn_l).first()
-            self.journal = journal
+            self.journal = Journal.find_by_issn(issn_l)
 
     def set_currency_id(self, currency_acronym):
         """

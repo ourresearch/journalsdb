@@ -16,7 +16,7 @@ class Elsevier(SubscriptionImport):
             "Elsevier - Medicine Publishing Company",
             "Elsevier - Wilderness Medical Society",
             "Elsevier- Churchill Livingstone",
-            "Elsevier ",
+            "Elsevier",
         ]
         super().__init__(year, None, None, publisher_names)
         self.regions_and_currencies = [

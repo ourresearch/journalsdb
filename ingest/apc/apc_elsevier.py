@@ -22,7 +22,7 @@ class ElsevierAPC(ImportAPC):
             "Elsevier - Medicine Publishing Company",
             "Elsevier - Wilderness Medical Society",
             "Elsevier- Churchill Livingstone",
-            "Elsevier ",
+            "Elsevier",
         ]
         super().__init__(year, publisher_names)
         self.currencies = set(["USD", "EUR", "GBP", "JPY"])

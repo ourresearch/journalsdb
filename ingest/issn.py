@@ -311,7 +311,7 @@ def set_title(issn):
 def set_publisher(issn):
     try:
         publisher = (
-            get_or_create(db.session, Publisher, name=issn.publisher.strip('"'))
+            get_or_create(db.session, Publisher, name=issn.publisher)
             if issn.publisher
             else None
         )

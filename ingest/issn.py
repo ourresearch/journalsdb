@@ -339,3 +339,20 @@ def link_issn_l(issn):
                 )
             )
         db.session.commit()
+
+
+@app.cli.command("set_publishers")
+def set_publishers():
+    """
+    Iterate over issn_metadata table and set the publishers in the journals table.
+    """
+    for issn in ISSNMetaData.query.yield_per(100):
+        publisher = (
+            get_or_create(db.session, Publisher, name=issn.publisher)
+            if issn.publisher
+            else None
+        )
+        j = Journal.query.filter_by(issn_l=issn.issn_l).one_or_none()
+        if j:
+            j.publisher_id = publisher.id if publisher else None
+    db.session.commit()

@@ -89,11 +89,12 @@ class ISSNMetaData(db.Model):
 
     @property
     def publisher(self):
-        return (
+        name = (
             self.crossref_raw_api["message"]["publisher"]
             if self.crossref_raw_api
             else None
         )
+        return name.strip('"').strip() if name else None
 
     @property
     def issns(self):

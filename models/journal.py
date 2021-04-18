@@ -98,8 +98,8 @@ class JournalMetadata(db.Model, TimestampMixin):
     linkedin_url = db.Column(db.String(500))
     twitter_url = db.Column(db.String(500))
     wikidata_url = db.Column(db.String(500))
-    is_society_journal = db.Column(db.Boolean)
-    society_journal_organizations = db.Column(JSONB)
+    is_society_journal = db.Column(db.Boolean, default=False)
+    societies = db.Column(JSONB)
 
     def to_dict(self):
         dict_ = {}

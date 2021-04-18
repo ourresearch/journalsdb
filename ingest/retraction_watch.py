@@ -18,6 +18,7 @@ def import_retraction_watch():
     Run with: flask import_retraction_watch
     """
     file = get_recent_file()
+    print("updating data using file: {}".format(file))
     df = pd.read_csv("s3://journalsdb/{}".format(file), encoding="ISO-8859-1")
 
     for index, row in df.iterrows():
@@ -109,7 +110,7 @@ def get_recent_file():
     get_last_modified = lambda obj: int(obj["LastModified"].strftime("%s"))
     s3 = boto3.client("s3")
     objs = s3.list_objects_v2(Bucket=bucket)["Contents"]
-    last_added = [obj["Key"] for obj in sorted(objs, key=get_last_modified)][0]
+    last_added = [obj["Key"] for obj in sorted(objs, key=get_last_modified)][-1]
     return last_added
 
 

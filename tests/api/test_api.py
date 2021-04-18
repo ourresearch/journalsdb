@@ -1,3 +1,5 @@
+from flask import request, url_for
+
 from app import db
 from models.journal import Publisher
 
@@ -18,6 +20,16 @@ class TestAPI:
         assert json_data["issns"] == ["2291-5222"]
         assert json_data["title"] == "JMIR mhealth and uhealth"
         assert json_data["publisher"] == "JMIR Publications Inc."
+
+    def test_invalid_issn(self, client, run_import_issns_with_api):
+        run_import_issns_with_api("ISSN-to-ISSN-L-api.txt")
+        rv = client.get("/journals/0000-0000")
+        assert rv.status_code == 404
+
+    def test_redirected_issn(self, client, run_import_issns_with_api):
+        run_import_issns_with_api("ISSN-to-ISSN-L-api.txt")
+        rv = client.get("/journals/2460-6626", follow_redirects=True)
+        assert request.path == url_for("journal_detail", issn="1907-1760")
 
     def test_journals_no_attributes(self, client, run_import_issns_with_api):
         run_import_issns_with_api("ISSN-to-ISSN-L-api.txt")

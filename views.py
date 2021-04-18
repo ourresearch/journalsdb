@@ -1,4 +1,4 @@
-from flask import abort, jsonify, request
+from flask import abort, jsonify, redirect, request, url_for
 from flasgger import swag_from
 import json
 
@@ -184,13 +184,29 @@ def search():
 @app.route("/journals/<issn>")
 @swag_from("docs/journal.yml")
 def journal_detail(issn):
-    journal = Journal.find_by_issn(issn)
-    if journal:
-        metadata = journal.issn_metadata.crossref_raw_api
-        dois_by_year, total_dois = process_metadata(metadata)
-        journal_dict = build_journal_dict(journal, issn, dois_by_year, total_dois)
-    else:
-        return abort(404, description="Resource not found")
+    journal = Journal.query.filter_by(issn_l=issn).one_or_none()
+
+    if not journal:
+        # try to find in issn mapping, then redirect to issn_l
+        issn_in_issn_org = ISSNMetaData.query.filter(
+            ISSNMetaData.issn_org_issns.contains(json.dumps(issn))
+        ).first()
+
+        issn_in_crossref = ISSNMetaData.query.filter(
+            ISSNMetaData.crossref_issns.contains(json.dumps(issn))
+        ).first()
+
+        metadata_record = issn_in_issn_org or issn_in_crossref
+
+        if metadata_record:
+            return redirect(url_for("journal_detail", issn=metadata_record.issn_l))
+        else:
+            # nothing found
+            return abort(404, description="Resource not found")
+
+    metadata = journal.issn_metadata.crossref_raw_api
+    dois_by_year, total_dois = process_metadata(metadata)
+    journal_dict = build_journal_dict(journal, issn, dois_by_year, total_dois)
     return jsonify(journal_dict), 200
 
 

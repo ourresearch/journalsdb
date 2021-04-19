@@ -98,9 +98,9 @@ class JournalMetaDataImporter:
         self.process_society(society_organization_3, society_organization_link_3)
 
         if self.org_list:
-            self.md.society_journal_organizations = self.org_list
+            self.md.societies = self.org_list
         else:
-            self.md.society_journal_organizations = None
+            self.md.societies = None
 
     def process_society(self, organization, link):
         """

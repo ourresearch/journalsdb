@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def cleanse_wiley_data(df):
+def cleanse_sage_data(df):
     """
     Iterates through each row of the CSV and removes unnecessary columns.
     Replaces NaN with None

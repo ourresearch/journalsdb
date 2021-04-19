@@ -121,7 +121,7 @@ class ElsevierMD(JournalMetaDataImporter):
             else:
                 url_list = [{"url": None}] * len(self.org_list)
             [self.org_list[i].update(url_list[i]) for i in range(0, len(self.org_list))]
-            self.md.society_journal_organizations = self.org_list
+            self.md.societies = self.org_list
         else:
             self.md.society_journal = False
-            self.md.society_journal_organizations = None
+            self.md.societies = None

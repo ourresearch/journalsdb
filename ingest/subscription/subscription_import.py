@@ -208,48 +208,52 @@ class SubscriptionImport:
                 entry = self.get_country_entry()
             else:
                 entry = self.get_region_entry()
-            if not entry or entry not in self.journal.subscription_prices:
+
+            if not entry:
+                entry = SubscriptionPrice(
+                    price=self.price,
+                    currency_id=self.currency.id,
+                    fte_from=self.fte_from,
+                    fte_to=self.fte_to,
+                    year=self.year,
+                    created_at=datetime.datetime.now(),
+                )
+                if self.country_id:
+                    entry.country_id = self.country_id
+                    entry.region_id = None
+                else:
+                    entry.country_id = None
+                    entry.region_id = self.current_region.id
 
                 try:
-                    price_entry = SubscriptionPrice(
-                        price=self.price,
-                        currency_id=self.currency.id,
-                        fte_from=self.fte_from,
-                        fte_to=self.fte_to,
-                        year=self.year,
-                        created_at=datetime.datetime.now(),
-                    )
-                    if self.country_id:
-                        price_entry.country_id = self.country_id
-                        price_entry.region_id = None
-                    else:
-                        price_entry.country_id = None
-                        price_entry.region_id = self.current_region.id
-
-                    db.session.add(price_entry)
-                    self.journal.subscription_prices = self.journal.subscription_prices[
-                        :
-                    ] + [price_entry]
-                    self.journal.internal_publisher_id = self.product_id
-                    db.session.commit()
-
-                    print(
-                        "Added SubscriptionPrice: ",
-                        price_entry.price,
-                        " to Journal: ",
-                        self.journal.issn_l,
-                    )
-
+                    db.session.add(entry)
+                    db.session.flush()
                 except:
                     print(
                         "Failed to add SubscriptionPrice from Journal",
                         self.journal.issn_l,
                     )
 
+            if entry not in self.journal.subscription_prices:
+                self.journal.subscription_prices = self.journal.subscription_prices[
+                    :
+                ] + [entry]
+                self.journal.internal_publisher_id = self.product_id
+                db.session.commit()
+                print(
+                    "Added SubscriptionPrice: ",
+                    entry.price,
+                    " to Journal: ",
+                    self.journal.issn_l,
+                )
+
             else:
                 print("Price already in database: ", self.journal.title)
         else:
-            print("Could not add price due to missing journal entry:", self.issn)
+            print(
+                "Could not add price due to missing journal entry or missing price:",
+                self.issn,
+            )
 
     def get_country_entry(self):
         return (

@@ -6,10 +6,21 @@ from app import app, db
 from ingest.apc.apc_elsevier import ElsevierAPC
 from ingest.apc.apc_wiley import WileyAPC
 from ingest.apc.apc_springer import SpringerAPC
+from ingest.apc.apc_sage import SageAPC
 from models.journal import Journal
 from models.price import APCPrice
 
 CSV_DIRECTORY = "ingest/apc/files/"
+
+
+@app.cli.command("import_apc_sage")
+@click.option("--file_name", required=True)
+@click.option("--year", required=True)
+def import_sage(file_name, year):
+    file_path = os.path.join(app.root_path, CSV_DIRECTORY, file_name)
+    sage = SageAPC(year)
+    sage.parse_excel(file_path)
+    sage.import_prices()
 
 
 @app.cli.command("import_apc_elsevier")

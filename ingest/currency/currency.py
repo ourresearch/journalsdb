@@ -19,7 +19,7 @@ def import_currency():
 
     Run with 'flask import_currency'
     """
-    csv_file = os.path.join(app.root_path, "ingest/files/currency.csv")
+    csv_file = os.path.join(app.root_path, "ingest/currency/currency.csv")
     df = pd.read_csv(csv_file)
     df = df.dropna()
 
@@ -31,10 +31,16 @@ def import_currency():
         symbol = "".join([chr(int(u)) for u in unicode_as_array])
         acronym = str(row["_code"])
         text = row["__text"]
-        print("adding currency: ", acronym + " " + text + " " + symbol)
 
-        currency = Currency(symbol=symbol, acronym=acronym, text=text)
-        db.session.add(currency)
+        currency = db.session.query(Currency).filter_by(acronym=acronym).one_or_none()
+        if not currency:
+            print("adding currency: ", acronym + " " + text + " " + symbol)
+            currency = Currency(symbol=symbol, acronym=acronym, text=text)
+            db.session.add(currency)
+        else:
+            currency.symbol = symbol
+            currency.acronym = acronym
+            currency.text = text
     db.session.commit()
 
 

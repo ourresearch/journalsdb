@@ -44,7 +44,7 @@ with app.app_context():
     from ingest.readership import *
     from ingest.repositories import *
     from ingest.locations import *
-    from ingest.currency import *
+    from ingest.currency.currency import *
     from ingest.retraction_watch import *
     from ingest.apc.import_apc_pricing import *
     from ingest.subscription.import_subscription_pricing import *

@@ -31,11 +31,25 @@ class TaylorFrancis(SubscriptionImport):
             ("AUS", "AUD"),
             ("CAN", "CAD"),
         ]
+        publisher_names = [
+            "Informa UK (Informa Healthcare)",
+            "Informa UK (Swets & Zeitlinger Publishers)",
+            "Informa UK (American Statistical Association)",
+            "Informa UK (Heldref Publications)",
+            "Informa UK (Librapharm)",
+            "Informa UK (Haworth Press, Inc.,)",
+            "Informa UK (Marcel Dekker)",
+            "Informa UK (Ashley Publications)",
+            "Informa UK (Routledge)",
+            "Informa UK (Beech Tree Publishing)",
+            "Informa UK (Taylor & Francis)",
+            "Maney Publishing",
+        ]
         super().__init__(
             year,
             currencies_and_regions,
             regions_and_currencies,
-            ["Informa UK (Taylor & Francis)"],
+            publisher_names,
         )
 
     def format_tf_dataframe(self, file_path):
@@ -48,6 +62,17 @@ class TaylorFrancis(SubscriptionImport):
         xls = pd.ExcelFile(file_path)
         df = pd.read_excel(xls, "2021 Prices")
         df.replace("", np.nan, inplace=True)
+        # Make all online versions end in ' online'
+        df["Journal Name "] = df["Journal Name "].str.replace(
+            "( online| Online| \WOnline\W | \Wonline\W)", " online", regex=True
+        )
+        df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
+        df = df[df["Journal Name "].notna()]
+        # Filter out non-online versions when an online version is present, otherwise keep the print version
+        vals = df.loc[
+            df["Journal Name "].str.contains(" online"), "Journal Name "
+        ].str.replace(" online", "")
+        df = df[~df["Journal Name "].isin(vals)]
         self.df = df
 
     def import_prices(self):

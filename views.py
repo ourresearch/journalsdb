@@ -261,8 +261,40 @@ def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
     return journal_dict
 
 
-@app.route("/journals_full")
-def journals_full():
+def build_journal_dict_full(journal, dois_by_year, total_dois):
+    journal_dict = journal.to_dict()
+    journal_dict["open_access"] = (
+        OpenAccess.recent_status(journal.issn_l).to_dict()
+        if OpenAccess.recent_status(journal.issn_l)
+        else None
+    )
+    if journal.journal_metadata:
+        journal_dict["journal_metadata"] = [
+            m.to_dict() for m in journal.journal_metadata
+        ]
+    journal_dict["subscription_pricing"] = {
+        "provenance": journal.publisher.sub_data_source if journal.publisher else None,
+        "prices": sorted(
+            [p.to_dict() for p in journal.subscription_prices],
+            key=lambda p: p["year"],
+            reverse=True,
+        ),
+    }
+    journal_dict["apc_pricing"] = {
+        "provenance": journal.publisher.apc_data_source if journal.publisher else None,
+        "apc_prices": sorted(
+            [p.to_dict() for p in journal.apc_prices],
+            key=lambda p: p["year"],
+            reverse=True,
+        ),
+    }
+    journal_dict["dois_by_issued_year"] = dois_by_year
+    journal_dict["total_dois"] = total_dois
+    return journal_dict
+
+
+@app.route("/journals_paged")
+def journals_paged():
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 50, type=int)
 
@@ -281,7 +313,7 @@ def journals_full():
     for j in journals.items:
         metadata = j.issn_metadata.crossref_raw_api
         dois_by_year, total_dois = process_metadata(metadata)
-        journal_dict = build_journal_dict(j, j.issn_l, dois_by_year, total_dois)
+        journal_dict = build_journal_dict_full(j, dois_by_year, total_dois)
         results["results"].append(journal_dict)
     return jsonify(results), 200
 

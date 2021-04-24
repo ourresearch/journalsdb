@@ -261,6 +261,82 @@ def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
     return journal_dict
 
 
+@app.route("/journals_full")
+def journals_full():
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 50, type=int)
+
+    journals = Journal.query.paginate(page, per_page)
+
+    results = {
+        "results": [],
+        "pagination": {
+            "count": journals.total,
+            "page": page,
+            "per_page": per_page,
+            "pages": journals.pages,
+        },
+    }
+
+    for j in journals.items:
+        metadata = j.issn_metadata.crossref_raw_api
+        dois_by_year, total_dois = process_metadata(metadata)
+        journal_dict = build_journal_dict(j, j.issn_l, dois_by_year, total_dois)
+        results["results"].append(journal_dict)
+    return jsonify(results), 200
+
+
+def process_metadata(metadata):
+    try:
+        dois_by_year = metadata["message"]["breakdowns"]["dois-by-issued-year"]
+        total_dois = metadata["message"]["counts"]["total-dois"]
+    except TypeError:
+        dois_by_year = None
+        total_dois = None
+    return dois_by_year, total_dois
+
+
+def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
+    journal_dict = journal.to_dict()
+    journal_dict["open_access"] = (
+        OpenAccess.recent_status(journal.issn_l).to_dict()
+        if OpenAccess.recent_status(journal.issn_l)
+        else None
+    )
+    journal_dict["repositories"] = "{}/journals/{}/repositories".format(
+        SITE_URL, issn_l
+    )
+    journal_dict["readership"] = [e.to_dict() for e in journal.extension_requests]
+    journal_dict["author_permissions"] = (
+        journal.permissions.to_dict() if journal.permissions else None
+    )
+    if journal.journal_metadata:
+        journal_dict["journal_metadata"] = [
+            m.to_dict() for m in journal.journal_metadata
+        ]
+    journal_dict["subscription_pricing"] = {
+        "provenance": journal.publisher.sub_data_source if journal.publisher else None,
+        "prices": sorted(
+            [p.to_dict() for p in journal.subscription_prices],
+            key=lambda p: p["year"],
+            reverse=True,
+        ),
+    }
+    journal_dict["apc_pricing"] = {
+        "provenance": journal.publisher.apc_data_source if journal.publisher else None,
+        "apc_prices": sorted(
+            [p.to_dict() for p in journal.apc_prices],
+            key=lambda p: p["year"],
+            reverse=True,
+        ),
+    }
+    journal_dict["retractions"] = RetractionSummary.retractions_by_year(issn_l)
+    journal_dict["dois_by_issued_year"] = dois_by_year
+    journal_dict["total_dois"] = total_dois
+    journal_dict["open_access"] = "{}/journals/{}/open-access".format(SITE_URL, issn_l)
+    return journal_dict
+
+
 @app.route("/journals/<issn>/open-access")
 @swag_from("docs/open_access.yml")
 def open_access(issn):

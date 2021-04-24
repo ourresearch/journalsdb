@@ -298,9 +298,7 @@ def journals_paged():
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 50, type=int)
 
-    journals = Journal.query.order_by(Journal.created_at.desc()).paginate(
-        page, per_page
-    )
+    journals = Journal.query.order_by(Journal.created_at.asc()).paginate(page, per_page)
 
     results = {
         "results": [],

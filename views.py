@@ -268,10 +268,11 @@ def build_journal_dict_full(journal, dois_by_year, total_dois):
         if OpenAccess.recent_status(journal.issn_l)
         else None
     )
-    if journal.journal_metadata:
-        journal_dict["journal_metadata"] = [
-            m.to_dict() for m in journal.journal_metadata
-        ]
+    journal_dict["journal_metadata"] = (
+        [m.to_dict() for m in journal.journal_metadata]
+        if journal.journal_metadata
+        else []
+    )
     journal_dict["subscription_pricing"] = {
         "provenance": journal.publisher.sub_data_source if journal.publisher else None,
         "prices": sorted(

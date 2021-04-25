@@ -1,6 +1,9 @@
+import string
+
+import pandas as pd
+
 from app import db
 from models.journal import Journal, JournalMetadata
-import string
 
 
 class JournalMetaDataImporter:
@@ -15,6 +18,14 @@ class JournalMetaDataImporter:
         self.md = None
         self.j = None
         self.org_list = []
+
+    def cleanse_data(self):
+        """
+        Removes excess rows and replaces NaN with None so
+        issues do not occur with insertions
+        """
+        self.df = self.df.loc[:, ~self.df.columns.str.contains("^Unnamed")]
+        self.df = self.df.where(pd.notnull(self.df), None)
 
     def ingest_metadata(self):
         """

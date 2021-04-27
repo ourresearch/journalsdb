@@ -316,7 +316,14 @@ def journals_paged():
         dois_by_year, total_dois = process_metadata(metadata)
         journal_dict = build_journal_dict_full(j, dois_by_year, total_dois)
         results["results"].append(journal_dict)
-    return jsonify(results), 200
+
+    response = jsonify(results)
+    response.headers["Links"] = """<https://journalsdb.org/journals-paged?page=1&per-page=100>; rel="first"
+        <https://journalsdb.org/journals-paged?page={prev_page}&per-page=100>; rel="prev",
+        <https://journalsdb.org/journals-paged?page={next_page}&per-page=100>; rel="next",
+        <https://journalsdb.org/journals-paged?page=926&per-page=100>; rel="last"
+  """.format(prev_page=max(1, page-1), next_page=min(926,page+1))
+    return response
 
 
 def process_metadata(metadata):

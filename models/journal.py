@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import json
 
 from sqlalchemy.dialects.postgresql import JSONB
@@ -78,12 +79,14 @@ class Journal(db.Model, TimestampMixin):
         return self.issn_metadata.issns
 
     def to_dict(self):
-        return {
-            "issn_l": self.issn_l,
-            "issns": self.issns,
-            "title": self.title,
-            "publisher": self.publisher.name if self.publisher else "",
-        }
+        return OrderedDict(
+            {
+                "issn_l": self.issn_l,
+                "issns": self.issns,
+                "title": self.title,
+                "publisher": self.publisher.name if self.publisher else "",
+            }
+        )
 
 
 class JournalMetadata(db.Model, TimestampMixin):

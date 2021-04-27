@@ -206,13 +206,16 @@ def journal_detail(issn):
 
     metadata = journal.issn_metadata.crossref_raw_api
     dois_by_year, total_dois = process_metadata(metadata)
-    journal_dict = build_journal_dict(journal, issn, dois_by_year, total_dois)
+    journal_dict = build_journal_dict_detail(journal, issn, dois_by_year, total_dois)
     return jsonify(journal_dict), 200
 
 
 def process_metadata(metadata):
     try:
         dois_by_year = metadata["message"]["breakdowns"]["dois-by-issued-year"]
+        # sort by year descending
+        dois_by_year = sorted(dois_by_year, reverse=True)
+
         total_dois = metadata["message"]["counts"]["total-dois"]
     except TypeError:
         dois_by_year = None
@@ -220,12 +223,38 @@ def process_metadata(metadata):
     return dois_by_year, total_dois
 
 
-def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
+def build_journal_dict_detail(journal, issn_l, dois_by_year, total_dois):
     journal_dict = journal.to_dict()
+    journal_dict["journal_metadata"] = (
+        [m.to_dict() for m in journal.journal_metadata]
+        if journal.journal_metadata
+        else []
+    )
+    journal_dict["total_dois"] = total_dois
+    journal_dict["dois_by_issued_year"] = dois_by_year
+    journal_dict["subscription_pricing"] = {
+        "provenance": journal.publisher.sub_data_source if journal.publisher else None,
+        "prices": sorted(
+            [p.to_dict() for p in journal.subscription_prices],
+            key=lambda p: p["year"],
+            reverse=True,
+        ),
+    }
+    journal_dict["apc_pricing"] = {
+        "provenance": journal.publisher.apc_data_source if journal.publisher else None,
+        "apc_prices": sorted(
+            [p.to_dict() for p in journal.apc_prices],
+            key=lambda p: p["year"],
+            reverse=True,
+        ),
+    }
     journal_dict["open_access"] = (
         OpenAccess.recent_status(journal.issn_l).to_dict()
         if OpenAccess.recent_status(journal.issn_l)
         else None
+    )
+    journal_dict["open_access_history"] = "{}/journals/{}/open-access".format(
+        SITE_URL, issn_l
     )
     journal_dict["repositories"] = "{}/journals/{}/repositories".format(
         SITE_URL, issn_l
@@ -234,63 +263,7 @@ def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
     journal_dict["author_permissions"] = (
         journal.permissions.to_dict() if journal.permissions else None
     )
-    if journal.journal_metadata:
-        journal_dict["journal_metadata"] = [
-            m.to_dict() for m in journal.journal_metadata
-        ]
-    journal_dict["subscription_pricing"] = {
-        "provenance": journal.publisher.sub_data_source if journal.publisher else None,
-        "prices": sorted(
-            [p.to_dict() for p in journal.subscription_prices],
-            key=lambda p: p["year"],
-            reverse=True,
-        ),
-    }
-    journal_dict["apc_pricing"] = {
-        "provenance": journal.publisher.apc_data_source if journal.publisher else None,
-        "apc_prices": sorted(
-            [p.to_dict() for p in journal.apc_prices],
-            key=lambda p: p["year"],
-            reverse=True,
-        ),
-    }
     journal_dict["retractions"] = RetractionSummary.retractions_by_year(issn_l)
-    journal_dict["dois_by_issued_year"] = dois_by_year
-    journal_dict["total_dois"] = total_dois
-    journal_dict["open_access"] = "{}/journals/{}/open-access".format(SITE_URL, issn_l)
-    return journal_dict
-
-
-def build_journal_dict_full(journal, dois_by_year, total_dois):
-    journal_dict = journal.to_dict()
-    journal_dict["open_access"] = (
-        OpenAccess.recent_status(journal.issn_l).to_dict()
-        if OpenAccess.recent_status(journal.issn_l)
-        else None
-    )
-    journal_dict["journal_metadata"] = (
-        [m.to_dict() for m in journal.journal_metadata]
-        if journal.journal_metadata
-        else []
-    )
-    journal_dict["subscription_pricing"] = {
-        "provenance": journal.publisher.sub_data_source if journal.publisher else None,
-        "prices": sorted(
-            [p.to_dict() for p in journal.subscription_prices],
-            key=lambda p: p["year"],
-            reverse=True,
-        ),
-    }
-    journal_dict["apc_pricing"] = {
-        "provenance": journal.publisher.apc_data_source if journal.publisher else None,
-        "apc_prices": sorted(
-            [p.to_dict() for p in journal.apc_prices],
-            key=lambda p: p["year"],
-            reverse=True,
-        ),
-    }
-    journal_dict["dois_by_issued_year"] = dois_by_year
-    journal_dict["total_dois"] = total_dois
     return journal_dict
 
 
@@ -314,47 +287,40 @@ def journals_paged():
     for j in journals.items:
         metadata = j.issn_metadata.crossref_raw_api
         dois_by_year, total_dois = process_metadata(metadata)
-        journal_dict = build_journal_dict_full(j, dois_by_year, total_dois)
+        journal_dict = build_journal_dict_paged(j, dois_by_year, total_dois)
         results["results"].append(journal_dict)
 
     response = jsonify(results)
     if per_page == 100:
         response.headers["Link"] = ""
-        response.headers["Link"] += '<https://journalsdb.org/journals-paged?page=1&per-page=100>; rel="first"'
-        response.headers["Link"] += '<https://journalsdb.org/journals-paged?page={prev_page}&per-page=100>; rel="prev"'.format(prev_page=max(1, page-1))
-        response.headers["Link"] += '<https://journalsdb.org/journals-paged?page={next_page}&per-page=100>; rel="next"'.format(next_page=min(926,page+1))
-        response.headers["Link"] += '<https://journalsdb.org/journals-paged?page=926&per-page=100>; rel="last"'
+        response.headers[
+            "Link"
+        ] += '<https://journalsdb.org/journals-paged?page=1&per-page=100>; rel="first"'
+        response.headers[
+            "Link"
+        ] += '<https://journalsdb.org/journals-paged?page={prev_page}&per-page=100>; rel="prev"'.format(
+            prev_page=max(1, page - 1)
+        )
+        response.headers[
+            "Link"
+        ] += '<https://journalsdb.org/journals-paged?page={next_page}&per-page=100>; rel="next"'.format(
+            next_page=min(926, page + 1)
+        )
+        response.headers[
+            "Link"
+        ] += '<https://journalsdb.org/journals-paged?page=926&per-page=100>; rel="last"'
     return response
 
 
-def process_metadata(metadata):
-    try:
-        dois_by_year = metadata["message"]["breakdowns"]["dois-by-issued-year"]
-        total_dois = metadata["message"]["counts"]["total-dois"]
-    except TypeError:
-        dois_by_year = None
-        total_dois = None
-    return dois_by_year, total_dois
-
-
-def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
+def build_journal_dict_paged(journal, dois_by_year, total_dois):
     journal_dict = journal.to_dict()
-    journal_dict["open_access"] = (
-        OpenAccess.recent_status(journal.issn_l).to_dict()
-        if OpenAccess.recent_status(journal.issn_l)
-        else None
+    journal_dict["journal_metadata"] = (
+        [m.to_dict() for m in journal.journal_metadata]
+        if journal.journal_metadata
+        else []
     )
-    journal_dict["repositories"] = "{}/journals/{}/repositories".format(
-        SITE_URL, issn_l
-    )
-    journal_dict["readership"] = [e.to_dict() for e in journal.extension_requests]
-    journal_dict["author_permissions"] = (
-        journal.permissions.to_dict() if journal.permissions else None
-    )
-    if journal.journal_metadata:
-        journal_dict["journal_metadata"] = [
-            m.to_dict() for m in journal.journal_metadata
-        ]
+    journal_dict["total_dois"] = total_dois
+    journal_dict["dois_by_issued_year"] = dois_by_year
     journal_dict["subscription_pricing"] = {
         "provenance": journal.publisher.sub_data_source if journal.publisher else None,
         "prices": sorted(
@@ -371,10 +337,11 @@ def build_journal_dict(journal, issn_l, dois_by_year, total_dois):
             reverse=True,
         ),
     }
-    journal_dict["retractions"] = RetractionSummary.retractions_by_year(issn_l)
-    journal_dict["dois_by_issued_year"] = dois_by_year
-    journal_dict["total_dois"] = total_dois
-    journal_dict["open_access"] = "{}/journals/{}/open-access".format(SITE_URL, issn_l)
+    journal_dict["open_access"] = (
+        OpenAccess.recent_status(journal.issn_l).to_dict()
+        if OpenAccess.recent_status(journal.issn_l)
+        else None
+    )
     return journal_dict
 
 

@@ -41,6 +41,9 @@ class OpenAccess(db.Model, TimestampMixin):
         for field in fields_to_remove:
             dict_.pop(field)
 
+        # sort by key
+        dict_ = dict(sorted(dict_.items()))
+
         return dict_
 
 

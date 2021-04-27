@@ -318,11 +318,12 @@ def journals_paged():
         results["results"].append(journal_dict)
 
     response = jsonify(results)
-    response.headers["Links"] = """<https://journalsdb.org/journals-paged?page=1&per-page=100>; rel="first"
-        <https://journalsdb.org/journals-paged?page={prev_page}&per-page=100>; rel="prev",
-        <https://journalsdb.org/journals-paged?page={next_page}&per-page=100>; rel="next",
-        <https://journalsdb.org/journals-paged?page=926&per-page=100>; rel="last"
-  """.format(prev_page=max(1, page-1), next_page=min(926,page+1))
+    if per_page == 100:
+        response.headers["Links"] = ""
+        response.headers["Links"] += '<https://journalsdb.org/journals-paged?page=1&per-page=100>; rel="first"'
+        response.headers["Links"] += '<https://journalsdb.org/journals-paged?page={prev_page}&per-page=100>; rel="prev"'.format(prev_page=max(1, page-1))
+        response.headers["Links"] += '<https://journalsdb.org/journals-paged?page={next_page}&per-page=100>; rel="next"'.format(next_page=min(926,page+1))
+        response.headers["Links"] += '<https://journalsdb.org/journals-paged?page=926&per-page=100>; rel="last"'
     return response
 
 

@@ -275,13 +275,13 @@ def journals_paged():
     journals = Journal.query.order_by(Journal.created_at.asc()).paginate(page, per_page)
 
     results = {
+        "results": [],
         "pagination": {
             "count": journals.total,
             "page": page,
             "per_page": per_page,
             "pages": journals.pages,
         },
-        "results": [],
     }
 
     for j in journals.items:

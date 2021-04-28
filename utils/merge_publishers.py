@@ -298,9 +298,9 @@ def combine_publishers():
         new_publisher = Publisher.query.filter_by(name=p[1]).one_or_none()
         for journal in old_publisher.journals:
             print(
-                "setting journal {} from old publisher {} to new publisher {} (test)".format(
+                "setting journal {} from old publisher {} to new publisher {}".format(
                     journal.title, old_publisher.name, new_publisher.name
                 )
             )
-            # journal.publisher_id = new_publisher.id
-        # db.session.commit()
+            journal.publisher_id = new_publisher.id
+        db.session.commit()

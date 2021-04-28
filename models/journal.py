@@ -84,7 +84,7 @@ class Journal(db.Model, TimestampMixin):
                 "issn_l": self.issn_l,
                 "issns": self.issns,
                 "title": self.title,
-                "publisher": self.publisher.name if self.publisher else ""
+                "publisher": self.publisher.name if self.publisher else "",
             }
         )
 

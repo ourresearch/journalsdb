@@ -275,13 +275,13 @@ def journals_paged():
     journals = Journal.query.order_by(Journal.created_at.asc()).paginate(page, per_page)
 
     results = {
-        "results": [],
         "pagination": {
             "count": journals.total,
             "page": page,
             "per_page": per_page,
             "pages": journals.pages,
         },
+        "results": [],
     }
 
     for j in journals.items:
@@ -290,20 +290,11 @@ def journals_paged():
         journal_dict = build_journal_dict_paged(j, dois_by_year, total_dois)
         results["results"].append(journal_dict)
 
-    response = jsonify(results)
-    if per_page == 100:
-        link_list = []
-        link_list += ['<https://journalsdb.org/journals-paged?page=1&per-page=100>; rel="first"']
-        link_list += ['<https://journalsdb.org/journals-paged?page={prev_page}&per-page=100>; rel="prev"'.format(
-            prev_page=max(1, page - 1)
-        )]
-        link_list += ['<https://journalsdb.org/journals-paged?page={next_page}&per-page=100>; rel="next"'.format(
-            next_page=min(926, page + 1)
-        )]
-        link_list += ['<https://journalsdb.org/journals-paged?page=926&per-page=100>; rel="last"']
-        response.headers["Link"] = u",".join(link_list)
-
-    return response
+    base_url = SITE_URL + "/journals-paged"
+    link_header = build_link_header(
+        query=journals, base_url=base_url, per_page=per_page
+    )
+    return jsonify(results), 200, link_header
 
 
 def build_journal_dict_paged(journal, dois_by_year, total_dois):
@@ -337,6 +328,30 @@ def build_journal_dict_paged(journal, dois_by_year, total_dois):
         else None
     )
     return journal_dict
+
+
+def build_link_header(query, base_url, per_page):
+    links = [
+        '<{0}?page=1&per-page={1}>; rel="first"'.format(base_url, per_page),
+        '<{0}?page={1}&per-page={2}>; rel="last"'.format(
+            base_url, query.pages, per_page
+        ),
+    ]
+    if query.has_prev:
+        links.append(
+            '<{0}?page={1}&per-page={2}>; rel="prev"'.format(
+                base_url, query.prev_num, per_page
+            )
+        )
+    if query.has_next:
+        links.append(
+            '<{0}?page={1}&per-page={2}>; rel="next"'.format(
+                base_url, query.next_num, per_page
+            )
+        )
+
+    links = ",".join(links)
+    return dict(Link=links)
 
 
 @app.route("/journals/<issn>/open-access")

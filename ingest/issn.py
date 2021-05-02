@@ -50,32 +50,22 @@ def import_issns(file_path, initial_load):
         print("not enough records in file")
         clear_issn_temp_table()
         return
-    # if initial load, simply copy the rows to the master issn_to_issnl table and map the issns
-    elif initial_load:
-        db.session.execute(
-            "INSERT INTO issn_to_issnl (issn, issn_l, has_crossref, created_at) SELECT issn, issn_l, has_crossref, NOW() FROM issn_temp;"
-        )
-        add_crossref_label()
 
-    else:
-        # add labels to temp table
-        add_crossref_label()
+    # add labels to temp table
+    add_crossref_label()
 
-        # New way to get new_records which accounts for duplicate issues with has_crossref being different
-        new_records = db.session.execute(
-            "SELECT issn, issn_l, has_crossref FROM issn_temp t WHERE NOT EXISTS (SELECT 1 FROM issn_to_issnl i where i.issn=t.issn and i.issn_l=t.issn_l);"
-        )
-        save_new_records(new_records)
-        removed_records = db.session.execute(
-            "SELECT issn, issn_l FROM issn_to_issnl EXCEPT SELECT issn, issn_l FROM issn_temp;"
-        )
-        remove_records(removed_records)
+    # # New way to get new_records which accounts for duplicate issues with has_crossref being different
+    # print('run new records query')
+    # new_records = db.session.execute(
+    #     "SELECT issn, issn_l, has_crossref FROM issn_temp t WHERE t.has_crossref is True AND NOT EXISTS (SELECT 1 FROM issn_to_issnl i where i.issn=t.issn and i.issn_l=t.issn_l);"
+    # )
+    # save_new_records(new_records)
 
-    # Finished so no need for temp table
-    map_issns_to_issnl()
-    if not "PYTEST_CURRENT_TEST" in os.environ:
-        remove_non_crossref()
-    clear_issn_temp_table()
+    #
+    # # Finished so no need for temp table
+    # map_issns_to_issnl()
+    # # remove_non_crossref()
+    # clear_issn_temp_table()
 
 
 def remove_non_crossref():
@@ -83,6 +73,7 @@ def remove_non_crossref():
     Remove all database rows which do not correspond to crossref entries.
     These exist in multiple tables and all should be removed.
     """
+    print('remove non crossref records')
     deleted_metadata = (
         db.session.query(ISSNMetaData)
         .filter(ISSNMetaData.has_crossref == False)
@@ -93,37 +84,7 @@ def remove_non_crossref():
         db.session.query(ISSNToISSNL).filter(ISSNToISSNL.has_crossref == False).delete()
     )
     db.session.commit()
-
-
-@app.cli.command("remove_issns")
-@click.option("--file_path")
-def remove_issns(file_path):
-    """
-    Takes a CSV file with each row containing an ISSN_L. Removes these ISSN_L entries
-    from the ISSNMetaData table.
-    Run with: flask remove_issns --file_path filename
-    """
-    issns_to_keep = set()
-
-    with open(file_path, "r") as file:
-        csv_reader = reader(file)
-        for row in csv_reader:
-            issns_to_keep.add(row[0])  # rows are lists, 0 position is the value
-
-    all_issns = set(
-        [entry.issn_l for entry in db.session.query(ISSNMetaData).distinct()]
-    )
-
-    print(len(issns_to_keep))
-    print(len(all_issns))
-    issns_to_remove = all_issns - issns_to_keep
-    print(len(issns_to_remove))
-
-    deletion = ISSNMetaData.__table__.delete().where(
-        ISSNMetaData.issn_l.in_(issns_to_remove)
-    )
-    db.session.execute(deletion)
-    db.session.commit()
+    print('remove non crossref records complete')
 
 
 def clear_issn_temp_table():
@@ -156,6 +117,7 @@ def copy_tsv_to_temp_table(file_path, issn_file):
     """
     Very fast way to copy 1 million or more rows into a table.
     """
+    print('load temp table')
     copy_sql = "COPY issn_temp(issn, issn_l) FROM STDOUT WITH (FORMAT CSV, DELIMITER '\t', HEADER)"
     conn = db.engine.raw_connection()
     with conn.cursor() as cur:
@@ -167,12 +129,15 @@ def copy_tsv_to_temp_table(file_path, issn_file):
                 cur.copy_expert(copy_sql, f)
     conn.commit()
 
-    # Default crossref needs to be assigned since plain SQL was used.
-    ISSNTemp.query.update({ISSNTemp.has_crossref: False})
-    db.session.commit()
+    print('set has_crossref to False')
+    # # Default crossref needs to be assigned since plain SQL was used.
+    # ISSNTemp.query.update({ISSNTemp.has_crossref: False})
+    # db.session.commit()
+    print('load temp table complete')
 
 
 def save_new_records(new_records):
+    print('save new records in issn_to_issnl table')
     objects = []
     history = []
     for new in new_records:
@@ -187,27 +152,14 @@ def save_new_records(new_records):
     db.session.bulk_save_objects(objects)
     # db.session.bulk_save_objects(history)
     db.session.commit()
-
-
-def remove_records(removed_records):
-    """
-    Add to history table but do not delete.
-    """
-    for removed in removed_records:
-        existing = ISSNHistory.query.filter_by(
-            issn_l=removed.issn_l, issn=removed.issn, status="removed"
-        ).one_or_none()
-        if not existing:
-            db.session.add(
-                ISSNHistory(issn_l=removed.issn_l, issn=removed.issn, status="removed")
-            )
-    db.session.commit()
+    print('save new records in issn_to_issnl table complete')
 
 
 def map_issns_to_issnl():
     """
     Map issn-l to issns that are in the issn_to_issnl table.
     """
+    print('map issns in metadata table')
     sql = """
     insert into issn_metadata (issn_l, issn_org_issns, has_crossref) (
         select
@@ -222,21 +174,36 @@ def map_issns_to_issnl():
     """
     db.session.execute(sql)
     db.session.commit()
+    print('map issns in metadata table complete')
 
 
 def add_crossref_label():
     """
     Add a crossref_label to the ISSNTemp Table
     """
+    print('adding crossref label')
     file = urlopen("https://api.unpaywall.org/crossref_issns.csv.gz")
     data = pd.read_csv(file, compression="gzip")
     crossref_issns = data["issn"].tolist()
     for issn in crossref_issns:
-        temp = db.session.query(ISSNToISSNL).filter_by(issn=issn).one_or_none()
-        if temp:
-            temp.has_crossref = True
-            db.session.flush()
+        # temp = db.session.query(ISSNTemp).filter_by(issn=issn).one_or_none()
+        # if temp:
+        #     temp.has_crossref = True
+        #     db.session.flush()
+        # temp2 = db.session.query(ISSNTemp).filter_by(issn_l=issn).all()
+        # if temp2:
+        #     for item in temp2:
+        #         item.has_crossref = True
+        #         db.session.flush()
+        # another example
+        r = db.session.query(ISSNTemp).filter_by(issn=issn).one_or_none()
+        if r:
+            issns_to_set = db.session.query(ISSNTemp).filter_by(issn_l=r.issn_l).all()
+            for item in issns_to_set:
+                item.has_crossref = True
+                # db.session.flush()
     db.session.commit()
+    print('adding crossref label complete')
 
 
 @app.cli.command("import_issn_apis")
@@ -360,4 +327,35 @@ def set_publishers():
         j = Journal.query.filter_by(issn_l=issn.issn_l).one_or_none()
         if j:
             j.publisher_id = publisher.id if publisher else None
+    db.session.commit()
+
+
+@app.cli.command("remove_issns")
+@click.option("--file_path")
+def remove_issns(file_path):
+    """
+    Takes a CSV file with each row containing an ISSN_L. Removes these ISSN_L entries
+    from the ISSNMetaData table.
+    Run with: flask remove_issns --file_path filename
+    """
+    issns_to_keep = set()
+
+    with open(file_path, "r") as file:
+        csv_reader = reader(file)
+        for row in csv_reader:
+            issns_to_keep.add(row[0])  # rows are lists, 0 position is the value
+
+    all_issns = set(
+        [entry.issn_l for entry in db.session.query(ISSNMetaData).distinct()]
+    )
+
+    print(len(issns_to_keep))
+    print(len(all_issns))
+    issns_to_remove = all_issns - issns_to_keep
+    print(len(issns_to_remove))
+
+    deletion = ISSNMetaData.__table__.delete().where(
+        ISSNMetaData.issn_l.in_(issns_to_remove)
+    )
+    db.session.execute(deletion)
     db.session.commit()

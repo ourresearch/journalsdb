@@ -17,7 +17,6 @@ from models.issn import (
     ISSNTemp,
     ISSNToISSNL,
     LinkedISSNL,
-    CrossrefTemp,
 )
 from models.journal import Journal, Publisher
 from ingest.utils import get_or_create, remove_control_characters
@@ -50,39 +49,50 @@ def import_issns(file_path, initial_load):
     if not file_path and ISSNTemp.query.count() < 2000000:
         print("not enough records in file")
         clear_issn_temp_table()
-
+        return
     # if initial load, simply copy the rows to the master issn_to_issnl table and map the issns
     elif initial_load:
         db.session.execute(
-            "INSERT INTO issn_to_issnl (issn, issn_l, created_at) SELECT issn, issn_l, NOW() FROM issn_temp;"
+            "INSERT INTO issn_to_issnl (issn, issn_l, has_crossref, created_at) SELECT issn, issn_l, has_crossref, NOW() FROM issn_temp;"
         )
-        if not "PYTEST_CURRENT_TEST" in os.environ:
-            filter_to_crossref_only()
-        map_issns_to_issnl()
-        # finished, remove temp data
-        clear_issn_temp_table()
+        add_crossref_label()
 
     else:
-        if not "PYTEST_CURRENT_TEST" in os.environ:
-            print("filtering to crossref")
-            filter_to_crossref_only()
-        # compare the regular ISSNtoISSNL table
-        # new ISSN records (in temp but not in ISSNtoISSNL)
+        # add labels to temp table
+        add_crossref_label()
+
+        # New way to get new_records which accounts for duplicate issues with has_crossref being different
         new_records = db.session.execute(
-            "SELECT issn, issn_l FROM issn_temp EXCEPT SELECT issn, issn_l FROM issn_to_issnl;"
+            "SELECT issn, issn_l, has_crossref FROM issn_temp t WHERE NOT EXISTS (SELECT 1 FROM issn_to_issnl i where i.issn=t.issn and i.issn_l=t.issn_l);"
         )
         save_new_records(new_records)
-
-        # removed records (in ISSNtoISSNL but not in issn_temp)
         removed_records = db.session.execute(
             "SELECT issn, issn_l FROM issn_to_issnl EXCEPT SELECT issn, issn_l FROM issn_temp;"
         )
         remove_records(removed_records)
 
-        map_issns_to_issnl()
+    # Finished so no need for temp table
+    map_issns_to_issnl()
+    if not "PYTEST_CURRENT_TEST" in os.environ:
+        remove_non_crossref()
+    clear_issn_temp_table()
 
-        # finished, remove temp data
-        clear_issn_temp_table()
+
+def remove_non_crossref():
+    """
+    Remove all database rows which do not correspond to crossref entries.
+    These exist in multiple tables and all should be removed.
+    """
+    deleted_metadata = (
+        db.session.query(ISSNMetaData)
+        .filter(ISSNMetaData.has_crossref == False)
+        .delete()
+    )
+    db.session.commit()
+    maps = (
+        db.session.query(ISSNToISSNL).filter(ISSNToISSNL.has_crossref == False).delete()
+    )
+    db.session.commit()
 
 
 @app.cli.command("remove_issns")
@@ -146,7 +156,7 @@ def copy_tsv_to_temp_table(file_path, issn_file):
     """
     Very fast way to copy 1 million or more rows into a table.
     """
-    copy_sql = "COPY issn_temp FROM STDOUT WITH (FORMAT CSV, DELIMITER '\t', HEADER)"
+    copy_sql = "COPY issn_temp(issn, issn_l) FROM STDOUT WITH (FORMAT CSV, DELIMITER '\t', HEADER)"
     conn = db.engine.raw_connection()
     with conn.cursor() as cur:
         if not file_path:
@@ -157,6 +167,10 @@ def copy_tsv_to_temp_table(file_path, issn_file):
                 cur.copy_expert(copy_sql, f)
     conn.commit()
 
+    # Default crossref needs to be assigned since plain SQL was used.
+    ISSNTemp.query.update({ISSNTemp.has_crossref: False})
+    db.session.commit()
+
 
 def save_new_records(new_records):
     objects = []
@@ -166,11 +180,12 @@ def save_new_records(new_records):
             ISSNToISSNL(
                 issn=new.issn,
                 issn_l=new.issn_l,
+                has_crossref=new.has_crossref,
             )
         )
-        history.append(ISSNHistory(issn=new.issn, issn_l=new.issn_l, status="added"))
+        # history.append(ISSNHistory(issn=new.issn, issn_l=new.issn_l, status="added"))
     db.session.bulk_save_objects(objects)
-    db.session.bulk_save_objects(history)
+    # db.session.bulk_save_objects(history)
     db.session.commit()
 
 
@@ -194,13 +209,14 @@ def map_issns_to_issnl():
     Map issn-l to issns that are in the issn_to_issnl table.
     """
     sql = """
-    insert into issn_metadata (issn_l, issn_org_issns) (
+    insert into issn_metadata (issn_l, issn_org_issns, has_crossref) (
         select
             issn_l,
-            jsonb_agg(to_jsonb(issn)) as issn_org_issns
+            jsonb_agg(to_jsonb(issn)) as issn_org_issns,
+            bool_or(has_crossref) as has_crossref
         from issn_to_issnl
         where issn_l is not null
-        group by 1
+        group by issn_l
     ) on conflict (issn_l) do update
     set issn_org_issns = excluded.issn_org_issns;
     """
@@ -208,29 +224,18 @@ def map_issns_to_issnl():
     db.session.commit()
 
 
-def filter_to_crossref_only():
+def add_crossref_label():
     """
-    Filter issn_to_issnl table so it only has ISSNs that are in crossref.
-    https://api.unpaywall.org/crossref_issns.csv.gz
+    Add a crossref_label to the ISSNTemp Table
     """
     file = urlopen("https://api.unpaywall.org/crossref_issns.csv.gz")
     data = pd.read_csv(file, compression="gzip")
     crossref_issns = data["issn"].tolist()
     for issn in crossref_issns:
-        if not db.session.query(CrossrefTemp).filter_by(issn=issn).one_or_none():
-            c = CrossrefTemp(issn=issn)
-            db.session.add(c)
+        temp = db.session.query(ISSNToISSNL).filter_by(issn=issn).one_or_none()
+        if temp:
+            temp.has_crossref = True
             db.session.flush()
-    db.session.commit()
-    sql = """
-    delete from issn_temp
-        where not exists (
-            select null
-            from crossref_temp
-            where issn_temp.issn = crossref_temp.issn
-    )
-    """
-    db.session.execute(sql)
     db.session.commit()
 
 

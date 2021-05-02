@@ -4,6 +4,8 @@ import pandas as pd
 
 from app import db
 from models.journal import Journal, JournalMetadata
+import string
+import pandas as pd
 
 
 class JournalMetaDataImporter:

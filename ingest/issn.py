@@ -51,40 +51,17 @@ def import_issns(file_path, initial_load):
         clear_issn_temp_table()
         return
 
-    # add labels to temp table
+    # add crossref labels to temp table
     add_crossref_label()
 
-    # # New way to get new_records which accounts for duplicate issues with has_crossref being different
-    # print('run new records query')
-    # new_records = db.session.execute(
-    #     "SELECT issn, issn_l, has_crossref FROM issn_temp t WHERE t.has_crossref is True AND NOT EXISTS (SELECT 1 FROM issn_to_issnl i where i.issn=t.issn and i.issn_l=t.issn_l);"
-    # )
-    # save_new_records(new_records)
-
-    #
-    # # Finished so no need for temp table
-    # map_issns_to_issnl()
-    # # remove_non_crossref()
-    # clear_issn_temp_table()
-
-
-def remove_non_crossref():
-    """
-    Remove all database rows which do not correspond to crossref entries.
-    These exist in multiple tables and all should be removed.
-    """
-    print('remove non crossref records')
-    deleted_metadata = (
-        db.session.query(ISSNMetaData)
-        .filter(ISSNMetaData.has_crossref == False)
-        .delete()
+    # get new records in temp table
+    print('run new records query')
+    new_records = db.session.execute(
+        "SELECT issn, issn_l, has_crossref FROM issn_temp t WHERE t.has_crossref is True AND NOT EXISTS (SELECT 1 FROM issn_to_issnl i where i.issn=t.issn and i.issn_l=t.issn_l);"
     )
-    db.session.commit()
-    maps = (
-        db.session.query(ISSNToISSNL).filter(ISSNToISSNL.has_crossref == False).delete()
-    )
-    db.session.commit()
-    print('remove non crossref records complete')
+    save_new_records(new_records)
+    map_issns_to_issnl()
+    clear_issn_temp_table()
 
 
 def clear_issn_temp_table():
@@ -128,11 +105,6 @@ def copy_tsv_to_temp_table(file_path, issn_file):
             with open(file_path, "rb") as f:
                 cur.copy_expert(copy_sql, f)
     conn.commit()
-
-    print('set has_crossref to False')
-    # # Default crossref needs to be assigned since plain SQL was used.
-    # ISSNTemp.query.update({ISSNTemp.has_crossref: False})
-    # db.session.commit()
     print('load temp table complete')
 
 
@@ -144,13 +116,12 @@ def save_new_records(new_records):
         objects.append(
             ISSNToISSNL(
                 issn=new.issn,
-                issn_l=new.issn_l,
-                has_crossref=new.has_crossref,
+                issn_l=new.issn_l
             )
         )
-        # history.append(ISSNHistory(issn=new.issn, issn_l=new.issn_l, status="added"))
+        history.append(ISSNHistory(issn=new.issn, issn_l=new.issn_l, status="added"))
     db.session.bulk_save_objects(objects)
-    # db.session.bulk_save_objects(history)
+    db.session.bulk_save_objects(history)
     db.session.commit()
     print('save new records in issn_to_issnl table complete')
 
@@ -161,11 +132,10 @@ def map_issns_to_issnl():
     """
     print('map issns in metadata table')
     sql = """
-    insert into issn_metadata (issn_l, issn_org_issns, has_crossref) (
+    insert into issn_metadata (issn_l, issn_org_issns) (
         select
             issn_l,
-            jsonb_agg(to_jsonb(issn)) as issn_org_issns,
-            bool_or(has_crossref) as has_crossref
+            jsonb_agg(to_jsonb(issn)) as issn_org_issns
         from issn_to_issnl
         where issn_l is not null
         group by issn_l
@@ -186,22 +156,11 @@ def add_crossref_label():
     data = pd.read_csv(file, compression="gzip")
     crossref_issns = data["issn"].tolist()
     for issn in crossref_issns:
-        # temp = db.session.query(ISSNTemp).filter_by(issn=issn).one_or_none()
-        # if temp:
-        #     temp.has_crossref = True
-        #     db.session.flush()
-        # temp2 = db.session.query(ISSNTemp).filter_by(issn_l=issn).all()
-        # if temp2:
-        #     for item in temp2:
-        #         item.has_crossref = True
-        #         db.session.flush()
-        # another example
         r = db.session.query(ISSNTemp).filter_by(issn=issn).one_or_none()
         if r:
             issns_to_set = db.session.query(ISSNTemp).filter_by(issn_l=r.issn_l).all()
             for item in issns_to_set:
                 item.has_crossref = True
-                # db.session.flush()
     db.session.commit()
     print('adding crossref label complete')
 

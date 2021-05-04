@@ -55,7 +55,7 @@ def import_issns(file_path, initial_load):
     add_crossref_label()
 
     # get new records in temp table
-    print('run new records query')
+    print("run new records query")
     new_records = db.session.execute(
         "SELECT issn, issn_l, has_crossref FROM issn_temp t WHERE t.has_crossref is True AND NOT EXISTS (SELECT 1 FROM issn_to_issnl i where i.issn=t.issn and i.issn_l=t.issn_l);"
     )
@@ -94,7 +94,7 @@ def copy_tsv_to_temp_table(file_path, issn_file):
     """
     Very fast way to copy 1 million or more rows into a table.
     """
-    print('load temp table')
+    print("load temp table")
     copy_sql = "COPY issn_temp(issn, issn_l) FROM STDOUT WITH (FORMAT CSV, DELIMITER '\t', HEADER)"
     conn = db.engine.raw_connection()
     with conn.cursor() as cur:
@@ -105,32 +105,27 @@ def copy_tsv_to_temp_table(file_path, issn_file):
             with open(file_path, "rb") as f:
                 cur.copy_expert(copy_sql, f)
     conn.commit()
-    print('load temp table complete')
+    print("load temp table complete")
 
 
 def save_new_records(new_records):
-    print('save new records in issn_to_issnl table')
+    print("save new records in issn_to_issnl table")
     objects = []
     history = []
     for new in new_records:
-        objects.append(
-            ISSNToISSNL(
-                issn=new.issn,
-                issn_l=new.issn_l
-            )
-        )
+        objects.append(ISSNToISSNL(issn=new.issn, issn_l=new.issn_l))
         history.append(ISSNHistory(issn=new.issn, issn_l=new.issn_l, status="added"))
     db.session.bulk_save_objects(objects)
     db.session.bulk_save_objects(history)
     db.session.commit()
-    print('save new records in issn_to_issnl table complete')
+    print("save new records in issn_to_issnl table complete")
 
 
 def map_issns_to_issnl():
     """
     Map issn-l to issns that are in the issn_to_issnl table.
     """
-    print('map issns in metadata table')
+    print("map issns in metadata table")
     sql = """
     insert into issn_metadata (issn_l, issn_org_issns) (
         select
@@ -144,14 +139,14 @@ def map_issns_to_issnl():
     """
     db.session.execute(sql)
     db.session.commit()
-    print('map issns in metadata table complete')
+    print("map issns in metadata table complete")
 
 
 def add_crossref_label():
     """
     Add a crossref_label to the ISSNTemp Table
     """
-    print('adding crossref label')
+    print("adding crossref label")
     file = urlopen("https://api.unpaywall.org/crossref_issns.csv.gz")
     data = pd.read_csv(file, compression="gzip")
     crossref_issns = data["issn"].tolist()
@@ -162,7 +157,7 @@ def add_crossref_label():
             for item in issns_to_set:
                 item.has_crossref = True
     db.session.commit()
-    print('adding crossref label complete')
+    print("adding crossref label complete")
 
 
 @app.cli.command("import_issn_apis")

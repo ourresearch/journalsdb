@@ -7,18 +7,8 @@ from ingest.subscription.subscription_import import SubscriptionImport
 class Elsevier(SubscriptionImport):
     def __init__(self, year):
         self.data_source = "https://www.elsevier.com/books-and-journals/journal-pricing/print-price-list"
-        publisher_names = [
-            "Elsevier - Academic Press",
-            "Elsevier - WB Saunders",
-            "Elsevier - Mosby",
-            "Elsevier - CIG Media Group LP",
-            "Elsevier - International Federation of Automatic Control (IFAC)",
-            "Elsevier - Medicine Publishing Company",
-            "Elsevier - Wilderness Medical Society",
-            "Elsevier- Churchill Livingstone",
-            "Elsevier",
-        ]
-        super().__init__(year, None, None, publisher_names)
+        publisher_name = "Elsevier"
+        super().__init__(year, None, None, publisher_name)
         self.regions_and_currencies = [
             ("USA", "USD"),
             ("Canada", "USD"),

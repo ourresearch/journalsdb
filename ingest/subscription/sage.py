@@ -16,7 +16,12 @@ class Sage(SubscriptionImport):
             "https://us.sagepub.com/en-us/nam/sage-journals-and-subscription-info"
         )
         regions_and_currencies = [("USA", "USD"), ("GBR", "GBP")]
-        super().__init__(year, None, regions_and_currencies, ["SAGE Publications"])
+        super().__init__(
+            year,
+            None,
+            regions_and_currencies,
+            "SAGE",
+        )
         self.in_electronic_price = True
 
     def format_sage_dataframe(self, excel_file_path):

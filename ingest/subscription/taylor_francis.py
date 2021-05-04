@@ -31,25 +31,12 @@ class TaylorFrancis(SubscriptionImport):
             ("AUS", "AUD"),
             ("CAN", "CAD"),
         ]
-        publisher_names = [
-            "Informa UK (Informa Healthcare)",
-            "Informa UK (Swets & Zeitlinger Publishers)",
-            "Informa UK (American Statistical Association)",
-            "Informa UK (Heldref Publications)",
-            "Informa UK (Librapharm)",
-            "Informa UK (Haworth Press, Inc.,)",
-            "Informa UK (Marcel Dekker)",
-            "Informa UK (Ashley Publications)",
-            "Informa UK (Routledge)",
-            "Informa UK (Beech Tree Publishing)",
-            "Informa UK (Taylor & Francis)",
-            "Maney Publishing",
-        ]
+        publisher_name = "Taylor & Francis"
         super().__init__(
             year,
             currencies_and_regions,
             regions_and_currencies,
-            publisher_names,
+            publisher_name,
         )
 
     def format_tf_dataframe(self, file_path):

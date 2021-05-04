@@ -22,18 +22,7 @@ class WileyBlackwell(SubscriptionImport):
             ("Europe", "EUR"),
             ("Rest of World", "USD"),
         ]
-        publisher_names = [
-            "Wiley (John Wiley & Sons)",
-            "Wiley (Physiological Reports)",
-            "Wiley (AHRC Research Centre)",
-            "Wiley (Opulus Press)",
-            "Wiley (American Cancer Society) ",
-            "Wiley (The Wildlife Society)",
-            "Wiley (The Physiological Society)",
-            "Wiley (Canadian Academic Accounting Association)",
-            "Wiley (Robotic Publications)",
-            "Wiley (Blackwell Publishing)",
-        ]
+        publisher_names = "Wiley"
         super().__init__(year, None, regions_and_currencies, publisher_names)
 
     def format_wb_dataframe(self, excel_file_path):

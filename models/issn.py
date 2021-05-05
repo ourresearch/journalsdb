@@ -69,7 +69,7 @@ class ISSNMetaData(db.Model):
                     if "name" in d.keys() or "mainTitle" in d.keys()
                 )
             except StopIteration:
-                return
+                return self.title_from_crossref_api
 
         title = (
             title_dict["mainTitle"]
@@ -83,6 +83,14 @@ class ISSNMetaData(db.Model):
             title = min(title, key=len)
         title = title.strip()
         return title
+
+    @property
+    def title_from_crossref_api(self):
+        if not self.crossref_raw_api:
+            return
+        else:
+            if "title" in self.crossref_raw_api["message"]:
+                return self.crossref_raw_api["message"]["title"]
 
     @property
     def issns_from_crossref_api(self):

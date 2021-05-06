@@ -105,7 +105,23 @@ class ISSNMetaData(db.Model):
             if self.crossref_raw_api
             else None
         )
-        return name.strip('"').strip() if name else None
+        name = name.strip('"').strip() if name else None
+
+        # normalize publisher
+        if name and "informa uk" in name.lower():
+            name = "Taylor & Francis"
+        elif name and "wiley" in name.lower():
+            name = "Wiley"
+        elif (
+            name
+            and "springer" in name.lower()
+            and name != "Springer Publishing Company"
+        ):
+            name = "Springer Nature"
+        elif name and "sage publications" in name.lower():
+            name = "SAGE"
+
+        return name
 
     @property
     def issns(self):

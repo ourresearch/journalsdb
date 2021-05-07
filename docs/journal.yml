@@ -27,10 +27,10 @@ responses:
           "1556-9330",
           "1541-2040"
         ],
-        "open_access": "https://journalsdb.org/journal/1541-2040/open-access",
+        "open_access": "https://api.journalsdb.org/journal/1541-2040/open-access",
         "publisher": "SAGE Publications",
         "readership": [],
-        "repositories": "https://journalsdb.org/journal/1541-2040/repositories",
+        "repositories": "https://api.journalsdb.org/journal/1541-2040/repositories",
         "retractions": null,
         "subscription_pricing": {
           "prices": [],

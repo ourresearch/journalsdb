@@ -1,6 +1,6 @@
 # JournalsDB API
 
-This is the API for [JournalsDB](http://journalsdb.org/).
+This is the API for [JournalsDB](http://journalsdb.org/) and is hosted at [https://api.journalsdb.org](https://api.journalsdb.org)
 
 ## Developer Instructions
 

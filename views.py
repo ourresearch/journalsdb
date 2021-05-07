@@ -8,7 +8,7 @@ from models.usage import OpenAccess, Repository, RetractionSummary
 from models.issn import ISSNMetaData
 from models.location import Region, Country
 
-SITE_URL = "https://journalsdb.org"
+SITE_URL = "https://api.journalsdb.org"
 
 
 @app.route("/")

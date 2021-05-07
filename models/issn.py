@@ -14,18 +14,11 @@ class ISSNTemp(db.Model):
     has_crossref = db.Column(db.Boolean, default=False)
 
 
-class CrossrefTemp(db.Model):
-    __tablename__ = "crossref_temp"
-
-    issn = db.Column(db.String(9), nullable=False, primary_key=True)
-
-
 class ISSNToISSNL(db.Model):
     __tablename__ = "issn_to_issnl"
 
     issn = db.Column(db.String(9), nullable=False, primary_key=True, index=True)
     issn_l = db.Column(db.String(9), nullable=False, primary_key=True, index=True)
-    has_crossref = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
 
@@ -47,7 +40,6 @@ class ISSNMetaData(db.Model):
     crossref_issns = db.Column(JSONB)
     issn_org_raw_api = db.Column(JSONB)
     crossref_raw_api = db.Column(JSONB)
-    has_crossref = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, onupdate=func.now())
 

@@ -8,8 +8,8 @@ from models.journal import Journal
 from models.mixins import TimestampMixin
 
 
-class DOIStat(db.Model, TimestampMixin):
-    __tablename__ = "doi_stats"
+class DOICount(db.Model, TimestampMixin):
+    __tablename__ = "doi_counts"
 
     issn_l = db.Column(db.String(9), primary_key=True)
     dois_by_year = db.Column(JSONB, nullable=False)

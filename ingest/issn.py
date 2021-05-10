@@ -1,4 +1,4 @@
-import os
+from csv import reader
 import datetime
 from io import BytesIO
 import json
@@ -11,6 +11,7 @@ import requests
 from sqlalchemy import exc, func
 
 from app import app, db
+from ingest.utils import get_or_create, remove_control_characters
 from models.issn import (
     ISSNHistory,
     ISSNMetaData,
@@ -19,15 +20,11 @@ from models.issn import (
     LinkedISSNL,
 )
 from models.journal import Journal, Publisher
-from ingest.utils import get_or_create, remove_control_characters
-
-from csv import reader
 
 
 @app.cli.command("import_issns")
 @click.option("--file_path")
-@click.option("--initial_load", is_flag=True)
-def import_issns(file_path, initial_load):
+def import_issns(file_path):
     """
     Master ISSN list: https://www.issn.org/wp-content/uploads/2014/03/issnltables.zip
     Available via a text file within the zip archive with name ISSN-to-ISSN-L-initial.txt.
@@ -108,40 +105,6 @@ def copy_tsv_to_temp_table(file_path, issn_file):
     print("load temp table complete")
 
 
-def save_new_records(new_records):
-    print("save new records in issn_to_issnl table")
-    objects = []
-    history = []
-    for new in new_records:
-        objects.append(ISSNToISSNL(issn=new.issn, issn_l=new.issn_l))
-        history.append(ISSNHistory(issn=new.issn, issn_l=new.issn_l, status="added"))
-    db.session.bulk_save_objects(objects)
-    db.session.bulk_save_objects(history)
-    db.session.commit()
-    print("save new records in issn_to_issnl table complete")
-
-
-def map_issns_to_issnl():
-    """
-    Map issn-l to issns that are in the issn_to_issnl table.
-    """
-    print("map issns in metadata table")
-    sql = """
-    insert into issn_metadata (issn_l, issn_org_issns) (
-        select
-            issn_l,
-            jsonb_agg(to_jsonb(issn)) as issn_org_issns
-        from issn_to_issnl
-        where issn_l is not null
-        group by issn_l
-    ) on conflict (issn_l) do update
-    set issn_org_issns = excluded.issn_org_issns;
-    """
-    db.session.execute(sql)
-    db.session.commit()
-    print("map issns in metadata table complete")
-
-
 def process_crossref_issns():
     """
     Iterate through crossref ISSNs coming from unpaywall, and add has_crossref True if the ISSN is in the issn.org list.
@@ -220,9 +183,7 @@ def save_issn_not_in_issn_org(issn):
                     "electronic_issn" in crossref_api_issns
                     and "print_issn" in crossref_api_issns
                 ):
-                    # check if already saved from previous set
                     try:
-
                         new_record_1 = ISSNTemp(
                             issn_l=crossref_api_issns["electronic_issn"],
                             issn=crossref_api_issns["electronic_issn"],
@@ -246,6 +207,40 @@ def save_issn_not_in_issn_org(issn):
                         print("duplicate record")
         else:
             print("more than 2 records found!")
+
+
+def save_new_records(new_records):
+    print("save new records in issn_to_issnl table")
+    objects = []
+    history = []
+    for new in new_records:
+        objects.append(ISSNToISSNL(issn=new.issn, issn_l=new.issn_l))
+        history.append(ISSNHistory(issn=new.issn, issn_l=new.issn_l, status="added"))
+    db.session.bulk_save_objects(objects)
+    db.session.bulk_save_objects(history)
+    db.session.commit()
+    print("save new records in issn_to_issnl table complete")
+
+
+def map_issns_to_issnl():
+    """
+    Map issn-l to issns that are in the issn_to_issnl table.
+    """
+    print("map issns in metadata table")
+    sql = """
+    insert into issn_metadata (issn_l, issn_org_issns) (
+        select
+            issn_l,
+            jsonb_agg(to_jsonb(issn)) as issn_org_issns
+        from issn_to_issnl
+        where issn_l is not null
+        group by issn_l
+    ) on conflict (issn_l) do update
+    set issn_org_issns = excluded.issn_org_issns;
+    """
+    db.session.execute(sql)
+    db.session.commit()
+    print("map issns in metadata table complete")
 
 
 @app.cli.command("import_issn_apis")

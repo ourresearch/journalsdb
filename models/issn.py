@@ -51,7 +51,7 @@ class ISSNMetaData(db.Model):
     @property
     def title_from_issn_api(self):
         if not self.issn_org_raw_api:
-            return
+            return self.title_from_crossref_api
         else:
             try:
                 # find element with name or mainTitle

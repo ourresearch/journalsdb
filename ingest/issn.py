@@ -52,7 +52,7 @@ def import_issns(file_path, initial_load):
         return
 
     # add crossref labels to temp table
-    add_crossref_label()
+    process_crossref_issns()
 
     # get new records in temp table
     print("run new records query")
@@ -142,9 +142,10 @@ def map_issns_to_issnl():
     print("map issns in metadata table complete")
 
 
-def add_crossref_label():
+def process_crossref_issns():
     """
-    Add a crossref_label to the ISSNTemp Table
+    Iterate through crossref ISSNs coming from unpaywall, and add has_crossref True if the ISSN is in the issn.org list.
+    If the ISSN is not in the issn.org list, then add it to the temp table.
     """
     print("adding crossref label")
     file = urlopen("https://api.unpaywall.org/crossref_issns.csv.gz")
@@ -156,8 +157,88 @@ def add_crossref_label():
             issns_to_set = db.session.query(ISSNTemp).filter_by(issn_l=r.issn_l).all()
             for item in issns_to_set:
                 item.has_crossref = True
+        else:
+            save_issn_not_in_issn_org(issn)
     db.session.commit()
     print("adding crossref label complete")
+
+
+def get_crossref_api_issns(issn):
+    crossref_url = "https://api.crossref.org/journals/{}".format(issn)
+    r = requests.get(crossref_url)
+
+    result = {}
+    try:
+        if r.status_code == 200:
+            result["issns"] = r.json()["message"]["ISSN"]
+            result["issn_types"] = r.json()["message"]["issn-type"]
+
+            for issn in result["issn_types"]:
+                if issn["type"] == "electronic":
+                    result["electronic_issn"] = issn["value"]
+                elif issn["type"] == "print":
+                    result["print_issn"] = issn["value"]
+            return result
+    except (requests.exceptions.ConnectionError, json.JSONDecodeError):
+        return None
+
+
+def save_issn_not_in_issn_org(issn):
+    crossref_api_issns = get_crossref_api_issns(issn)
+
+    if crossref_api_issns:
+        # single issn pair, simply save to temp table
+        if len(crossref_api_issns["issns"]) == 1:
+            new_record = ISSNTemp(issn_l=issn, issn=issn, has_crossref=True)
+            db.session.add(new_record)
+            print(
+                "adding single record {} that is in crossref list but not in issn org".format(
+                    issn
+                )
+            )
+
+        # possible related issn
+        elif len(crossref_api_issns["issns"]) == 2:
+            related_issn = crossref_api_issns["issns"]
+            related_issn.remove(issn)
+            related_issn = related_issn[0]
+
+            # check for existing record
+            r = db.session.query(ISSNToISSNL).filter_by(issn=related_issn).one_or_none()
+            if r:
+                # add new issn but use the related record as the issn_l
+                new_record = ISSNTemp(issn_l=r.issn_l, issn=issn, has_crossref=True)
+                db.session.add(new_record)
+                print(
+                    "adding {} but using related issn {} as the issn_l".format(
+                        issn, r.issn_l
+                    )
+                )
+            else:
+                # add both records and use first record (electronic) as the issn_l
+                if (
+                    "electronic_issn" in crossref_api_issns
+                    and "print_issn" in crossref_api_issns
+                ):
+                    new_record_1 = ISSNTemp(
+                        issn_l=crossref_api_issns["electronic_issn"],
+                        issn=crossref_api_issns["electronic_issn"],
+                        has_crossref=True,
+                    )
+                    new_record_2 = ISSNTemp(
+                        issn_l=crossref_api_issns["electronic_issn"],
+                        issn=crossref_api_issns["print_issn"],
+                        has_crossref=True,
+                    )
+                    db.session.add(new_record_1, new_record_2)
+                    print(
+                        "adding {} and {} as electronic and print ISSNs".format(
+                            crossref_api_issns["electronic_issn"],
+                            crossref_api_issns["print_issn"],
+                        )
+                    )
+        else:
+            print("more than 2 records found!")
 
 
 @app.cli.command("import_issn_apis")
@@ -207,7 +288,7 @@ def save_crossref_api(issn):
     crossref_url = "https://api.crossref.org/journals/{}".format(issn.issn_l)
     try:
         r = requests.get(crossref_url)
-        if r.status_code == 200 and ISSNMetaData.issn_org_raw_api:
+        if r.status_code == 200:
             issn.crossref_raw_api = r.json()
             issn.updated_at = datetime.datetime.now()
             issn.crossref_issns = issn.issns_from_crossref_api
@@ -251,20 +332,24 @@ def set_publisher(issn):
 
 
 def link_issn_l(issn):
-    # if the issn_l is in a different record issn, then link it
-    issn_l_in_crossref_issns = ISSNMetaData.query.filter(
-        ISSNMetaData.crossref_issns.contains(json.dumps(issn.issn_l))
-    ).all()
-    for issn_l_in_crossref in issn_l_in_crossref_issns:
-        if issn_l_in_crossref.issn_l != issn.issn_l:
-            db.session.add(
-                LinkedISSNL(
-                    issn_l_primary=issn.issn_l,
-                    issn_l_secondary=issn_l_in_crossref.issn_l,
-                    reason="crossref",
+    try:
+        # if the issn_l is in a different record issn, then link it
+        issn_l_in_crossref_issns = ISSNMetaData.query.filter(
+            ISSNMetaData.crossref_issns.contains(json.dumps(issn.issn_l))
+        ).all()
+        for issn_l_in_crossref in issn_l_in_crossref_issns:
+            if issn_l_in_crossref.issn_l != issn.issn_l:
+                db.session.add(
+                    LinkedISSNL(
+                        issn_l_primary=issn.issn_l,
+                        issn_l_secondary=issn_l_in_crossref.issn_l,
+                        reason="crossref",
+                    )
                 )
-            )
-        db.session.commit()
+            db.session.commit()
+    except exc.IntegrityError:
+        db.session.rollback()
+        return
 
 
 @app.cli.command("set_publishers")

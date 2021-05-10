@@ -1,9 +1,40 @@
 import datetime
 
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import UniqueConstraint
+
 from app import db
 from models.journal import Journal
 from models.mixins import TimestampMixin
-from sqlalchemy import UniqueConstraint
+
+
+class DOIStat(db.Model, TimestampMixin):
+    __tablename__ = "doi_stats"
+
+    issn_l = db.Column(db.String(9), primary_key=True)
+    dois_by_year = db.Column(JSONB, nullable=False)
+    sample_dois = db.Column(JSONB)
+
+
+class ExtensionRequests(db.Model, TimestampMixin):
+    __tablename__ = "extension_requests"
+
+    id = db.Column(db.Integer, primary_key=True)
+    journal_id = db.Column(
+        db.Integer, db.ForeignKey("journals.id"), nullable=False, index=True
+    )
+    journal = db.relationship(
+        "Journal", backref=db.backref("extension_requests", lazy=True)
+    )
+    month = db.Column(db.DateTime, nullable=False)
+    requests = db.Column(db.Integer, nullable=False)
+
+    def to_dict(self):
+        return {
+            "month": datetime.datetime.strftime(self.month, "%B"),
+            "year": datetime.datetime.strftime(self.month, "%Y"),
+            "requests": self.requests,
+        }
 
 
 class OpenAccess(db.Model, TimestampMixin):
@@ -71,27 +102,6 @@ class Repository(db.Model):
             "home_page": self.home_page,
             "pmh_url": self.pmh_url,
             "num_articles": self.num_articles,
-        }
-
-
-class ExtensionRequests(db.Model, TimestampMixin):
-    __tablename__ = "extension_requests"
-
-    id = db.Column(db.Integer, primary_key=True)
-    journal_id = db.Column(
-        db.Integer, db.ForeignKey("journals.id"), nullable=False, index=True
-    )
-    journal = db.relationship(
-        "Journal", backref=db.backref("extension_requests", lazy=True)
-    )
-    month = db.Column(db.DateTime, nullable=False)
-    requests = db.Column(db.Integer, nullable=False)
-
-    def to_dict(self):
-        return {
-            "month": datetime.datetime.strftime(self.month, "%B"),
-            "year": datetime.datetime.strftime(self.month, "%Y"),
-            "requests": self.requests,
         }
 
 

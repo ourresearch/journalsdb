@@ -220,23 +220,30 @@ def save_issn_not_in_issn_org(issn):
                     "electronic_issn" in crossref_api_issns
                     and "print_issn" in crossref_api_issns
                 ):
-                    new_record_1 = ISSNTemp(
-                        issn_l=crossref_api_issns["electronic_issn"],
-                        issn=crossref_api_issns["electronic_issn"],
-                        has_crossref=True,
-                    )
-                    new_record_2 = ISSNTemp(
-                        issn_l=crossref_api_issns["electronic_issn"],
-                        issn=crossref_api_issns["print_issn"],
-                        has_crossref=True,
-                    )
-                    db.session.add(new_record_1, new_record_2)
-                    print(
-                        "adding {} and {} as electronic and print ISSNs".format(
-                            crossref_api_issns["electronic_issn"],
-                            crossref_api_issns["print_issn"],
+                    # check if already saved from previous set
+                    try:
+
+                        new_record_1 = ISSNTemp(
+                            issn_l=crossref_api_issns["electronic_issn"],
+                            issn=crossref_api_issns["electronic_issn"],
+                            has_crossref=True,
                         )
-                    )
+                        new_record_2 = ISSNTemp(
+                            issn_l=crossref_api_issns["electronic_issn"],
+                            issn=crossref_api_issns["print_issn"],
+                            has_crossref=True,
+                        )
+                        db.session.add(new_record_1, new_record_2)
+                        db.session.commit()
+                        print(
+                            "adding {} and {} as electronic and print ISSNs".format(
+                                crossref_api_issns["electronic_issn"],
+                                crossref_api_issns["print_issn"],
+                            )
+                        )
+                    except exc.IntegrityError:
+                        db.session.rollback()
+                        print("duplicate record")
         else:
             print("more than 2 records found!")
 

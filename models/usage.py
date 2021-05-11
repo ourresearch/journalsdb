@@ -15,6 +15,15 @@ class DOICount(db.Model, TimestampMixin):
     dois_by_year = db.Column(JSONB, nullable=False)
     sample_dois = db.Column(JSONB)
 
+    @property
+    def total_dois(self):
+        return sum(self.dois_by_year.values())
+
+    @property
+    def dois_by_year_sorted(self):
+        dois = {int(k): v for (k, v) in self.dois_by_year.items()}
+        return list(sorted(dois.items(), reverse=True))
+
 
 class ExtensionRequests(db.Model, TimestampMixin):
     __tablename__ = "extension_requests"

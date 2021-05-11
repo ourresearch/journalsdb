@@ -4,7 +4,7 @@ import json
 
 from app import app, cache, db
 from models.journal import Journal, Publisher
-from models.usage import OpenAccess, Repository, RetractionSummary
+from models.usage import DOICount, OpenAccess, Repository, RetractionSummary
 from models.issn import ISSNMetaData
 from models.location import Region, Country
 
@@ -204,34 +204,20 @@ def journal_detail(issn):
             # nothing found
             return abort(404, description="Resource not found")
 
-    metadata = journal.issn_metadata.crossref_raw_api
-    dois_by_year, total_dois = process_metadata(metadata)
-    journal_dict = build_journal_dict_detail(journal, issn, dois_by_year, total_dois)
+    journal_dict = build_journal_dict_detail(journal, issn)
     return jsonify(journal_dict), 200
 
 
-def process_metadata(metadata):
-    try:
-        dois_by_year = metadata["message"]["breakdowns"]["dois-by-issued-year"]
-        # sort by year descending
-        dois_by_year = sorted(dois_by_year, reverse=True)
-
-        total_dois = metadata["message"]["counts"]["total-dois"]
-    except TypeError:
-        dois_by_year = None
-        total_dois = None
-    return dois_by_year, total_dois
-
-
-def build_journal_dict_detail(journal, issn_l, dois_by_year, total_dois):
+def build_journal_dict_detail(journal, issn_l):
     journal_dict = journal.to_dict()
     journal_dict["journal_metadata"] = (
         [m.to_dict() for m in journal.journal_metadata]
         if journal.journal_metadata
         else []
     )
-    journal_dict["total_dois"] = total_dois
-    journal_dict["dois_by_issued_year"] = dois_by_year
+    dois = DOICount.query.filter_by(issn_l=issn_l).one_or_none()
+    journal_dict["total_dois"] = dois.total_dois if dois else None
+    journal_dict["dois_by_issued_year"] = dois.dois_by_year_sorted if dois else None
     journal_dict["subscription_pricing"] = {
         "provenance": journal.publisher.sub_data_source if journal.publisher else None,
         "prices": sorted(
@@ -285,9 +271,7 @@ def journals_paged():
     }
 
     for j in journals.items:
-        metadata = j.issn_metadata.crossref_raw_api
-        dois_by_year, total_dois = process_metadata(metadata)
-        journal_dict = build_journal_dict_paged(j, dois_by_year, total_dois)
+        journal_dict = build_journal_dict_paged(j)
         results["results"].append(journal_dict)
 
     base_url = SITE_URL + "/journals-paged"
@@ -297,15 +281,16 @@ def journals_paged():
     return jsonify(results), 200, link_header
 
 
-def build_journal_dict_paged(journal, dois_by_year, total_dois):
+def build_journal_dict_paged(journal):
     journal_dict = journal.to_dict()
     journal_dict["journal_metadata"] = (
         [m.to_dict() for m in journal.journal_metadata]
         if journal.journal_metadata
         else []
     )
-    journal_dict["total_dois"] = total_dois
-    journal_dict["dois_by_issued_year"] = dois_by_year
+    dois = DOICount.query.filter_by(issn_l=journal.issn_l).one_or_none()
+    journal_dict["total_dois"] = dois.total_dois if dois else None
+    journal_dict["dois_by_issued_year"] = dois.dois_by_year_sorted if dois else None
     journal_dict["subscription_pricing"] = {
         "provenance": journal.publisher.sub_data_source if journal.publisher else None,
         "prices": sorted(

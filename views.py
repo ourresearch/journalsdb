@@ -218,6 +218,7 @@ def build_journal_dict_detail(journal, issn_l):
     dois = DOICount.query.filter_by(issn_l=issn_l).one_or_none()
     journal_dict["total_dois"] = dois.total_dois if dois else None
     journal_dict["dois_by_issued_year"] = dois.dois_by_year_sorted if dois else None
+    journal_dict["sample_dois"] = dois.sample_doi_urls if dois else None
     journal_dict["subscription_pricing"] = {
         "provenance": journal.publisher.sub_data_source if journal.publisher else None,
         "prices": sorted(
@@ -291,6 +292,7 @@ def build_journal_dict_paged(journal):
     dois = DOICount.query.filter_by(issn_l=journal.issn_l).one_or_none()
     journal_dict["total_dois"] = dois.total_dois if dois else None
     journal_dict["dois_by_issued_year"] = dois.dois_by_year_sorted if dois else None
+    journal_dict["sample_dois"] = dois.sample_doi_urls if dois else None
     journal_dict["subscription_pricing"] = {
         "provenance": journal.publisher.sub_data_source if journal.publisher else None,
         "prices": sorted(

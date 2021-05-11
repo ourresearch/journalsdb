@@ -24,6 +24,10 @@ class DOICount(db.Model, TimestampMixin):
         dois = {int(k): v for (k, v) in self.dois_by_year.items()}
         return list(sorted(dois.items(), reverse=True))
 
+    @property
+    def sample_doi_urls(self):
+        return ["https://doi.org/{}".format(doi) for doi in self.sample_dois]
+
 
 class ExtensionRequests(db.Model, TimestampMixin):
     __tablename__ = "extension_requests"

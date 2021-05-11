@@ -189,12 +189,19 @@ def save_issn_not_in_issn_org(issn):
                             issn=crossref_api_issns["electronic_issn"],
                             has_crossref=True,
                         )
+                        db.session.add(new_record_1)
+                        db.session.commit()
+                    except exc.IntegrityError:
+                        db.session.rollback()
+                        print("duplicate record")
+
+                    try:
                         new_record_2 = ISSNTemp(
                             issn_l=crossref_api_issns["electronic_issn"],
                             issn=crossref_api_issns["print_issn"],
                             has_crossref=True,
                         )
-                        db.session.add(new_record_1, new_record_2)
+                        db.session.add(new_record_2)
                         db.session.commit()
                         print(
                             "adding {} and {} as electronic and print ISSNs".format(

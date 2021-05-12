@@ -26,7 +26,11 @@ class DOICount(db.Model, TimestampMixin):
 
     @property
     def sample_doi_urls(self):
-        return ["https://doi.org/{}".format(doi) for doi in self.sample_dois]
+        return (
+            ["https://doi.org/{}".format(doi) for doi in self.sample_dois]
+            if self.sample_dois
+            else None
+        )
 
 
 class ExtensionRequests(db.Model, TimestampMixin):

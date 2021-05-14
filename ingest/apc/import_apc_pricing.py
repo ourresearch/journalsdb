@@ -7,10 +7,21 @@ from ingest.apc.apc_elsevier import ElsevierAPC
 from ingest.apc.apc_wiley import WileyAPC
 from ingest.apc.apc_springer import SpringerAPC
 from ingest.apc.apc_sage import SageAPC
+from ingest.apc.apc_taylor import TaylorAPC
 from models.journal import Journal
 from models.price import APCPrice
 
 CSV_DIRECTORY = "ingest/apc/files/"
+
+
+@app.cli.command("import_apc_taylor")
+@click.option("--file_name", required=True)
+@click.option("--year", required=True)
+def import_taylor(file_name, year):
+    file_path = os.path.join(app.root_path, CSV_DIRECTORY, file_name)
+    taylor = TaylorAPC(year)
+    taylor.parse_excel(file_path)
+    taylor.import_prices()
 
 
 @app.cli.command("import_apc_sage")

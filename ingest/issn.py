@@ -1,4 +1,3 @@
-from csv import reader
 import datetime
 from io import BytesIO
 import json
@@ -18,6 +17,7 @@ from models.issn import (
     ISSNTemp,
     ISSNToISSNL,
     LinkedISSNL,
+    MissingJournal,
 )
 from models.journal import Journal, Publisher
 
@@ -113,8 +113,16 @@ def process_crossref_issns():
     print("adding crossref label")
     file = urlopen("https://api.unpaywall.org/crossref_issns.csv.gz")
     data = pd.read_csv(file, compression="gzip")
+
     crossref_issns = data["issn"].tolist()
-    for issn in crossref_issns:
+    missing_journals = (
+        db.session.query(MissingJournal.issn).filter_by(processed=False).all()
+    )
+    missing_issns = [issn for issn, in missing_journals]
+    mark_missing_journals_as_processed(missing_issns)
+    issns_to_process = crossref_issns + missing_issns
+
+    for issn in issns_to_process:
         r = db.session.query(ISSNTemp).filter_by(issn=issn).one_or_none()
         if r:
             issns_to_set = db.session.query(ISSNTemp).filter_by(issn_l=r.issn_l).all()
@@ -122,7 +130,7 @@ def process_crossref_issns():
                 item.has_crossref = True
         else:
             save_issn_not_in_issn_org(issn)
-    db.session.commit()
+        db.session.commit()
     print("adding crossref label complete")
 
 
@@ -154,6 +162,7 @@ def save_issn_not_in_issn_org(issn):
         if len(crossref_api_issns["issns"]) == 1:
             new_record = ISSNTemp(issn_l=issn, issn=issn, has_crossref=True)
             db.session.add(new_record)
+            db.session.commit()
             print(
                 "adding single record {} that is in crossref list but not in issn org".format(
                     issn
@@ -172,6 +181,7 @@ def save_issn_not_in_issn_org(issn):
                 # add new issn but use the related record as the issn_l
                 new_record = ISSNTemp(issn_l=r.issn_l, issn=issn, has_crossref=True)
                 db.session.add(new_record)
+                db.session.commit()
                 print(
                     "adding {} but using related issn {} as the issn_l".format(
                         issn, r.issn_l
@@ -184,6 +194,13 @@ def save_issn_not_in_issn_org(issn):
                     and "print_issn" in crossref_api_issns
                 ):
                     try:
+                        issn_exists = (
+                            db.session.query(ISSNTemp)
+                            .filter_by(issn=crossref_api_issns["electronic_issn"])
+                            .one_or_none()
+                        )
+                        if issn_exists:
+                            return
                         new_record_1 = ISSNTemp(
                             issn_l=crossref_api_issns["electronic_issn"],
                             issn=crossref_api_issns["electronic_issn"],
@@ -196,6 +213,13 @@ def save_issn_not_in_issn_org(issn):
                         print("duplicate record")
 
                     try:
+                        issn_exists = (
+                            db.session.query(ISSNTemp)
+                            .filter_by(issn=crossref_api_issns["print_issn"])
+                            .one_or_none()
+                        )
+                        if issn_exists:
+                            return
                         new_record_2 = ISSNTemp(
                             issn_l=crossref_api_issns["electronic_issn"],
                             issn=crossref_api_issns["print_issn"],
@@ -248,6 +272,13 @@ def map_issns_to_issnl():
     db.session.execute(sql)
     db.session.commit()
     print("map issns in metadata table complete")
+
+
+def mark_missing_journals_as_processed(issns):
+    for issn in issns:
+        j = db.session.query(MissingJournal).filter_by(issn=issn).one()
+        j.processed = True
+    db.session.commit()
 
 
 @app.cli.command("import_issn_apis")
@@ -375,35 +406,4 @@ def set_publishers():
         j = Journal.query.filter_by(issn_l=issn.issn_l).one_or_none()
         if j:
             j.publisher_id = publisher.id if publisher else None
-    db.session.commit()
-
-
-@app.cli.command("remove_issns")
-@click.option("--file_path")
-def remove_issns(file_path):
-    """
-    Takes a CSV file with each row containing an ISSN_L. Removes these ISSN_L entries
-    from the ISSNMetaData table.
-    Run with: flask remove_issns --file_path filename
-    """
-    issns_to_keep = set()
-
-    with open(file_path, "r") as file:
-        csv_reader = reader(file)
-        for row in csv_reader:
-            issns_to_keep.add(row[0])  # rows are lists, 0 position is the value
-
-    all_issns = set(
-        [entry.issn_l for entry in db.session.query(ISSNMetaData).distinct()]
-    )
-
-    print(len(issns_to_keep))
-    print(len(all_issns))
-    issns_to_remove = all_issns - issns_to_keep
-    print(len(issns_to_remove))
-
-    deletion = ISSNMetaData.__table__.delete().where(
-        ISSNMetaData.issn_l.in_(issns_to_remove)
-    )
-    db.session.execute(deletion)
     db.session.commit()

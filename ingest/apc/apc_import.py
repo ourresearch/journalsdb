@@ -117,7 +117,7 @@ class ImportAPC:
         """
         Adds an APC price to the database.
         """
-        if self.row["price"]:
+        if isinstance(self.row["price"], (int, float)):
             print(self.row["price"])
             print(self.row["issn-l"])
             entry = (

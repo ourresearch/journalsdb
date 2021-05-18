@@ -129,3 +129,11 @@ class LinkedISSNL(db.Model):
     )
     reason = db.Column(db.String(), nullable=False)
     created_at = db.Column(db.DateTime, server_default=func.now())
+
+
+class MissingJournal(db.Model):
+    __tablename__ = "missing_journals"
+
+    issn = db.Column(db.String(9), primary_key=True)
+    processed = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, server_default=func.now())

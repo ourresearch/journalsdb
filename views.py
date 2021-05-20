@@ -5,7 +5,7 @@ import json
 from app import app, cache, db
 from models.journal import Journal, Publisher
 from models.usage import DOICount, OpenAccess, Repository, RetractionSummary
-from models.issn import ISSNMetaData
+from models.issn import ISSNMetaData, MissingJournal
 from models.location import Region, Country
 
 SITE_URL = "https://api.journalsdb.org"
@@ -376,6 +376,25 @@ def get_open_access(issn):
         results.append(entry)
     final = sorted(results, key=lambda o: o["year"], reverse=True)
     return final, num_dois, num_green, num_hybrid
+
+
+@app.route("/missing_journal", methods=["POST"])
+def missing_journal():
+    if not request.json or "issn" not in request.json:
+        abort(400)
+
+    posted_data = request.get_json()
+    issn = posted_data["issn"]
+    if (
+        Journal.find_by_issn(issn)
+        or MissingJournal.query.filter_by(issn=issn).one_or_none()
+    ):
+        return jsonify({"Message": "issn already exists"}), 200
+    else:
+        missing_journal = MissingJournal(issn=issn)
+        db.session.add(missing_journal)
+        db.session.commit()
+        return jsonify({"Missing journal created": missing_journal.issn}), 201
 
 
 if __name__ == "__main__":

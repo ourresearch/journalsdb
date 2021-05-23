@@ -1,3 +1,15 @@
+**2021-05-23 - Add new ISSNs**
+
+The following ISSNs were added or merged into existing records:
+
+1578-9675 -> 1134-2072  
+1578-1771  
+2027-9000 -> 0121-8123  
+0306-4484  
+0962-7170  
+0954-0512  
+1866-6167 -> 1866-6175  
+
 **2021-05-20 - Add new ISSNs**
 
 The following ISSNs were added or merged into existing records:

@@ -441,7 +441,7 @@ def move_issn(issn_from, issn_to):
         )
 
     # add to issn_to_issnl with new issn_l
-    issn_to_issnl = ISSNToISSNL(issn_l=issn_from, issn=issn_to)
+    issn_to_issnl = ISSNToISSNL(issn_l=issn_to, issn=issn_from)
     db.session.add(issn_to_issnl)
     db.session.commit()
     print("issn {} mapped to {} in issn to issnl table".format(issn_from, issn_to))

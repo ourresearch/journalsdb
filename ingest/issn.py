@@ -392,18 +392,54 @@ def link_issn_l(issn):
         return
 
 
-@app.cli.command("set_publishers")
-def set_publishers():
-    """
-    Iterate over issn_metadata table and set the publishers in the journals table.
-    """
-    for issn in ISSNMetaData.query.yield_per(100):
-        publisher = (
-            get_or_create(db.session, Publisher, name=issn.publisher)
-            if issn.publisher
-            else None
+@app.cli.command("move_issn")
+@click.option("--issn_from", prompt=True)
+@click.option("--issn_to", prompt=True)
+def move_issn(issn_from, issn_to):
+    # delete journal entry
+    j = db.session.query(Journal).filter_by(issn_l=issn_from).one_or_none()
+    if j:
+        db.session.delete(j)
+        db.session.commit()
+        print("journal entry for issn {} deleted".format(issn_from))
+    else:
+        print("no journal entry found")
+
+    # delete issn_metadata entry
+    i = db.session.query(ISSNMetaData).filter_by(issn_l=issn_from).one_or_none()
+    if i:
+        db.session.delete(i)
+        db.session.commit()
+        print("issn metadata for issn {} deleted".format(issn_from))
+    else:
+        print("no issn metadata entry found")
+
+    # delete from issn_to_issnl
+    issn_to_remove = db.session.query(ISSNToISSNL).filter_by(issn=issn_from).first()
+    mapped_issns = (
+        db.session.query(ISSNToISSNL).filter_by(issn_l=issn_to_remove.issn_l).all()
+    )
+    for issn in mapped_issns:
+        db.session.delete(issn)
+        db.session.commit()
+        print(
+            "issn to issnl mapping data for issn {} and issn_l {} deleted".format(
+                issn.issn, issn.issn_l
+            )
         )
-        j = Journal.query.filter_by(issn_l=issn.issn_l).one_or_none()
-        if j:
-            j.publisher_id = publisher.id if publisher else None
+
+    # add to issn_to_issnl with new issn_l
+    issn_to_issnl = ISSNToISSNL(issn_l=issn_from, issn=issn_to)
+    db.session.add(issn_to_issnl)
     db.session.commit()
+    print("issn {} mapped to {} in issn to issnl table".format(issn_from, issn_to))
+
+    # add issn to issn_org_issns in issn_metadata
+    metadata = db.session.query(ISSNMetaData).filter_by(issn_l=issn_to).one()
+    metadata.issn_org_issns = metadata.issn_org_issns + [issn_from]
+    db.session.commit()
+    print(
+        "issn {} added to issn_org column for {} issn_l metadata record".format(
+            issn_from, issn_to
+        )
+    )

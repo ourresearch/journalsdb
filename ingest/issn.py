@@ -403,7 +403,13 @@ def move_issn(issn_from, issn_to):
         db.session.commit()
         print("journal entry for issn {} deleted".format(issn_from))
     else:
-        print("no journal entry found")
+        # journal may have been mapped to different issn_l
+        r = db.session.query(ISSNToISSNL).filter_by(issn=issn_from).first()
+        issn_l = r.issn_l
+        j = db.session.query(Journal).filter_by(issn_l=issn_l).one()
+        db.session.delete(j)
+        db.session.commit()
+        print("journal entry deleted using mapped issn_l {}".format(issn_l))
 
     # delete issn_metadata entry
     i = db.session.query(ISSNMetaData).filter_by(issn_l=issn_from).one_or_none()
@@ -412,7 +418,13 @@ def move_issn(issn_from, issn_to):
         db.session.commit()
         print("issn metadata for issn {} deleted".format(issn_from))
     else:
-        print("no issn metadata entry found")
+        # metadata may have been mapped to different issn_l
+        r = db.session.query(ISSNToISSNL).filter_by(issn=issn_from).first()
+        issn_l = r.issn_l
+        i = db.session.query(ISSNMetaData).filter_by(issn_l=issn_l).one()
+        db.session.delete(i)
+        db.session.commit()
+        print("issn metadata deleted using mapped issn_l {}".format(issn_l))
 
     # delete from issn_to_issnl
     issn_to_remove = db.session.query(ISSNToISSNL).filter_by(issn=issn_from).first()

@@ -129,7 +129,11 @@ def process_crossref_issns():
             for item in issns_to_set:
                 item.has_crossref = True
         else:
-            save_issn_not_in_issn_org(issn)
+            issn_exists = (
+                db.session.query(ISSNToISSNL).filter_by(issn=issn).one_or_none()
+            )
+            if not issn_exists:
+                save_issn_not_in_issn_org(issn)
         db.session.commit()
     print("adding crossref label complete")
 

@@ -405,11 +405,12 @@ def move_issn(issn_from, issn_to):
     else:
         # journal may have been mapped to different issn_l
         r = db.session.query(ISSNToISSNL).filter_by(issn=issn_from).first()
-        issn_l = r.issn_l
-        j = db.session.query(Journal).filter_by(issn_l=issn_l).one()
-        db.session.delete(j)
-        db.session.commit()
-        print("journal entry deleted using mapped issn_l {}".format(issn_l))
+        if r and r.issn_l != issn_to:
+            issn_l = r.issn_l
+            j = db.session.query(Journal).filter_by(issn_l=issn_l).one()
+            db.session.delete(j)
+            db.session.commit()
+            print("journal entry deleted using mapped issn_l {}".format(issn_l))
 
     # delete issn_metadata entry
     i = db.session.query(ISSNMetaData).filter_by(issn_l=issn_from).one_or_none()
@@ -420,25 +421,27 @@ def move_issn(issn_from, issn_to):
     else:
         # metadata may have been mapped to different issn_l
         r = db.session.query(ISSNToISSNL).filter_by(issn=issn_from).first()
-        issn_l = r.issn_l
-        i = db.session.query(ISSNMetaData).filter_by(issn_l=issn_l).one()
-        db.session.delete(i)
-        db.session.commit()
-        print("issn metadata deleted using mapped issn_l {}".format(issn_l))
+        if r and r.issn_l != issn_to:
+            issn_l = r.issn_l
+            i = db.session.query(ISSNMetaData).filter_by(issn_l=issn_l).one()
+            db.session.delete(i)
+            db.session.commit()
+            print("issn metadata deleted using mapped issn_l {}".format(issn_l))
 
     # delete from issn_to_issnl
     issn_to_remove = db.session.query(ISSNToISSNL).filter_by(issn=issn_from).first()
-    mapped_issns = (
-        db.session.query(ISSNToISSNL).filter_by(issn_l=issn_to_remove.issn_l).all()
-    )
-    for issn in mapped_issns:
-        db.session.delete(issn)
-        db.session.commit()
-        print(
-            "issn to issnl mapping data for issn {} and issn_l {} deleted".format(
-                issn.issn, issn.issn_l
-            )
+    if issn_to_remove:
+        mapped_issns = (
+            db.session.query(ISSNToISSNL).filter_by(issn_l=issn_to_remove.issn_l).all()
         )
+        for issn in mapped_issns:
+            db.session.delete(issn)
+            db.session.commit()
+            print(
+                "issn to issnl mapping data for issn {} and issn_l {} deleted".format(
+                    issn.issn, issn.issn_l
+                )
+            )
 
     # add to issn_to_issnl with new issn_l
     issn_to_issnl = ISSNToISSNL(issn_l=issn_to, issn=issn_from)

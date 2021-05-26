@@ -1,3 +1,16 @@
+**2021-05-26 - Add ISSNs, add APC pricing, map publishers**
+
+The following ISSNs were merged into existing records:
+
+2173-5751 -> 0300-2896  
+1573-6733 -> 0889-7077  
+2469-3006 -> 1941-4072  
+1367-423X -> 1368-4221  
+
+Added APC pricing to 47 Elsevier journals.
+
+Found 295 journals with subscription/apc pricing but no publisher. Found and mapped publishers.
+
 **2021-05-25 - Add new ISSNs**
 
 The following ISSNs were added as new records: 2666-853X, 2692-9953, 2692-9996, 1896-1533, 2081-9935.

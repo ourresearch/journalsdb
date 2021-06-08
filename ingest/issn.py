@@ -462,3 +462,32 @@ def move_issn(issn_from, issn_to):
             issn_from, issn_to
         )
     )
+
+
+@app.cli.command("add_from_worldcat")
+@click.option("--issn", prompt=True)
+@click.option("--journal_title", prompt=True)
+@click.option("--publisher_id", prompt=True)
+def add_from_worldcat(issn, journal_title, publisher_id):
+    """
+    Command used to manually add journals that are found in worldcat but nowhere else.
+    """
+    issn_to_issnl = ISSNToISSNL(issn_l=issn, issn=issn)
+    db.session.add(issn_to_issnl)
+    db.session.commit()
+    print("issn {} mapped to {} in issn to issnl table".format(issn, issn))
+
+    # add issn to issn_org_issns in issn_metadata
+    metadata = ISSNMetaData(issn_l=issn, issn_org_issns=[issn])
+    db.session.add(metadata)
+    db.session.commit()
+    print(
+        "issn {} added to issn_org column for {} issn_l metadata record".format(
+            issn, issn
+        )
+    )
+
+    j = Journal(issn_l=issn, title=journal_title, publisher_id=int(publisher_id))
+    db.session.add(j)
+    db.session.commit()
+    print("journal saved {} {} {}".format(issn, journal_title, int(publisher_id)))

@@ -158,7 +158,7 @@ def repositories(issn_l):
     return jsonify(results)
 
 
-@app.route("/journals/search/")
+@app.route("/journals/search")
 @swag_from("docs/search.yml")
 def search():
     query = request.args.get("query")

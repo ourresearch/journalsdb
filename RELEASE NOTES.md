@@ -1,3 +1,29 @@
+**2021-06-08 - Add ISSNs**
+
+The following ISSNs were added based on issn.org or crossref.org data: 2664-3286, 2667-3207, 2667-3444, 2667-2596, 
+2667-3215, 2666-5603, 2667-1131, 0045-2025, 0300-5410, 0300-4910, 0242-5017, 1096-4940, 0891-9925, 0191-5371, 
+2730-9886, 2730-7808, 2573-5098, 2699-1721.
+
+The following ISSNs were added based on Worldcat data:
+
+[1936-7961](https://www.worldcat.org/title/terrestrial-ecology/oclc/752339809&referer=brief_results)  
+[1755-0408](https://www.worldcat.org/title/advances-in-plant-biochemistry-and-molecular-biology/oclc/637781372&referer=brief_results)  
+[1574-0684](https://www.worldcat.org/title/handbook-of-economic-growth/oclc/1136891105&referer=brief_results)  
+[0168-1273](https://www.worldcat.org/title/handbook-on-the-physics-and-chemistry-of-rare-earths/oclc/11584875&referer=brief_results)  
+[0140-9115](https://www.worldcat.org/title/annual-reports-on-fermentation-processes/oclc/502209430&referer=brief_results)  
+[0079-3841](https://www.worldcat.org/title/popular-lectures-in-mathematics/oclc/5586214&referer=brief_results)  
+
+The following ISSNs were mapped to existing ISSNs:
+
+2173-920X -> 1576-9895  
+0300-9653 -> 0024-3205  
+0300-9637 -> 0305-1978  
+1547-9951 -> 0277-0326  
+2173-576X -> 1888-4415  
+1878-156X -> 1521-6934  
+1573-8965 -> 1358-8265  
+1573-9724 -> 0740-817X  
+
 **2021-05-26 - Add ISSNs, add APC pricing, map publishers**
 
 The following ISSNs were merged into existing records:

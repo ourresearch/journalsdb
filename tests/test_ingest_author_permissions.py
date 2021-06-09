@@ -1,5 +1,4 @@
 import pandas as pd
-import pytest
 
 from ingest.author_permissions import import_author_permissions
 from models.author_permissions import AuthorPermissions
@@ -8,7 +7,7 @@ from views import app
 
 
 test_data = {
-    "id": ["1876-2859"],
+    "id": ["2291-5222"],
     "Has Policy?": ["Yes"],
     "Version(s) archivable": ["Postprint, Preprint"],
     "Archiving Locations Allowed": ["Institutional Repository"],
@@ -46,19 +45,17 @@ test_data = {
 }
 
 
-@pytest.mark.skip(reason="need to refactor issn import changes")
-def test_import_author_permission(ingest_client, run_import_issns_with_api, mocker):
+def test_import_author_permission(api_client, mocker):
     mocker.patch(
         "ingest.author_permissions.pd.read_csv",
         return_value=pd.DataFrame(data=test_data),
     )
-    run_import_issns_with_api("ISSN-to-ISSN-L-api.txt")
 
     # run command
     runner = app.test_cli_runner()
     runner.invoke(import_author_permissions)
 
-    j = Journal.query.filter_by(issn_l="1876-2859").one()
+    j = Journal.query.filter_by(issn_l="2291-5222").one()
     a = AuthorPermissions.query.filter_by(journal_id=j.id).one()
 
     assert a.has_policy is True

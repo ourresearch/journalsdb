@@ -3,12 +3,11 @@ import pytest
 
 from ingest.open_access import import_open_access
 from models.usage import OpenAccess
-from models.journal import Journal
 from views import app
 
 
 test_data = {
-    "issn_l": ["1876-2859"],
+    "issn_l": ["2291-5222"],
     "title": ["Tropical Parasitology"],
     "year": ["2010"],
     "num_dois": ["10"],
@@ -27,20 +26,17 @@ test_data = {
 }
 
 
-@pytest.mark.skip(reason="need to refactor due to open access import changes")
-def test_import_open_access(ingest_client, run_import_issns_with_api, mocker):
+def test_import_open_access(api_client, mocker):
     mocker.patch(
         "ingest.open_access.pd.read_csv",
         return_value=[pd.DataFrame(data=test_data)],
     )
-    run_import_issns_with_api("ISSN-to-ISSN-L-api.txt")
 
     # run command
     runner = app.test_cli_runner()
     runner.invoke(import_open_access)
 
-    j = Journal.query.filter_by(issn_l="1876-2859").one()
-    oa = OpenAccess.query.filter_by(journal_id=j.id).first()
+    oa = OpenAccess.query.filter_by(issn_l="2291-5222").first()
 
     assert oa.is_in_doaj is False
     assert oa.year == 2010
@@ -49,12 +45,11 @@ def test_import_open_access(ingest_client, run_import_issns_with_api, mocker):
 
 
 @pytest.mark.skip(reason="need to refactor due to open access import changes")
-def test_import_open_access_no_duplicate(client, run_import_issns_with_api, mocker):
+def test_import_open_access_no_duplicate(api_client, mocker):
     mocker.patch(
         "ingest.open_access.pd.read_csv",
         return_value=[pd.DataFrame(data=test_data)],
     )
-    run_import_issns_with_api("ISSN-to-ISSN-L-api.txt")
 
     # run command
     runner = app.test_cli_runner()
@@ -63,7 +58,6 @@ def test_import_open_access_no_duplicate(client, run_import_issns_with_api, mock
     # run again
     runner.invoke(import_open_access)
 
-    j = Journal.query.filter_by(issn_l="1876-2859").one()
-    oas = OpenAccess.query.filter_by(journal_id=j.id).all()
+    oas = OpenAccess.query.filter_by(issn_l="2291-5222").all()
 
     assert len(oas) == 1

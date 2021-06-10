@@ -1,9 +1,25 @@
+**2021-06-10**
+
+ISSNs added based on various sources:  
+1324-1486, 0145-9082, 0096-6002, 0161-5564, 0091-6579, 0167-3858, 0898-8455, 0920-8534,
+1572-6495, 1363-4038, 1387-2273, 0883-9433, 0011-4014.
+
+ISSNs added based on Worldcat or Elsevier data:  
+[0070-3230](https://www.worldcat.org/title/defects-in-crystalline-solids/oclc/263606328&referer=brief_results),
+[0066-5479](https://www.worldcat.org/title/applied-mathematics-and-mechanics-an-international-series-of-monographs/oclc/924557121&referer=brief_results),
+[0736-7031](https://www.worldcat.org/title/vlsi-electronics-microstructure-science/oclc/802430343&referer=brief_results), 
+[0069-8040](https://www.sciencedirect.com/bookseries/comprehensive-chemical-kinetics/vol/36/suppl/C), 
+[1554-4516](https://www.sciencedirect.com/bookseries/advances-in-planar-lipid-bilayers-and-liposomes)
+
+ISSNs mapped to existing ISSNs:  
+0361-3690 -> 0197-3975
+
 **2021-06-09 - Fix SAGE subscription pricing**  
 An import error caused 60 SAGE journals to incorrectly reflect the 'single print issue' price as the electronic
 subscription price.
 
-This is fixed, and those journals no longer show a subscription price. The majority of these journals will soon show
-a mini bundle price, as they are available in bundles with other journals.
+This is fixed, and those journals no longer show a subscription price. The majority of these journals will soon show a
+mini bundle price, as they are available in bundles with other journals.
 
 Affected ISSNs are: 2329-4922, 2329-4892, 1868-6869, 1938-2731, 0976-3260, 1477-0849, 1477-0938, 1938-2723, 1750-4821,
 1460-3624, 1942-7522, 2632-1742, 2516-6050, 2048-4054, 1472-3409, 2514-8494, 1552-6127, 2373-3802, 1741-2811, 2053-020X,
@@ -14,21 +30,20 @@ Affected ISSNs are: 2329-4922, 2329-4892, 1868-6869, 1938-2731, 0976-3260, 1477-
 
 **2021-06-08 - Add ISSNs**
 
-The following ISSNs were added based on issn.org or crossref.org data: 2664-3286, 2667-3207, 2667-3444, 2667-2596,
+ISSNs added based on issn.org or crossref.org data:  
+2664-3286, 2667-3207, 2667-3444, 2667-2596,
 2667-3215, 2666-5603, 2667-1131, 0045-2025, 0300-5410, 0300-4910, 0242-5017, 1096-4940, 0891-9925, 0191-5371, 2730-9886,
 2730-7808, 2573-5098, 2699-1721.
 
-The following ISSNs were added based on Worldcat data:
-
-[1936-7961](https://www.worldcat.org/title/terrestrial-ecology/oclc/752339809&referer=brief_results)  
-[1755-0408](https://www.worldcat.org/title/advances-in-plant-biochemistry-and-molecular-biology/oclc/637781372&referer=brief_results)  
-[1574-0684](https://www.worldcat.org/title/handbook-of-economic-growth/oclc/1136891105&referer=brief_results)  
-[0168-1273](https://www.worldcat.org/title/handbook-on-the-physics-and-chemistry-of-rare-earths/oclc/11584875&referer=brief_results)  
-[0140-9115](https://www.worldcat.org/title/annual-reports-on-fermentation-processes/oclc/502209430&referer=brief_results)  
+ISSNs added based on Worldcat data:  
+[1936-7961](https://www.worldcat.org/title/terrestrial-ecology/oclc/752339809&referer=brief_results),
+[1755-0408](https://www.worldcat.org/title/advances-in-plant-biochemistry-and-molecular-biology/oclc/637781372&referer=brief_results),
+[1574-0684](https://www.worldcat.org/title/handbook-of-economic-growth/oclc/1136891105&referer=brief_results),
+[0168-1273](https://www.worldcat.org/title/handbook-on-the-physics-and-chemistry-of-rare-earths/oclc/11584875&referer=brief_results),
+[0140-9115](https://www.worldcat.org/title/annual-reports-on-fermentation-processes/oclc/502209430&referer=brief_results),
 [0079-3841](https://www.worldcat.org/title/popular-lectures-in-mathematics/oclc/5586214&referer=brief_results)
 
-The following ISSNs were mapped to existing ISSNs:
-
+ISSNs mapped to existing ISSNs:  
 2173-920X -> 1576-9895  
 0300-9653 -> 0024-3205  
 0300-9637 -> 0305-1978  
@@ -40,8 +55,7 @@ The following ISSNs were mapped to existing ISSNs:
 
 **2021-05-26 - Add ISSNs, add APC pricing, map publishers**
 
-The following ISSNs were merged into existing records:
-
+ISSNs mapped to existing ISSNs:  
 2173-5751 -> 0300-2896  
 1573-6733 -> 0889-7077  
 2469-3006 -> 1941-4072  
@@ -55,8 +69,7 @@ Found 295 journals with subscription/apc pricing but no publisher. Found and map
 
 The following ISSNs were added as new records: 2666-853X, 2692-9953, 2692-9996, 1896-1533, 2081-9935.
 
-These ISSNs were merged into existing records:
-
+ISSNs mapped to existing ISSNs:  
 0099-5355 -> 0140-6736  
 1573-9449 -> 0950-7116  
 1573-9147 -> 0272-4332  
@@ -75,21 +88,21 @@ These ISSNs were merged into existing records:
 
 The following ISSNs were added as new records: 1578-1771, 0306-4484, 0962-7170, 0954-0512.
 
-These ISSNs were merged into existing records:
-
+ISSNs mapped to existing ISSNs:  
 1578-9675 -> 1134-2072  
 2027-9000 -> 0121-8123  
 1866-6167 -> 1866-6175
 
 **2021-05-20 - Add new ISSNs**
 
-The following ISSNs were added as new records: 0015-8209, 1867-8610, 1755-599X, 2522-8897, 2213-3917, 2572-8288,
+ISSNs were added as new records:  
+0015-8209, 1867-8610, 1755-599X, 2522-8897, 2213-3917, 2572-8288,
 2053-0153, 1555-7855, 0365-9631, 0828-6914, 0014-4398, 0022-7153, 1547-4127, 0005-2744, 0029-7976, 1687-9996, 0955-3681,
 2164-5285, 0003-8946, 0037-8968, 0197-5323, 0008-5286, 0031-5621, 0366-0796, 2043-7323, 1752-9859, 0967-0653, 2472-4718,
 0031-5710, 2234-8867, 0556-1892, 0255-2922, 0894-8631, 2193-0872, 1344-7661, 1879-2871, 0738-0232, 1608-4799, 0096-8013,
 0095-9510, 1521-3979, 1522-9580, 0254-6272, 2029-0187, 2331-3420, 1862-2720
 
-These ISSNs were merged into existing records:
+ISSNs mapped to existing ISSNs:
 
 2157-4650 -> 1090-8471  
 1758-2562 -> 1758-2652  

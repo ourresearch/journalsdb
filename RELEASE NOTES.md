@@ -1,3 +1,11 @@
+**2021-06-13**
+
+Added 6 SAGE subscription packages (mini bundles) covering 25 journals.
+
+Examples:  
+https://api.journalsdb.org/journals/0963-7214  
+https://api.journalsdb.org/journals/1477-7509
+
 **2021-06-10**
 
 ISSNs added based on various sources:  

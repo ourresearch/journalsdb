@@ -9,6 +9,7 @@ Goal is to import journal pricing data from the top five academic journal publis
 import os
 
 import click
+import pandas as pd
 
 from app import app, db
 from ingest.subscription.elsevier import Elsevier
@@ -16,8 +17,9 @@ from ingest.subscription.sage import Sage
 from ingest.subscription.springer_nature import SpringerNature
 from ingest.subscription.taylor_francis import TaylorFrancis
 from ingest.subscription.wiley_blackwell import WileyBlackwell
-from models.price import SubscriptionPrice, APCPrice
 from models.journal import Journal
+from models.price import Country, Currency, MiniBundle, SubscriptionPrice
+from ingest.utils import get_or_create
 
 CSV_DIRECTORY = "ingest/subscription/files/"
 
@@ -77,10 +79,60 @@ def import_springer(file_name, year):
     s.import_prices()
 
 
-@app.cli.command("delete_all_prices")
-def delete_prices():
-    for j in db.session.query(Journal).enable_eagerloads(False).yield_per(10000):
-        j.subscription_prices = []
-    num_rows_deleted = db.session.query(SubscriptionPrice).delete()
-    db.session.commit()
-    print("Deleted {} Prices".format(num_rows_deleted))
+@app.cli.command("import_mini_bundle")
+@click.option("--file_name", default="mini_bundle.csv")
+@click.option("--year", required=True)
+def import_mini_bundle(file_name, year):
+    df = pd.read_csv(CSV_DIRECTORY + file_name)
+    for index, row in df.iterrows():
+        # get or save mini bundle
+        mb = get_or_create(db.session, MiniBundle, name=row["name"])
+
+        # create price if it does not exist
+        currency = Currency.query.filter_by(acronym=row["currency"].upper()).one()
+        country = Country.query.filter_by(iso3=row["country"].upper()).one_or_none()
+        price_found = False
+        for p in mb.subscription_prices:
+            if (
+                p.price == float(row["price"])
+                and p.country == country
+                and p.currency == currency
+            ):
+                print(
+                    "Price exists for mini bundle {} with price {}".format(
+                        row["name"], row["price"]
+                    )
+                )
+                price_found = True
+
+        if not price_found:
+            new_price = SubscriptionPrice(
+                price=float(row["price"]), country=country, currency=currency, year=year
+            )
+            db.session.add(new_price)
+            # match price to mini bundle
+            mb.subscription_prices.append(new_price)
+            print("Adding price {} to mini bundle {}".format(row["price"], row["name"]))
+            db.session.commit()
+
+        # assign journals to mini bundle
+        issns = row["issns"].split(",")
+        for issn in issns:
+            j = Journal.find_by_issn(issn.strip())
+            if j and j not in mb.journals:
+                print(
+                    "assigning journal with issn {} to mini bundle {}".format(
+                        j.issn_l, row["name"]
+                    )
+                )
+                mb.journals.append(j)
+            elif j:
+                print(
+                    "Journal with issn {} already assigned to mini bundle {}".format(
+                        j.issn_l, row["name"]
+                    )
+                )
+            else:
+                print("Journal does not exist for issn {}".format(issn))
+
+        db.session.commit()

@@ -226,6 +226,7 @@ def build_journal_dict_detail(journal, issn_l):
             key=lambda p: p["year"],
             reverse=True,
         ),
+        "mini_bundles": [m.to_dict() for m in journal.mini_bundles],
     }
     journal_dict["apc_pricing"] = {
         "provenance": journal.publisher.apc_data_source if journal.publisher else None,
@@ -300,6 +301,7 @@ def build_journal_dict_paged(journal):
             key=lambda p: p["year"],
             reverse=True,
         ),
+        "mini_bundles": [m.to_dict() for m in journal.mini_bundles],
     }
     journal_dict["apc_pricing"] = {
         "provenance": journal.publisher.apc_data_source if journal.publisher else None,

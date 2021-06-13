@@ -1,6 +1,5 @@
 from app import db
 from models.location import Country, Region
-from models.mini_bundle import MiniBundle
 from models.mixins import TimestampMixin
 
 
@@ -71,7 +70,67 @@ class Currency(db.Model):
     acronym = db.Column(db.String(3), unique=True, nullable=False)
 
 
-# many to many tables
+journal_mini_bundle_price = db.Table(
+    "journal_mini_bundle_price",
+    db.Column(
+        "mini_bundle_id", db.Integer, db.ForeignKey("mini_bundles.id"), primary_key=True
+    ),
+    db.Column(
+        "subscription_price_id",
+        db.Integer,
+        db.ForeignKey("subscription_price.id"),
+        primary_key=True,
+    ),
+)
+
+mini_bundle_journals = db.Table(
+    "mini_bundle_journals",
+    db.Column(
+        "mini_bundle_id", db.Integer, db.ForeignKey("mini_bundles.id"), primary_key=True
+    ),
+    db.Column("journal_id", db.Integer, db.ForeignKey("journals.id"), primary_key=True),
+)
+
+
+class MiniBundle(db.Model, TimestampMixin):
+    __tablename__ = "mini_bundles"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text, unique=True, nullable=False)
+    issn = db.Column(db.Text)
+    publisher_id = db.Column(db.Integer, db.ForeignKey("publishers.id"))
+    publisher = db.relationship(
+        "Publisher", backref=db.backref("mini_bundles", lazy=True)
+    )
+
+    journals = db.relationship(
+        "Journal",
+        secondary=mini_bundle_journals,
+        lazy="subquery",
+        backref="mini_bundles",
+    )
+
+    subscription_prices = db.relationship(
+        "SubscriptionPrice",
+        secondary=journal_mini_bundle_price,
+        lazy="subquery",
+        backref="mini_bundles",
+    )
+
+    def to_dict(self):
+        return {
+            "mini_bundle_name": self.name,
+            "journals_included": [
+                {"issn_l": j.issn_l, "title": j.title} for j in self.journals
+            ],
+            "prices": sorted(
+                [p.to_dict() for p in self.subscription_prices],
+                key=lambda p: p["year"],
+                reverse=True,
+            ),
+        }
+
+
 journal_subscription_price = db.Table(
     "journal_subscription_price",
     db.Column("journal_id", db.Integer, db.ForeignKey("journals.id"), primary_key=True),
@@ -88,18 +147,5 @@ journal_apc_price = db.Table(
     db.Column("journal_id", db.Integer, db.ForeignKey("journals.id"), primary_key=True),
     db.Column(
         "apc_price_id", db.Integer, db.ForeignKey("apc_price.id"), primary_key=True
-    ),
-)
-
-journal_mini_bundle_price = db.Table(
-    "journal_mini_bundle_price",
-    db.Column(
-        "mini_bundle_id", db.Integer, db.ForeignKey("mini_bundles.id"), primary_key=True
-    ),
-    db.Column(
-        "subscription_price_id",
-        db.Integer,
-        db.ForeignKey("subscription_price.id"),
-        primary_key=True,
     ),
 )

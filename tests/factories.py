@@ -2,7 +2,7 @@ from app import db
 from models.issn import ISSNMetaData
 from models.journal import Journal, Publisher, JournalMetadata
 from models.location import Country, Region
-from models.price import SubscriptionPrice, APCPrice, Currency
+from models.price import APCPrice, Currency, MiniBundle, SubscriptionPrice
 from models.usage import RetractionSummary, OpenAccess, Repository
 
 
@@ -337,4 +337,10 @@ def import_api_test_data():
     )
 
     db.session.add(j_wiley)
+    db.session.commit()
+
+    mb = MiniBundle(name="ABC Journal Package")
+    mb.subscription_prices.append(pr)
+    mb.journals.append(j_wiley)
+    db.session.add(mb)
     db.session.commit()

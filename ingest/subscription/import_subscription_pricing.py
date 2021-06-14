@@ -18,7 +18,7 @@ from ingest.subscription.springer_nature import SpringerNature
 from ingest.subscription.taylor_francis import TaylorFrancis
 from ingest.subscription.wiley_blackwell import WileyBlackwell
 from models.journal import Journal
-from models.price import Country, Currency, MiniBundle, SubscriptionPrice
+from models.price import Country, Currency, MiniBundle, Region, SubscriptionPrice
 from ingest.utils import get_or_create
 
 CSV_DIRECTORY = "ingest/subscription/files/"
@@ -83,20 +83,26 @@ def import_springer(file_name, year):
 @click.option("--file_name", default="mini_bundle.csv")
 @click.option("--year", required=True)
 def import_mini_bundle(file_name, year):
-    df = pd.read_csv(CSV_DIRECTORY + file_name)
+    df = pd.read_csv(CSV_DIRECTORY + file_name, keep_default_na=False)
     for index, row in df.iterrows():
         # get or save mini bundle
-        mb = get_or_create(db.session, MiniBundle, name=row["name"])
+        mb = get_or_create(
+            db.session, MiniBundle, name=row["name"], publisher_id=row["publisher_id"]
+        )
 
         # create price if it does not exist
         currency = Currency.query.filter_by(acronym=row["currency"].upper()).one()
         country = Country.query.filter_by(iso3=row["country"].upper()).one_or_none()
+        region = Region.query.filter_by(
+            name=row["region"], publisher_id=int(row["publisher_id"])
+        ).one_or_none()
         price_found = False
         for p in mb.subscription_prices:
             if (
                 p.price == float(row["price"])
                 and p.country == country
                 and p.currency == currency
+                and p.region == region
             ):
                 print(
                     "Price exists for mini bundle {} with price {}".format(
@@ -107,7 +113,11 @@ def import_mini_bundle(file_name, year):
 
         if not price_found:
             new_price = SubscriptionPrice(
-                price=float(row["price"]), country=country, currency=currency, year=year
+                price=float(row["price"]),
+                country=country,
+                currency=currency,
+                region=region,
+                year=year,
             )
             db.session.add(new_price)
             # match price to mini bundle

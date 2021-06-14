@@ -1,4 +1,20 @@
-**2021-06-13**
+**2021-06-14 - Add ISSNs**
+
+ISSNs added based on various sources:  
+0378-7761, 0167-6695, 0377-9114, 0020-594X, 0090-3760, 0090-0214, 0090-5518, 0886-9561, 0886-9553, 0953-5217, 0004-7082,
+0946-9834, 1053-8798
+
+ISSNs added based on Worldcat data:  
+[0018-3766](https://www.worldcat.org/title/holz-als-roh-und-werkstoff/oclc/1101814922&referer=brief_results)
+
+ISSNs mapped to existing ISSNs:  
+1879-2391 -> 0026-2692  
+0375-4685 -> 0340-2592  
+0375-9865 -> 0038-092X  
+0369-8726 -> 0022-3697  
+0142-095X -> 0262-5075
+
+**2021-06-13 - Add subscription mini bundle pricing**
 
 Added 6 SAGE subscription packages (mini bundles) covering 25 journals.
 
@@ -6,17 +22,19 @@ Examples:
 https://api.journalsdb.org/journals/0963-7214  
 https://api.journalsdb.org/journals/1477-7509
 
-**2021-06-10**
+**2021-06-10 - Add ISSNs**
 
 ISSNs added based on various sources:  
-1324-1486, 0145-9082, 0096-6002, 0161-5564, 0091-6579, 0167-3858, 0898-8455, 0920-8534,
-1572-6495, 1363-4038, 1387-2273, 0883-9433, 0011-4014.
+1324-1486, 0145-9082, 0096-6002, 0161-5564, 0091-6579, 0167-3858, 0898-8455, 0920-8534, 1572-6495, 1363-4038, 1387-2273,
+0883-9433, 0011-4014.
 
 ISSNs added based on Worldcat or Elsevier data:  
 [0070-3230](https://www.worldcat.org/title/defects-in-crystalline-solids/oclc/263606328&referer=brief_results),
-[0066-5479](https://www.worldcat.org/title/applied-mathematics-and-mechanics-an-international-series-of-monographs/oclc/924557121&referer=brief_results),
-[0736-7031](https://www.worldcat.org/title/vlsi-electronics-microstructure-science/oclc/802430343&referer=brief_results), 
-[0069-8040](https://www.sciencedirect.com/bookseries/comprehensive-chemical-kinetics/vol/36/suppl/C), 
+[0066-5479](https://www.worldcat.org/title/applied-mathematics-and-mechanics-an-international-series-of-monographs/oclc/924557121&referer=brief_results)
+,
+[0736-7031](https://www.worldcat.org/title/vlsi-electronics-microstructure-science/oclc/802430343&referer=brief_results)
+,
+[0069-8040](https://www.sciencedirect.com/bookseries/comprehensive-chemical-kinetics/vol/36/suppl/C),
 [1554-4516](https://www.sciencedirect.com/bookseries/advances-in-planar-lipid-bilayers-and-liposomes)
 
 ISSNs mapped to existing ISSNs:  
@@ -39,16 +57,18 @@ Affected ISSNs are: 2329-4922, 2329-4892, 1868-6869, 1938-2731, 0976-3260, 1477-
 **2021-06-08 - Add ISSNs**
 
 ISSNs added based on issn.org or crossref.org data:  
-2664-3286, 2667-3207, 2667-3444, 2667-2596,
-2667-3215, 2666-5603, 2667-1131, 0045-2025, 0300-5410, 0300-4910, 0242-5017, 1096-4940, 0891-9925, 0191-5371, 2730-9886,
-2730-7808, 2573-5098, 2699-1721.
+2664-3286, 2667-3207, 2667-3444, 2667-2596, 2667-3215, 2666-5603, 2667-1131, 0045-2025, 0300-5410, 0300-4910, 0242-5017,
+1096-4940, 0891-9925, 0191-5371, 2730-9886, 2730-7808, 2573-5098, 2699-1721.
 
 ISSNs added based on Worldcat data:  
 [1936-7961](https://www.worldcat.org/title/terrestrial-ecology/oclc/752339809&referer=brief_results),
-[1755-0408](https://www.worldcat.org/title/advances-in-plant-biochemistry-and-molecular-biology/oclc/637781372&referer=brief_results),
+[1755-0408](https://www.worldcat.org/title/advances-in-plant-biochemistry-and-molecular-biology/oclc/637781372&referer=brief_results)
+,
 [1574-0684](https://www.worldcat.org/title/handbook-of-economic-growth/oclc/1136891105&referer=brief_results),
-[0168-1273](https://www.worldcat.org/title/handbook-on-the-physics-and-chemistry-of-rare-earths/oclc/11584875&referer=brief_results),
-[0140-9115](https://www.worldcat.org/title/annual-reports-on-fermentation-processes/oclc/502209430&referer=brief_results),
+[0168-1273](https://www.worldcat.org/title/handbook-on-the-physics-and-chemistry-of-rare-earths/oclc/11584875&referer=brief_results)
+,
+[0140-9115](https://www.worldcat.org/title/annual-reports-on-fermentation-processes/oclc/502209430&referer=brief_results)
+,
 [0079-3841](https://www.worldcat.org/title/popular-lectures-in-mathematics/oclc/5586214&referer=brief_results)
 
 ISSNs mapped to existing ISSNs:  
@@ -104,11 +124,11 @@ ISSNs mapped to existing ISSNs:
 **2021-05-20 - Add new ISSNs**
 
 ISSNs were added as new records:  
-0015-8209, 1867-8610, 1755-599X, 2522-8897, 2213-3917, 2572-8288,
-2053-0153, 1555-7855, 0365-9631, 0828-6914, 0014-4398, 0022-7153, 1547-4127, 0005-2744, 0029-7976, 1687-9996, 0955-3681,
-2164-5285, 0003-8946, 0037-8968, 0197-5323, 0008-5286, 0031-5621, 0366-0796, 2043-7323, 1752-9859, 0967-0653, 2472-4718,
-0031-5710, 2234-8867, 0556-1892, 0255-2922, 0894-8631, 2193-0872, 1344-7661, 1879-2871, 0738-0232, 1608-4799, 0096-8013,
-0095-9510, 1521-3979, 1522-9580, 0254-6272, 2029-0187, 2331-3420, 1862-2720
+0015-8209, 1867-8610, 1755-599X, 2522-8897, 2213-3917, 2572-8288, 2053-0153, 1555-7855, 0365-9631, 0828-6914, 0014-4398,
+0022-7153, 1547-4127, 0005-2744, 0029-7976, 1687-9996, 0955-3681, 2164-5285, 0003-8946, 0037-8968, 0197-5323, 0008-5286,
+0031-5621, 0366-0796, 2043-7323, 1752-9859, 0967-0653, 2472-4718, 0031-5710, 2234-8867, 0556-1892, 0255-2922, 0894-8631,
+2193-0872, 1344-7661, 1879-2871, 0738-0232, 1608-4799, 0096-8013, 0095-9510, 1521-3979, 1522-9580, 0254-6272, 2029-0187,
+2331-3420, 1862-2720
 
 ISSNs mapped to existing ISSNs:
 

@@ -1,4 +1,4 @@
-**2021-06-14 - Add ISSNs**
+**2021-06-14 - Add ISSNs and Elsevier mini bundle pricing**
 
 ISSNs added based on various sources:  
 0378-7761, 0167-6695, 0377-9114, 0020-594X, 0090-3760, 0090-0214, 0090-5518, 0886-9561, 0886-9553, 0953-5217, 0004-7082,
@@ -13,6 +13,10 @@ ISSNs mapped to existing ISSNs:
 0375-9865 -> 0038-092X  
 0369-8726 -> 0022-3697  
 0142-095X -> 0262-5075
+
+Added mini bundle pricing for 3 Elsevier packages:
+
+Example: https://api.journalsdb.org/journals/1352-2310
 
 **2021-06-13 - Add subscription mini bundle pricing**
 

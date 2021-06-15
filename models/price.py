@@ -18,9 +18,9 @@ class SubscriptionPrice(db.Model, TimestampMixin):
     year = db.Column(db.Integer, nullable=False, index=True)
 
     # relationships
-    country = db.relationship("Country")
-    currency = db.relationship("Currency")
-    region = db.relationship("Region")
+    country = db.relationship("Country", lazy="joined")
+    currency = db.relationship("Currency", lazy="joined")
+    region = db.relationship("Region", lazy="joined")
 
     def to_dict(self):
         return {
@@ -46,9 +46,11 @@ class APCPrice(db.Model, TimestampMixin):
     region_id = db.Column(db.Integer, db.ForeignKey("regions.id"), index=True)
     year = db.Column(db.Integer, nullable=False, index=True)
     notes = db.Column(db.Text)
-    country = db.relationship("Country")
-    currency = db.relationship("Currency")
-    region = db.relationship("Region")
+
+    # relationships
+    country = db.relationship("Country", lazy="joined")
+    currency = db.relationship("Currency", lazy="joined")
+    region = db.relationship("Region", lazy="joined")
 
     def to_dict(self):
         return {

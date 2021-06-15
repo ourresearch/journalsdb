@@ -32,14 +32,28 @@ class Journal(db.Model, TimestampMixin):
         "APCPrice", secondary=journal_apc_price, lazy="subquery", backref="journals"
     )
     author_permissions = db.relationship("AuthorPermissions", cascade="all, delete")
+    doi_counts = db.relationship(
+        "DOICount",
+        primaryjoin="Journal.issn_l == foreign(DOICount.issn_l)",
+        lazy="joined",
+        uselist=False,
+    )
     imprint = db.relationship("Imprint", cascade="all, delete")
-    issn_metadata = db.relationship("ISSNMetaData")
+    issn_metadata = db.relationship("ISSNMetaData", lazy="joined")
     journal_metadata = db.relationship(
         "JournalMetadata", lazy="joined", backref="journal", cascade="all, delete"
     )
+    open_access = db.relationship(
+        "OpenAccess",
+        primaryjoin="Journal.issn_l == foreign(OpenAccess.issn_l)",
+        order_by="desc(OpenAccess.year)",
+        lazy="joined",
+    )
     permissions = db.relationship("AuthorPermissions", uselist=False, backref="journal")
-    publisher = db.relationship("Publisher", backref=db.backref("journals", lazy=True))
-    subjects = db.relationship("Subject", secondary=journal_subjects, lazy="subquery")
+    publisher = db.relationship(
+        "Publisher", backref=db.backref("journals", lazy=True), lazy="joined"
+    )
+    subjects = db.relationship("Subject", secondary=journal_subjects)
     subscription_prices = db.relationship(
         "SubscriptionPrice",
         secondary=journal_subscription_price,

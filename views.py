@@ -4,7 +4,7 @@ import json
 
 from app import app, cache, db
 from models.journal import Journal, Publisher
-from models.usage import DOICount, OpenAccess, Repository, RetractionSummary
+from models.usage import OpenAccess, Repository, RetractionSummary
 from models.issn import ISSNMetaData, MissingJournal
 from models.location import Region, Country
 
@@ -215,7 +215,7 @@ def build_journal_dict_detail(journal, issn_l):
         if journal.journal_metadata
         else []
     )
-    dois = DOICount.query.filter_by(issn_l=issn_l).one_or_none()
+    dois = journal.doi_counts
     journal_dict["total_dois"] = dois.total_dois if dois else None
     journal_dict["dois_by_issued_year"] = dois.dois_by_year_sorted if dois else None
     journal_dict["sample_dois"] = dois.sample_doi_urls if dois else None
@@ -237,9 +237,7 @@ def build_journal_dict_detail(journal, issn_l):
         ),
     }
     journal_dict["open_access"] = (
-        OpenAccess.recent_status(journal.issn_l).to_dict()
-        if OpenAccess.recent_status(journal.issn_l)
-        else None
+        journal.open_access[0].to_dict() if journal.open_access else None
     )
     journal_dict["open_access_history"] = "{}/journals/{}/open-access".format(
         SITE_URL, issn_l
@@ -290,7 +288,7 @@ def build_journal_dict_paged(journal):
         if journal.journal_metadata
         else []
     )
-    dois = DOICount.query.filter_by(issn_l=journal.issn_l).one_or_none()
+    dois = journal.doi_counts
     journal_dict["total_dois"] = dois.total_dois if dois else None
     journal_dict["dois_by_issued_year"] = dois.dois_by_year_sorted if dois else None
     journal_dict["sample_dois"] = dois.sample_doi_urls if dois else None
@@ -312,9 +310,7 @@ def build_journal_dict_paged(journal):
         ),
     }
     journal_dict["open_access"] = (
-        OpenAccess.recent_status(journal.issn_l).to_dict()
-        if OpenAccess.recent_status(journal.issn_l)
-        else None
+        journal.open_access[0].to_dict() if journal.open_access else None
     )
     return journal_dict
 

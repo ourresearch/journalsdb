@@ -1,3 +1,10 @@
+**2021-06-15 - Add ISSNs and optimize paged journals endpoint**
+
+ISSNs added:  
+1386-9485, 0965-0512, 0965-0504, 0962-7162, 0741-1642, 2634-9825
+
+Optimized `/journals-paged` endpoint to reduce query time from 10 or more seconds down to ~2 seconds.
+
 **2021-06-14 - Add ISSNs and Elsevier mini bundle pricing**
 
 ISSNs added based on various sources:  

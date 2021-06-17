@@ -1,3 +1,20 @@
+**2021-06-17 - Add ISSNs**
+
+ISSNs added:  
+2516-6115, 0267-9264, 0145-7616, 0093-7029
+
+ISSNs mapped to existing ISSNs:  
+2364-1695 -> 2365-1695  
+1599-0291 -> 0273-2289  
+1492-4051 -> 1492-6156  
+1940-1566 -> 1391-5614  
+1181-7607 -> 0378-777X  
+
+ISSNs identified as missing but could not be found:  
+2363-4045, 1866-1956, 1470-388X
+
+Added additional Elsevier mini bundles.
+
 **2021-06-15 - Add ISSNs and optimize paged journals endpoint**
 
 ISSNs added:  

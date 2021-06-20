@@ -48,6 +48,11 @@ class ISSNMetaData(db.Model):
     __table_args__ = (
         db.Index("idx_crossref_issns", crossref_issns, postgresql_using="gin"),
         db.Index("idx_issn_org_issns", issn_org_issns, postgresql_using="gin"),
+        db.Index(
+            "issn_metadata__index_updated_at_nulls",
+            updated_at,
+            updated_at.desc(),
+        ),
     )
 
     @property

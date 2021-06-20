@@ -1,7 +1,9 @@
 from collections import OrderedDict
+from datetime import datetime
 import json
 
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.sql import func
 import shortuuid
 
 from app import db
@@ -11,7 +13,7 @@ from models.price import journal_subscription_price, journal_apc_price
 from models.subjects import journal_subjects
 
 
-class Journal(db.Model, TimestampMixin):
+class Journal(db.Model):
     __tablename__ = "journals"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -26,6 +28,10 @@ class Journal(db.Model, TimestampMixin):
     discount_waiver_exception = db.Column(db.Boolean, default=False, nullable=False)
     uuid = db.Column(db.Text, default=shortuuid.uuid, unique=True)
     is_modified_title = db.Column(db.Boolean, default=False)
+    created_at = db.Column(
+        db.DateTime, server_default=func.now(), nullable=False, index=True
+    )
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
     # relationships
     apc_prices = db.relationship(
@@ -107,7 +113,9 @@ class JournalMetadata(db.Model, TimestampMixin):
     __tablename__ = "journal_metadata"
 
     id = db.Column(db.Integer, primary_key=True)
-    journal_id = db.Column(db.Integer, db.ForeignKey("journals.id"), nullable=False)
+    journal_id = db.Column(
+        db.Integer, db.ForeignKey("journals.id"), nullable=False, index=True
+    )
     home_page_url = db.Column(db.String(500))
     author_instructions_url = db.Column(db.String(500))
     editorial_page_url = db.Column(db.String(500))

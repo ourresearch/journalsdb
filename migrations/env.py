@@ -24,6 +24,18 @@ from models import *
 # target_metadata = mymodel.Base.metadata
 from flask import current_app
 
+
+def include_object(object, name, type_, reflected, compare_to):
+    """Tables that are in remote database, but not in local models files that should be ignored (not dropped)."""
+    if type_ == "table" and name in (
+        "xplenty_staging_26416",
+        "unpaywall_num_dois_by_issn_l_year",
+    ):
+        return False
+
+    return True
+
+
 config.set_main_option(
     "sqlalchemy.url",
     str(current_app.extensions["migrate"].db.engine.url).replace("%", "%%"),
@@ -49,7 +61,12 @@ def run_migrations_offline():
 
     """
     url = config.get_main_option("sqlalchemy.url")
-    context.configure(url=url, target_metadata=target_metadata, literal_binds=True)
+    context.configure(
+        url=url,
+        target_metadata=target_metadata,
+        literal_binds=True,
+        include_object=include_object,
+    )
 
     with context.begin_transaction():
         context.run_migrations()
@@ -84,6 +101,7 @@ def run_migrations_online():
             connection=connection,
             target_metadata=target_metadata,
             process_revision_directives=process_revision_directives,
+            include_object=include_object,
             **current_app.extensions["migrate"].configure_args
         )
 

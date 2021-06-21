@@ -116,10 +116,12 @@ def process_crossref_issns():
 
     crossref_issns = data["issn"].tolist()
     missing_journals = (
-        db.session.query(MissingJournal.issn).filter_by(processed=False).all()
+        db.session.query(MissingJournal)
+        .filter_by(status="process", processed=False)
+        .all()
     )
-    missing_issns = [issn for issn, in missing_journals]
-    mark_missing_journals_as_processed(missing_issns)
+    missing_issns = [j.issn for j in missing_journals]
+    mark_missing_journals_as_processed(missing_journals)
     issns_to_process = crossref_issns + missing_issns
 
     for issn in issns_to_process:
@@ -278,9 +280,8 @@ def map_issns_to_issnl():
     print("map issns in metadata table complete")
 
 
-def mark_missing_journals_as_processed(issns):
-    for issn in issns:
-        j = db.session.query(MissingJournal).filter_by(issn=issn).one()
+def mark_missing_journals_as_processed(missing_journals):
+    for j in missing_journals:
         j.processed = True
     db.session.commit()
 

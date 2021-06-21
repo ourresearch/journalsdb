@@ -141,14 +141,6 @@ class LinkedISSNL(db.Model):
 class MissingJournal(db.Model):
     __tablename__ = "missing_journals"
 
-    issn = db.Column(db.String(9), primary_key=True)
-    processed = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, server_default=func.now())
-
-
-class MissingJournalNew(db.Model):
-    __tablename__ = "missing_journals_new"
-
     id = db.Column(db.Integer, primary_key=True)
     issn = db.Column(db.String(9))
     status = db.Column(db.String(100))

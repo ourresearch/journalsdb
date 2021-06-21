@@ -5,7 +5,7 @@ import json
 from app import app, cache, db
 from models.journal import Journal, Publisher
 from models.usage import OpenAccess, Repository, RetractionSummary
-from models.issn import ISSNMetaData, MissingJournal
+from models.issn import ISSNMetaData, MissingJournal, MissingJournalNew
 from models.location import Region, Country
 
 SITE_URL = "https://api.journalsdb.org"
@@ -383,16 +383,19 @@ def missing_journal():
 
     posted_data = request.get_json()
     issn = posted_data["issn"]
-    if (
-        Journal.find_by_issn(issn)
-        or MissingJournal.query.filter_by(issn=issn).one_or_none()
-    ):
-        return jsonify({"Message": "issn already exists"}), 200
+    if Journal.find_by_issn(issn):
+        missing_journal = MissingJournalNew(issn=issn, status="already in database")
+        message = "{} issn already in database, marking as submitted".format(issn)
+    elif MissingJournalNew.query.filter_by(issn=issn).all():
+        missing_journal = MissingJournalNew(issn=issn, status="already submitted")
+        message = "{} issn already submitted, marking as already submitted".format(issn)
     else:
-        missing_journal = MissingJournal(issn=issn)
-        db.session.add(missing_journal)
-        db.session.commit()
-        return jsonify({"Missing journal created": missing_journal.issn}), 201
+        missing_journal = MissingJournalNew(issn=issn, status="process")
+        message = "{} issn submitted for processing".format(issn)
+
+    db.session.add(missing_journal)
+    db.session.commit()
+    return jsonify({"message": message}), 201
 
 
 if __name__ == "__main__":

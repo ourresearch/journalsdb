@@ -134,7 +134,7 @@ class WileyBlackwell(SubscriptionImport):
         sets ISSN to None.
         """
         if self.is_issn(cell) and not self.issn:
-            self.issn = cell
+            self.issn = cell.strip()
 
     def is_issn(self, cell):
         """
@@ -142,7 +142,7 @@ class WileyBlackwell(SubscriptionImport):
         Returns True if the provided string matches ISSN format.
         """
         issn_as_str = str(cell)
-        if re.match(r"^\w{4}-\w{4}$", issn_as_str):
+        if re.match(r"^\s*\w{4}-\w{4}\s*$", issn_as_str):
             return True
         return False
 

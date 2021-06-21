@@ -101,11 +101,11 @@ class SubscriptionImport:
         if (
             pd.isnull(cell)
             or not isinstance(cell, str)
-            or not re.match(r"^\w{4}-\w{4}$", cell)
+            or not re.match(r"^\s*\w{4}-\w{4}\s*$", cell)
         ):
             self.issn = None
         else:
-            self.issn = cell
+            self.issn = cell.strip()
 
     def set_journal(self):
         """

@@ -1,7 +1,9 @@
 import pandas as pd
 
 from app import db
+import regex as re
 from models.location import Region
+from models.price import SubscriptionPrice
 from ingest.subscription.subscription_import import SubscriptionImport
 
 
@@ -31,6 +33,16 @@ class Sage(SubscriptionImport):
         xls = pd.ExcelFile(excel_file_path)
         self.df = pd.read_excel(xls, "List Price")
 
+    def set_issn(self, cell):
+        if (
+            pd.isnull(cell)
+            or not isinstance(cell, str)
+            or not re.match(r"^\s*\w{4}-\w{4}\s*$", cell)
+        ):
+            self.issn = None
+        else:
+            self.issn = cell.split(",")[0].strip()
+
     def import_prices(self):
         """
         Iterate through the dataframe and import the Sage Price List into the
@@ -52,16 +64,9 @@ class Sage(SubscriptionImport):
         db.session.commit()
 
     def add_prices(self, media_type):
-        if self.journal:
-            if media_type == "Electronic Only":
-                if not self.in_electronic_price:
-                    self.journal.subscription_prices = []
-                db.session.commit()
-                self.add_price_to_db()
-                self.in_electronic_price = True
-            else:
-                if len(self.journal.subscription_prices) == 0:
-                    self.add_price_to_db()
+        if self.journal and media_type == "Electronic Only":
+            self.add_price_to_db()
+            self.in_electronic_price = True
 
     def set_region(self, region):
         """

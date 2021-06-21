@@ -292,26 +292,17 @@ def import_issn_apis():
     Iterate over issn_metadata table, then fetch and store API data from issn.org and crossref.
     Save title and publisher to journals table.
     """
-    i = 0
-    while True:
-        i += 100
-        chunk = (
-            ISSNMetaData.query.filter_by(updated_at=None)
-            .order_by(func.random())
-            .limit(100)
-            .all()
-        )
-        if not chunk:
-            break
-        for issn in chunk:
-            save_issn_org_api(issn)
-            save_crossref_api(issn)
-            set_title(issn)
-            set_publisher(issn)
-            link_issn_l(issn)
+    issns = ISSNMetaData.query.filter_by(updated_at=None).all()
 
-        if i % 10000 == 0:
-            print("Chunk finished, number of ISSNs completed: ", i)
+    for issn in issns:
+        save_issn_org_api(issn)
+        save_crossref_api(issn)
+        save_journal_with_title(issn)
+        set_publisher(issn)
+        link_issn_l(issn)
+
+        # set updated_at
+        issn.updated_at = datetime.datetime.now()
         db.session.commit()
 
 
@@ -323,8 +314,10 @@ def save_issn_org_api(issn):
         r = requests.get(issn_org_url)
         if r.status_code == 200 and "@graph" in r.json():
             issn.issn_org_raw_api = r.json()
-            issn.updated_at = datetime.datetime.now()
             db.session.commit()
+            print("saving issn org data for issn {}".format(issn.issn_l))
+        else:
+            print("no issn org data found for {}".format(issn.issn_l))
     except (requests.exceptions.ConnectionError, json.JSONDecodeError):
         return
 
@@ -335,14 +328,16 @@ def save_crossref_api(issn):
         r = requests.get(crossref_url)
         if r.status_code == 200:
             issn.crossref_raw_api = r.json()
-            issn.updated_at = datetime.datetime.now()
             issn.crossref_issns = issn.issns_from_crossref_api
             db.session.commit()
+            print("saving crossref data for issn {}".format(issn.issn_l))
+        else:
+            print("no crossref data for issn {}".format(issn.issn_l))
     except requests.exceptions.ConnectionError:
         return None
 
 
-def set_title(issn):
+def save_journal_with_title(issn):
     try:
         j = Journal.query.filter_by(issn_l=issn.issn_l).one_or_none()
         title = remove_control_characters(issn.title_from_issn_api)
@@ -351,10 +346,16 @@ def set_title(issn):
         if j and title and not j.is_modified_title:
             # update
             j.title = title
+            print("setting journal title to {}".format(title))
         elif title:
             j = Journal(issn_l=issn.issn_l, title=title)
             db.session.add(j)
             db.session.commit()
+            print(
+                "added new journal with issn_l {} and title {}".format(
+                    issn.issn_l, title
+                )
+            )
     except exc.IntegrityError:
         db.session.rollback()
         return
@@ -368,8 +369,9 @@ def set_publisher(issn):
             else None
         )
         j = Journal.query.filter_by(issn_l=issn.issn_l).one_or_none()
-        if j:
-            j.publisher_id = publisher.id if publisher else None
+        if j and publisher:
+            j.publisher_id = publisher.id
+            print("setting journal {} with publisher {}".format(j.issn_l, publisher))
         db.session.commit()
     except exc.IntegrityError:
         db.session.rollback()
@@ -479,7 +481,9 @@ def add_from_worldcat(issn, journal_title, publisher_id):
     print("issn {} mapped to {} in issn to issnl table".format(issn, issn))
 
     # add issn to issn_org_issns in issn_metadata
-    metadata = ISSNMetaData(issn_l=issn, issn_org_issns=[issn])
+    metadata = ISSNMetaData(
+        issn_l=issn, issn_org_issns=[issn], updated_at=datetime.datetime.now()
+    )
     db.session.add(metadata)
     db.session.commit()
     print(

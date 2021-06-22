@@ -60,13 +60,24 @@ class Sage(SubscriptionImport):
                 column = currency_acronym + " Price " + str(self.year)
                 self.set_price(row[column])
                 media_type = row["Product Description"]
-                self.add_prices(media_type)
+                price_category = row["Price Category Description"]
+                self.add_prices(media_type, price_category)
         db.session.commit()
 
-    def add_prices(self, media_type):
-        if self.journal and media_type == "Electronic Only":
+    def add_prices(self, media_type, price_category):
+        if (
+            self.journal
+            and media_type == "Electronic Only"
+            and price_category == "Inst-Standard"
+        ):
             self.add_price_to_db()
             self.in_electronic_price = True
+        elif (
+            self.journal
+            and media_type == "Electronic Only"
+            and price_category != "Inst-Standard"
+        ):
+            self.remove_price_from_journal()
 
     def set_region(self, region):
         """
@@ -80,3 +91,32 @@ class Sage(SubscriptionImport):
             )
         except:
             print("Could not find region:", region)
+
+    def remove_price_from_journal(self):
+        """
+        Removes price if it is not inst-standard.
+        """
+        if self.journal and self.price:
+
+            if self.country_id:
+                entries = self.get_country_entries()
+            else:
+                entries = self.get_region_entries()
+
+            existing_entries = [
+                e for e in entries if e in self.journal.subscription_prices
+            ]  # find any existing price that may be matched to the journal
+            entry = existing_entries[0] if existing_entries else None
+
+            if entry:
+                self.journal.subscription_prices.remove(entry)
+                print(
+                    "Removed SubscriptionPrice: ",
+                    entry.price,
+                    " from Journal: ",
+                    self.journal.issn_l,
+                )
+                db.session.commit()
+
+        else:
+            print("Nothing to remove: ", self.journal.issn_l)

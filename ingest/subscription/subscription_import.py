@@ -204,9 +204,14 @@ class SubscriptionImport:
         if self.journal and self.price:
 
             if self.country_id:
-                entry = self.get_country_entry()
+                entries = self.get_country_entries()
             else:
-                entry = self.get_region_entry()
+                entries = self.get_region_entries()
+
+            existing_entries = [
+                e for e in entries if e in self.journal.subscription_prices
+            ]
+            entry = existing_entries[0] if existing_entries else None
 
             if not entry:
                 entry = SubscriptionPrice(
@@ -254,7 +259,7 @@ class SubscriptionImport:
                 self.issn,
             )
 
-    def get_country_entry(self):
+    def get_country_entries(self):
         return (
             db.session.query(SubscriptionPrice)
             .filter_by(
@@ -266,10 +271,10 @@ class SubscriptionImport:
                 fte_to=self.fte_to,
                 year=self.year,
             )
-            .first()
+            .all()
         )
 
-    def get_region_entry(self):
+    def get_region_entries(self):
         return (
             db.session.query(SubscriptionPrice)
             .filter_by(
@@ -281,5 +286,5 @@ class SubscriptionImport:
                 fte_to=self.fte_to,
                 year=self.year,
             )
-            .first()
+            .all()
         )

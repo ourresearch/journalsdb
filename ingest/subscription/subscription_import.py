@@ -101,7 +101,7 @@ class SubscriptionImport:
         if (
             pd.isnull(cell)
             or not isinstance(cell, str)
-            or not re.match(r"^\s*\w{4}-\w{4}\s*$", cell)
+            or not re.match(r"^\s?\w{4}-\w{4}\s?\s?$", cell)
         ):
             self.issn = None
         else:
@@ -210,10 +210,12 @@ class SubscriptionImport:
 
             existing_entries = [
                 e for e in entries if e in self.journal.subscription_prices
-            ]
-            entry = existing_entries[0] if existing_entries else None
+            ]  # find any existing price that may be matched to the journal
+            entry = entries[0] if entries else None
 
-            if not entry:
+            if not existing_entries and not entry:
+
+                # create new entry
                 entry = SubscriptionPrice(
                     price=self.price,
                     currency_id=self.currency.id,
@@ -238,7 +240,8 @@ class SubscriptionImport:
                         self.journal.issn_l,
                     )
 
-            if entry not in self.journal.subscription_prices:
+            if not existing_entries and entry not in self.journal.subscription_prices:
+                # attach entry object to journal subscription_prices
                 self.journal.subscription_prices = self.journal.subscription_prices[
                     :
                 ] + [entry]

@@ -37,7 +37,7 @@ class Sage(SubscriptionImport):
         if (
             pd.isnull(cell)
             or not isinstance(cell, str)
-            or not re.match(r"^\s*\w{4}-\w{4}\s*$", cell)
+            or not re.match(r"^\s?\w{4}-\w{4}\s?\s?$", cell)
         ):
             self.issn = None
         else:

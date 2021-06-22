@@ -142,7 +142,7 @@ class WileyBlackwell(SubscriptionImport):
         Returns True if the provided string matches ISSN format.
         """
         issn_as_str = str(cell)
-        if re.match(r"^\s*\w{4}-\w{4}\s*$", issn_as_str):
+        if re.match(r"^\s?\w{4}-\w{4}\s?\s?$", issn_as_str):
             return True
         return False
 

@@ -1,3 +1,16 @@
+**2021-06-22 - Add ISSNs, add Sage subscription pricing**
+
+ISSNs added:  
+0185-2523, 0366-2845
+
+ISSNs mapped to existing ISSNs:  
+0096-1043 -> 1944-9208  
+0034-6853 -> 1944-9208
+
+Added subscription pricing for 10 Sage journals.
+
+Changed 27 journals with publisher marked as 'American Geophysical Union' to Wiley.
+
 **2021-06-17 - Add ISSNs**
 
 ISSNs added:  

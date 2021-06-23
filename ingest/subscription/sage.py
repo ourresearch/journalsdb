@@ -231,8 +231,8 @@ class SageMiniBundle(SubscriptionImport):
             # match price to mini bundle
             mb.subscription_prices.append(new_price)
             print(
-                "Adding price {} to mini bundle {}".format(
-                    self.price, self.currency, self.mini_bundle_name
+                "Adding price {} {} to mini bundle {}".format(
+                    self.price, self.currency.acronym, self.mini_bundle_name
                 )
             )
             db.session.commit()

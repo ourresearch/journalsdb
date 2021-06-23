@@ -13,7 +13,7 @@ import pandas as pd
 
 from app import app, db
 from ingest.subscription.elsevier import Elsevier
-from ingest.subscription.sage import Sage
+from ingest.subscription.sage import Sage, SageMiniBundle
 from ingest.subscription.springer_nature import SpringerNature
 from ingest.subscription.taylor_francis import TaylorFrancis
 from ingest.subscription.wiley_blackwell import WileyBlackwell
@@ -77,6 +77,9 @@ def import_springer(file_name, year):
     s.format_springer_dataframe(file_path)
     s.add_regions_to_db()
     s.import_prices()
+
+
+# mini bundles
 
 
 @app.cli.command("import_mini_bundle")
@@ -146,3 +149,13 @@ def import_mini_bundle(file_name, year):
                 print("Journal does not exist for issn {}".format(issn))
 
         db.session.commit()
+
+
+@app.cli.command("sage_mb")
+@click.option("--file_name", default="sage_sub_2021.xlsx")
+@click.option("--year", required=True)
+def sage_mb(file_name, year):
+    file_path = os.path.join(app.root_path, CSV_DIRECTORY, file_name)
+    s = SageMiniBundle(year)
+    s.format_sage_dataframe(file_path)
+    s.import_prices()

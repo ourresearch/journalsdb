@@ -98,6 +98,13 @@ class Journal(db.Model):
     def issns(self):
         return self.issn_metadata.issns
 
+    @property
+    def current_journal(self):
+        """Returns a single current_journal that is pulled from the JournalRenamed table if it exists."""
+        return (
+            self.current_journals[0].current_journal if self.current_journals else None
+        )
+
     def to_dict(self):
         return OrderedDict(
             {
@@ -136,6 +143,28 @@ class JournalMetadata(db.Model, TimestampMixin):
             dict_.pop(field)
 
         return dict_
+
+
+class JournalRenamed(db.Model):
+    """
+    This model maps old journals that have been renamed (former_issn_l) to their current version (current_issn_l).
+    """
+
+    __tablename__ = "journals_renamed"
+
+    current_issn_l = db.Column(
+        db.String(9), db.ForeignKey("journals.issn_l"), primary_key=True, index=True
+    )
+    former_issn_l = db.Column(
+        db.String(9), db.ForeignKey("journals.issn_l"), primary_key=True, unique=True
+    )
+    created_at = db.Column(db.DateTime, server_default=func.now())
+    current_journal = db.relationship(
+        "Journal", foreign_keys=[current_issn_l], backref="journals_renamed"
+    )
+    former_journal = db.relationship(
+        "Journal", foreign_keys=[former_issn_l], backref="current_journals"
+    )
 
 
 class Publisher(db.Model, TimestampMixin):

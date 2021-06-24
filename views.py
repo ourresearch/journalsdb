@@ -215,6 +215,27 @@ def build_journal_dict_detail(journal, issn_l):
         if journal.journal_metadata
         else []
     )
+    if journal.journals_renamed:
+        journal_dict["previously_known_as"] = [
+            {
+                "issn_l": j.former_journal.issn_l,
+                "title": j.former_journal.title,
+                "url": SITE_URL
+                + url_for(
+                    "journal_detail",
+                    issn=j.former_journal.issn_l,
+                    noredirect="true",
+                ),
+            }
+            for j in journal.journals_renamed
+        ]
+    if journal.current_journal:
+        journal_dict["current_journal"] = {
+            "issn_l": journal.current_journal.issn_l,
+            "title": journal.current_journal.title,
+            "url": SITE_URL
+            + url_for("journal_detail", issn=journal.current_journal.issn_l),
+        }
     dois = journal.doi_counts
     journal_dict["total_dois"] = dois.total_dois if dois else None
     journal_dict["dois_by_issued_year"] = dois.dois_by_year_sorted if dois else None

@@ -8,7 +8,9 @@ class AuthorPermissions(db.Model, TimestampMixin):
     __tablename__ = "author_permissions"
 
     id = db.Column(db.Integer, primary_key=True)
-    journal_id = db.Column(db.Integer, db.ForeignKey("journals.id"), unique=True)
+    journal_id = db.Column(
+        db.Integer, db.ForeignKey("journals.id", ondelete="CASCADE"), unique=True
+    )
     has_policy = db.Column(db.Boolean)
     version_archivable = db.Column(JSONB)
     archiving_locations_allowed = db.Column(JSONB)

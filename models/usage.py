@@ -38,7 +38,10 @@ class ExtensionRequests(db.Model, TimestampMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     journal_id = db.Column(
-        db.Integer, db.ForeignKey("journals.id"), nullable=False, index=True
+        db.Integer,
+        db.ForeignKey("journals.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     journal = db.relationship(
         "Journal", backref=db.backref("extension_requests", lazy=True)

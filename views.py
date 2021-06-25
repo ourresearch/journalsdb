@@ -184,15 +184,15 @@ def search():
 @app.route("/journals/<issn>")
 @swag_from("docs/journal.yml")
 def journal_detail(issn):
-    noredirect = request.args.get("noredirect", "false", type=str)
-    noredirect = json.loads(noredirect)  # convert 'false' to False
+    redirect_param = request.args.get("redirect", "true", type=str)
+    redirect_param = json.loads(redirect_param)  # convert 'true' to True
 
     journal = Journal.find_by_issn(issn)
 
     if not journal:
         return abort(404, description="Resource not found")
 
-    elif journal.current_journal and noredirect is False:
+    elif journal.current_journal and redirect_param:
         # more recent version of the journal exists, so we should redirect to it
         return redirect(url_for("journal_detail", issn=journal.current_journal.issn_l))
 
@@ -212,7 +212,7 @@ def build_journal_dict_detail(journal, issn_l):
         else []
     )
     if journal.journals_renamed:
-        journal_dict["previously_known_as"] = [
+        journal_dict["formerly_known_as"] = [
             {
                 "issn_l": j.former_journal.issn_l,
                 "title": j.former_journal.title,
@@ -220,13 +220,13 @@ def build_journal_dict_detail(journal, issn_l):
                 + url_for(
                     "journal_detail",
                     issn=j.former_journal.issn_l,
-                    noredirect="true",
+                    redirect="false",
                 ),
             }
             for j in journal.journals_renamed
         ]
     if journal.current_journal:
-        journal_dict["continued_as"] = {
+        journal_dict["currently_known_as"] = {
             "issn_l": journal.current_journal.issn_l,
             "title": journal.current_journal.title,
             "url": SITE_URL

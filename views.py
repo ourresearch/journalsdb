@@ -184,25 +184,21 @@ def search():
 @app.route("/journals/<issn>")
 @swag_from("docs/journal.yml")
 def journal_detail(issn):
-    journal = Journal.query.filter_by(issn_l=issn).one_or_none()
+    noredirect = request.args.get("noredirect", "false", type=str)
+    noredirect = json.loads(noredirect)  # convert 'false' to False
+
+    journal = Journal.find_by_issn(issn)
 
     if not journal:
-        # try to find in issn mapping, then redirect to issn_l
-        issn_in_issn_org = ISSNMetaData.query.filter(
-            ISSNMetaData.issn_org_issns.contains(json.dumps(issn))
-        ).first()
+        return abort(404, description="Resource not found")
 
-        issn_in_crossref = ISSNMetaData.query.filter(
-            ISSNMetaData.crossref_issns.contains(json.dumps(issn))
-        ).first()
+    elif journal.current_journal and noredirect is False:
+        # more recent version of the journal exists, so we should redirect to it
+        return redirect(url_for("journal_detail", issn=journal.current_journal.issn_l))
 
-        metadata_record = issn_in_issn_org or issn_in_crossref
-
-        if metadata_record:
-            return redirect(url_for("journal_detail", issn=metadata_record.issn_l))
-        else:
-            # nothing found
-            return abort(404, description="Resource not found")
+    elif journal.issn_l != issn and issn in journal.issns:
+        # redirect to primary issn_l
+        return redirect(url_for("journal_detail", issn=journal.issn_l))
 
     journal_dict = build_journal_dict_detail(journal, issn)
     return jsonify(journal_dict), 200

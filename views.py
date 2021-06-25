@@ -230,7 +230,7 @@ def build_journal_dict_detail(journal, issn_l):
             for j in journal.journals_renamed
         ]
     if journal.current_journal:
-        journal_dict["current_journal"] = {
+        journal_dict["continued_as"] = {
             "issn_l": journal.current_journal.issn_l,
             "title": journal.current_journal.title,
             "url": SITE_URL

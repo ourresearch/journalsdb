@@ -1,3 +1,31 @@
+**2021-06-27 - Add 'formerly known as' redirect feature, add ISSNs, Sage mini bundles**
+
+Added a feature to set and redirect 'formerly known as' journals to the current journal.
+
+ISSNs set as formerly known as:  
+0374-5600 set as formerly known as for 1328-8067  
+0109-2502 set as formerly known as for 1600-4469  
+0008-4948 set as formerly known as for 1755-6171  
+2573-5845 set as formerly known as for 0037-7996  
+0157-6038 set to formerly known as for 1360-080X  
+0963-7273 set as formerly known as for 1368-2822  
+0007-098X set as formerly known as for 1368-2822
+
+ISSNs added:  
+0954-8033, 0928-9917, 0278-4416, 0033-328X, 1128-7470, 2376-788X, 1082-4006
+
+ISSNs mapped to existing ISSNs:  
+0736-3613 -> 1549-4373  
+0141-867X -> 1754-0194  
+0098-6589 -> 0098-6569  
+0043-2822 -> 0947-5117  
+0025-2034 -> 1463-6786  
+
+Added from worldcat:  
+0458-7014
+
+Added 23 Sage mini bundles with subscription pricing.
+
 **2021-06-22 - Add ISSNs, add Sage subscription pricing**
 
 ISSNs added:  

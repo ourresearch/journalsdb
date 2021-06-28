@@ -42,10 +42,7 @@ class TaylorFrancis(SubscriptionImport):
     def format_tf_dataframe(self, file_path):
         """
         Loads the Taylor Francis Price List into a parsable dataframe.
-
-        Note: Must be exported as a CSV and only one sheet. Original xlsx file is broken.
         """
-        # df = pd.read_csv(file_path, na_filter=False)
         xls = pd.ExcelFile(file_path)
         df = pd.read_excel(xls, "2021 Prices")
         df.replace("", np.nan, inplace=True)

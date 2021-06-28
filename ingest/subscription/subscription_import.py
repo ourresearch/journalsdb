@@ -282,7 +282,7 @@ class SubscriptionImport:
             db.session.query(SubscriptionPrice)
             .filter_by(
                 price=self.price,
-                currency_id=None,
+                currency_id=self.currency.id,
                 region_id=self.current_region.id,
                 country_id=None,
                 fte_from=self.fte_from,

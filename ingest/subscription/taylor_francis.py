@@ -69,10 +69,10 @@ class TaylorFrancis(SubscriptionImport):
             self.set_journal_name(row["Journal Name "])
             self.set_issn(row["ISSN"])
             self.set_journal()
-            self.set_currency(row["Currency"])
+            self.set_currency(row["Currency"].strip())
             if not self.currency:
                 continue
-            cur = self.get_raw_currency(row["Currency"])
+            cur = self.get_raw_currency(row["Currency"].strip())
             region = temp[cur]
             self.set_region(region)
             self.set_country(region)
@@ -111,4 +111,3 @@ class TaylorFrancis(SubscriptionImport):
         else:
             self.fte_from = None
             self.fte_to = None
-            print("Failed to find fte_data for: ", cell)

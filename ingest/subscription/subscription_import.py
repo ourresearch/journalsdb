@@ -202,7 +202,6 @@ class SubscriptionImport:
         is no need to specify a specific country.
         """
         if self.journal and self.price:
-
             if self.country_id:
                 entries = self.get_country_entries()
             else:
@@ -252,13 +251,19 @@ class SubscriptionImport:
                     entry.price,
                     " to Journal: ",
                     self.journal.issn_l,
+                    self.journal.title,
                 )
 
             else:
                 print("Price already in database: ", self.journal.title)
-        else:
+        elif not self.journal:
             print(
-                "Could not add price due to missing journal entry or missing price:",
+                "Could not add price due to missing journal:",
+                self.issn,
+            )
+        elif not self.price:
+            print(
+                "Could not add price due to missing price:",
                 self.issn,
             )
 

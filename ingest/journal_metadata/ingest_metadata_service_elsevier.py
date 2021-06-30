@@ -1,9 +1,6 @@
 import pandas as pd
 
-from app import db
-from models.journal import Journal, JournalMetadata
-
-from ingest.journal_metadata.journal_metadata import JournalMetaDataImporter
+from ingest.journal_metadata.ingest_metadata_service import JournalMetaDataService
 
 
 def cleanse_data(df):
@@ -90,7 +87,7 @@ def cleanse_data(df):
     return df
 
 
-class ElsevierMD(JournalMetaDataImporter):
+class ElsevierMetaDataService(JournalMetaDataService):
     def __init__(self, df):
         super().__init__(df)
 

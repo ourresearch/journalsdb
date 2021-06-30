@@ -1,27 +1,31 @@
+import re
 import string
 
 import pandas as pd
 
 from app import db
 from models.journal import Journal, JournalMetadata
-import string
-import pandas as pd
 
 
-class JournalMetaDataImporter:
-
+class JournalMetaDataService:
     """
-    Ingestion script for Journal Metadata
-    Takes a dataframe and saves all rows into the database
+    Ingestion script that reads data from a CSV and imports it into the journal_metadata table.
     """
 
-    def __init__(self, df):
-        self.df = df
+    def __init__(self, file_path):
+        self.file_path = file_path
+        self.df = None
         self.md = None
-        self.j = None
+        self.journal = None
         self.org_list = []
 
-    def cleanse_data(self):
+    def read_data(self):
+        """
+        Read the CSV into a pandas dataframe.
+        """
+        self.df = pd.read_csv(self.file_path)
+
+    def clean_data(self):
         """
         Removes excess rows and replaces NaN with None so
         issues do not occur with insertions
@@ -34,19 +38,27 @@ class JournalMetaDataImporter:
         Iterates through the CSV and saves journal metadata into the database.
         """
         for index, row in self.df.iterrows():
-            issn = row["issn"]
+            issn = self.get_issn(row["issn"])
             if issn:
-                self.j = db.session.query(Journal).filter_by(issn_l=issn).one_or_none()
-                if self.j:
+                self.journal = Journal.find_by_issn(issn)
+                if self.journal:
                     self.create_md(row)
                     self.update_society(row)
                     db.session.add(self.md)
                     db.session.commit()
                 else:
-                    print("Could not find Journal for ISSN: ", issn)
+                    print("Could not find journal for ISSN {}".format(issn))
             self.md = None
-            self.j = None
+            self.journal = None
             self.org_list = []
+
+    @staticmethod
+    def get_issn(issn):
+        """
+        Some ISSNs are formatted as a list like [""1938-9736"", ""1946-9837""].
+        We can find and use the first ISSN that is found with regex.
+        """
+        return re.search(r"\w{4}-\w{4}", issn).group()
 
     def create_md(self, row):
         """
@@ -64,18 +76,23 @@ class JournalMetaDataImporter:
 
         self.md = (
             db.session.query(JournalMetadata)
-            .filter_by(journal_id=self.j.id)
+            .filter_by(journal_id=self.journal.id)
             .one_or_none()
         )
 
-        if not self.md:
+        if self.md:
+            print("Updating metadata for ISSN {}".format(self.journal.issn_l))
+        else:
             self.md = JournalMetadata()
-            self.md.journal_id = self.j.id
+            self.md.journal_id = self.journal.id
+            print(
+                "Creating new metadata record for ISSN {}".format(self.journal.issn_l)
+            )
 
-        if accurate_title and not self.j.is_modified_title:
+        if accurate_title and not self.journal.is_modified_title:
             accurate_title = string.capwords(accurate_title.lower())
-            self.j.is_modified_title = True
-            self.j.title = accurate_title
+            self.journal.is_modified_title = True
+            self.journal.title = accurate_title
 
         self.md.home_page_url = home_page_url
         self.md.author_instructions_url = author_instructions_url

@@ -1,18 +1,53 @@
+**2021-06-30 - Add subscription prices, journal metadata, missing journals**
+
+Added subscription pricing for 53 Taylor & Francis journals.
+
+Added home page, author instructions, etc for 306 Elsevier journals.
+
+ISSNs set as formerly known as (former -> current):   
+2040-4700 -> 2772-283X  
+0308-6569 -> 1473-7795  
+1357-4019 -> 1478-8047  
+0312-5033 -> 1836-9391  
+0260-0943 -> 2051-6770  
+0260-0935 -> 2051-6770  
+0179-6437 -> 2397-0022  
+1534-6935 -> 1476-4431  
+1360-8576 -> 2691-1361  
+1360-4015 -> 1747-6585  
+1088-145X -> 0882-5963  
+1062-3183 -> 1939-4225  
+1047-5699 -> 1531-2445  
+1005-295X -> 1672-9609  
+0946-9834 -> 1618-808X  
+
+ISSNs mapped to existing ISSNs:  
+1536-6873 -> 1536-867X  
+2455-4953 -> 2455-1333  
+2515-5256 -> 2515-2564  
+0308-6559 -> 0308-6569  
+1558-481X -> 2155-1790  
+0018-3766 -> 0018-3768  
+
+ISSNs added:  
+1046-7459, 1040-1466, 1039-9712, 1011-9493, 2470-1947, 2634-9817
+
+ISSNs submitted as missing but not found:  
+1148-0271 
+
+
 **2021-06-27 - Add 'formerly known as' redirect feature, add ISSNs, Sage mini bundles**
 
 Added a feature to set and redirect 'formerly known as' journals to the current journal.
 
-ISSNs set as formerly known as:  
-0374-5600 set as formerly known as for 1328-8067  
-0109-2502 set as formerly known as for 1600-4469  
-0008-4948 set as formerly known as for 1755-6171  
-2573-5845 set as formerly known as for 0037-7996  
-0157-6038 set to formerly known as for 1360-080X  
-0963-7273 set as formerly known as for 1368-2822  
-0007-098X set as formerly known as for 1368-2822
-
-ISSNs added:  
-0954-8033, 0928-9917, 0278-4416, 0033-328X, 1128-7470, 2376-788X, 1082-4006
+ISSNs set as formerly known as (former -> current):  
+0374-5600 -> 1328-8067  
+0109-2502 -> 1600-4469  
+0008-4948 -> 1755-6171  
+2573-5845 -> 0037-7996  
+0157-6038 -> 1360-080X  
+0963-7273 -> 1368-2822  
+0007-098X -> 1368-2822
 
 ISSNs mapped to existing ISSNs:  
 0736-3613 -> 1549-4373  

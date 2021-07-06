@@ -49,7 +49,7 @@ with app.app_context():
     from ingest.currency.currency import *
     from ingest.retraction_watch import *
     from ingest.apc.import_apc_pricing import *
-    from ingest.subscription.import_subscription_pricing import *
+    from ingest.subscription.subscription_commands import *
     from ingest.journal_metadata.metadata_ingest_commands import *
     from utils.merge_publishers import *
     import views

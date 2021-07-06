@@ -1,3 +1,22 @@
+**2021-07-06 - Add T&F mini bundles, missing journals**
+
+Added mini bundle pricing covering 38 Taylor & Francis journals.
+
+ISSNs set as formerly known as (former -> current):     
+1522-5445 -> 0162-1459
+
+ISSNs mapped to existing ISSNs:  
+1879-2871 -> 0027-5107  
+1386-1964 -> 0027-5107  
+0958-0611 -> 0263-4368  
+2213-3917 -> 0263-4368  
+
+ISSNs added:  
+0262-0855, 2574-2450
+
+ISSNs submitted as missing but not found:  
+0362-5442, 0010-9542, 9735-1933
+
 **2021-06-30 - Add subscription prices, journal metadata, missing journals**
 
 Added subscription pricing for 53 Taylor & Francis journals.

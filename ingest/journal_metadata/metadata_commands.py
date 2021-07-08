@@ -3,7 +3,7 @@ import os
 import click
 
 from app import app
-from ingest.journal_metadata.metadata_ingest_service import JournalMetaDataIngestService
+from ingest.journal_metadata.metadata_service import JournalMetaDataIngestService
 
 CSV_DIRECTORY = "ingest/journal_metadata/files/"
 

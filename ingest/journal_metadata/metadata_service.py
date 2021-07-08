@@ -9,7 +9,7 @@ from models.journal import Journal, JournalMetadata
 
 class JournalMetaDataIngestService:
     """
-    Ingestion script that reads data from a CSV and imports it into the journal_metadata table.
+    Ingest script that reads data from a CSV and imports it into the journal_metadata table.
     """
 
     def __init__(self, file_path):
@@ -94,9 +94,9 @@ class JournalMetaDataIngestService:
         self.metadata.home_page_url = row["home_page"]
         self.metadata.author_instructions_url = row["author_instructions"]
         self.metadata.editorial_page_url = row["editorial_board"]
-        self.metadata.facebook_url = row["facebook_url"]
-        self.metadata.linkedin_url = row["linkedin_url"]
-        self.metadata.twitter_url = row["twitter_url"]
+        self.metadata.facebook_url = row.get("facebook_url")
+        self.metadata.linkedin_url = row.get("linkedin_url")
+        self.metadata.twitter_url = row.get("twitter_url")
         self.metadata.wikidata_url = row["wikidata_url"]
 
     def create_or_update_societies(self, row):
@@ -112,16 +112,16 @@ class JournalMetaDataIngestService:
             },
         ]
         """
-        society_organization_1 = row["society_organization_1"]
-        society_organization_link_1 = row["society_organization_link_1"]
+        society_organization_1 = row.get("society_organization_1")
+        society_organization_link_1 = row.get("society_organization_link_1")
         self.process_society(society_organization_1, society_organization_link_1)
 
-        society_organization_2 = row["society_organization_2"]
-        society_organization_link_2 = row["society_organization_link_2"]
+        society_organization_2 = row.get("society_organization_2")
+        society_organization_link_2 = row.get("society_organization_link_2")
         self.process_society(society_organization_2, society_organization_link_2)
 
-        society_organization_3 = row["society_organization_3"]
-        society_organization_link_3 = row["society_organization_link_3"]
+        society_organization_3 = row.get("society_organization_3")
+        society_organization_link_3 = row.get("society_organization_link_3")
         self.process_society(society_organization_3, society_organization_link_3)
 
         if self.societies:

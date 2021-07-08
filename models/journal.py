@@ -38,11 +38,11 @@ class Journal(db.Model):
     publisher_id = db.Column(db.Integer, db.ForeignKey("publishers.id"), index=True)
     internal_publisher_id = db.Column(db.Text)
     imprint_id = db.Column(db.Integer, db.ForeignKey("imprints.id"))
-    # status = db.Column(
-    #     db.Enum(JournalStatus, values_callable=lambda obj: [e.value for e in obj]),
-    #     nullable=False,
-    #     server_default="unknown",
-    # )
+    status = db.Column(
+        db.Enum(JournalStatus, values_callable=lambda obj: [e.value for e in obj]),
+        nullable=False,
+        server_default="unknown",
+    )
     uuid = db.Column(db.Text, default=shortuuid.uuid, unique=True)
     is_modified_title = db.Column(db.Boolean, default=False)
     created_at = db.Column(

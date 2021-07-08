@@ -256,7 +256,7 @@ def build_journal_dict_detail(journal, issn_l):
     journal_dict["open_access"] = (
         journal.open_access[0].to_dict() if journal.open_access else None
     )
-    # journal_dict["status"] = journal.status.value
+    journal_dict["status"] = journal.status.value
     journal_dict["open_access_history"] = "{}/journals/{}/open-access".format(
         SITE_URL, issn_l
     )
@@ -330,7 +330,7 @@ def build_journal_dict_paged(journal):
     journal_dict["open_access"] = (
         journal.open_access[0].to_dict() if journal.open_access else None
     )
-    # journal_dict["status"] = journal.status.value
+    journal_dict["status"] = journal.status.value
     return journal_dict
 
 

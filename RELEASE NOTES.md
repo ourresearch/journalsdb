@@ -1,3 +1,19 @@
+**2021-07-08 - Add status field, missing journals**
+
+Added a journal status field that can be populated with: publishing, renamed, incorporated, discontinued, or unknown (default).
+
+ISSNs set as formerly known as (former -> current):     
+0167-4838 -> 1570-9639  
+0005-2795 -> 1570-9639  
+0926-6569 -> 1570-9639  
+0926-6593 -> 1570-9639  
+0005-2744 -> 1570-9639
+
+ISSNs added:  
+2667-0917, 2667-3703, 2772-4670, 2667-2391, 0254-928X
+
+Mark 2665-9026 as discontinued.
+
 **2021-07-06 - Add T&F mini bundles, missing journals**
 
 Added mini bundle pricing covering 38 Taylor & Francis journals.

@@ -1,7 +1,7 @@
 aiobotocore==1.2.1
 aiohttp==3.7.3
 aioitertools==0.7.1
-alembic==1.5.4
+alembic==1.6.5
 aniso8601==8.1.0
 appdirs==1.4.4
 async-timeout==3.0.1
@@ -20,7 +20,7 @@ Flask==1.1.2
 Flask-Admin==1.5.7
 Flask-Caching==1.10.1
 Flask-Cors==3.0.9
-Flask-Migrate==2.7.0
+Flask-Migrate==3.0.1
 Flask-SQLAlchemy==2.4.4
 fsspec==0.8.7
 google-auth==1.24.0

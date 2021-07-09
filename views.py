@@ -260,7 +260,9 @@ def build_journal_dict_detail(journal, issn_l):
     )
     journal_dict["status"] = {
         "category": journal.status.value,
-        # "status_as_of": datetime.strftime(journal.status_as_of, "%Y-%m-%d") if journal.status_as_of else None
+        "status_as_of": datetime.strftime(journal.status_as_of, "%Y-%m-%d")
+        if journal.status_as_of
+        else None,
     }
     journal_dict["open_access_history"] = "{}/journals/{}/open-access".format(
         SITE_URL, issn_l
@@ -337,7 +339,9 @@ def build_journal_dict_paged(journal):
     )
     journal_dict["status"] = {
         "category": journal.status.value,
-        # "status_as_of": datetime.strftime(journal.status_as_of, "%Y-%m-%d") if journal.status_as_of else None
+        "status_as_of": datetime.strftime(journal.status_as_of, "%Y-%m-%d")
+        if journal.status_as_of
+        else None,
     }
     return journal_dict
 

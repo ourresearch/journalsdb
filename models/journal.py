@@ -43,7 +43,7 @@ class Journal(db.Model):
         nullable=False,
         server_default="unknown",
     )
-    # status_as_of = db.Column(db.DateTime, nullable=True)
+    status_as_of = db.Column(db.DateTime, nullable=True)
     uuid = db.Column(db.Text, default=shortuuid.uuid, unique=True)
     is_modified_title = db.Column(db.Boolean, default=False)
     created_at = db.Column(

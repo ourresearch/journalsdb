@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import abort, jsonify, redirect, request, url_for
 from flasgger import swag_from
 import json
@@ -256,7 +258,10 @@ def build_journal_dict_detail(journal, issn_l):
     journal_dict["open_access"] = (
         journal.open_access[0].to_dict() if journal.open_access else None
     )
-    journal_dict["status"] = journal.status.value
+    journal_dict["status"] = {
+        "category": journal.status.value,
+        # "status_as_of": datetime.strftime(journal.status_as_of, "%Y-%m-%d") if journal.status_as_of else None
+    }
     journal_dict["open_access_history"] = "{}/journals/{}/open-access".format(
         SITE_URL, issn_l
     )
@@ -330,7 +335,10 @@ def build_journal_dict_paged(journal):
     journal_dict["open_access"] = (
         journal.open_access[0].to_dict() if journal.open_access else None
     )
-    journal_dict["status"] = journal.status.value
+    journal_dict["status"] = {
+        "category": journal.status.value,
+        # "status_as_of": datetime.strftime(journal.status_as_of, "%Y-%m-%d") if journal.status_as_of else None
+    }
     return journal_dict
 
 

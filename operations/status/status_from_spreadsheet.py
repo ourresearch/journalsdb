@@ -7,12 +7,12 @@ from app import db
 from models.journal import Journal, JournalStatus
 
 
-class StatusSetter:
+class StatusFromSpreadsheet:
     def __init__(self, file_path):
         self.df = None
         self.file_path = file_path
 
-    def set_journal_status(self):
+    def update_status(self):
         self.read_data()
         self.save_data()
 

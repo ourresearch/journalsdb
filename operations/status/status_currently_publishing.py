@@ -50,7 +50,7 @@ class CurrentlyPublishingStatus:
                 Journal.status == "unknown",
             )
             .order_by(Journal.status_as_of)
-            .limit(1000)
+            .limit(500)
             .all()
         )
 

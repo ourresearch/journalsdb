@@ -182,6 +182,7 @@ class TaylorMiniBundle(SubscriptionImport):
         if not pd.isnull(cell):
             issns = re.findall(r"\w{4}-\w{4}", cell)
             [self.issns.append(issn) for issn in issns]
+            self.issns = list(set(self.issns))  # remove duplicates
 
     def import_prices(self):
         """

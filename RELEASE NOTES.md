@@ -1,3 +1,20 @@
+**2021-07-13 - Add Taylor & Francis subscription pricing, missing journals**
+
+Added subscription pricing for 102 Taylor & Francis journals. Over 99% of 
+non-OA, currently publishing Taylor & Francis journals now have pricing info in journalsdb.
+
+ISSNs set as formerly known as (former -> current):     
+2229-4120 -> 2320-2068
+
+ISSNs mapped to existing ISSNs:
+0167-7640 -> 0968-0004  
+2280-0800 -> 2280-8000  
+1191-9828 -> 0008-4174  
+2361-3103 -> 2631-7877  
+
+ISSNs added:
+2397-172X  
+
 **2021-07-08 - Add status field, missing journals**
 
 Added a journal status field that can be populated with: publishing, renamed, incorporated, discontinued, or unknown (default).

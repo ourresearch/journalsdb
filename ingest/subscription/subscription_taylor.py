@@ -74,10 +74,10 @@ class TaylorFrancis(SubscriptionImport):
             self.set_journal_name(row["Journal Name "])
             self.set_issn(row["ISSN"])
             self.set_journal()
-            self.set_currency(row["Currency"].strip())
+            self.set_currency(row["Currency"])
             if not self.currency:
                 continue
-            cur = self.get_raw_currency(row["Currency"].strip())
+            cur = self.get_raw_currency(row["Currency"])
             region = temp[cur]
             self.set_region(region)
             self.set_country(region)
@@ -192,10 +192,10 @@ class TaylorMiniBundle(SubscriptionImport):
         for index, row in self.df.iterrows():
             self.set_mini_bundle_name(row["Journal Name "])
             self.set_issns(row["ISSN"])
-            self.set_currency(row["Currency"].strip())
+            self.set_currency(row["Currency"])
             if not self.currency:
                 continue
-            cur = self.get_raw_currency(row["Currency"].strip())
+            cur = self.get_raw_currency(row["Currency"])
             region = temp[cur]
             self.set_region(region)
             self.set_country(region)

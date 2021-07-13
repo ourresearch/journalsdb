@@ -254,8 +254,8 @@ class SubscriptionImport:
                     self.journal.title,
                 )
 
-            else:
-                print("Price already in database: ", self.journal.title)
+            # else:
+            #     print("Price already in database: ", self.journal.title)
         elif not self.journal:
             print(
                 "Could not add price due to missing journal:",

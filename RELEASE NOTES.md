@@ -1,3 +1,15 @@
+**2021-07-14 - Add Sage subscription pricing, merge journals**
+
+Added subscription pricing for 17 SAGE journals.
+
+The following SAGE ISSNs were separate but have been mapped together as they should be:  
+2200-6974 -> 1038-4162  
+1931-3756 -> 1048-3713  
+2057-0481 -> 2057-0473  
+2633-0032 -> 2633-0024  
+2633-5603 -> 2633-559X  
+1539-6053 -> 1529-1006  
+
 **2021-07-13 - Add Taylor & Francis subscription pricing, missing journals**
 
 Added subscription pricing for 102 Taylor & Francis journals. Over 99% of 

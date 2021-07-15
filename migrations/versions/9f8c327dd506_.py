@@ -33,7 +33,7 @@ def upgrade():
         sa.Column(
             "status",
             sa.Enum(
-                "discontinued",
+                "ceased",
                 "incorporated",
                 "publishing",
                 "renamed",

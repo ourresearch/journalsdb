@@ -16,10 +16,10 @@ from models.subjects import journal_subjects
 
 class JournalStatus(enum.Enum):
     """
-    Choices for journal status field.
+    Choices for journal status field. Must run a migration after changing.
     """
 
-    DISCONTINUED = "discontinued"
+    CEASED = "ceased"
     INCORPORATED = "incorporated"
     PUBLISHING = "publishing"
     RENAMED = "renamed"

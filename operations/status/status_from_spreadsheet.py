@@ -27,14 +27,14 @@ class StatusFromSpreadsheet:
             journal = Journal.find_by_issn(issn)
 
             if status == "Discontinued":
-                journal.status = JournalStatus.DISCONTINUED.value
+                journal.status = JournalStatus.CEASED.value
                 year = re.findall(r"\d{4}", history) if type(history) is str else None
                 journal.status_as_of = (
                     datetime(int(year[0]), 1, 1) if year else datetime.now()
                 )
                 print(
                     "setting issn {} with status {}".format(
-                        journal.issn_l, JournalStatus.DISCONTINUED.value
+                        journal.issn_l, JournalStatus.CEASED.value
                     )
                 )
 

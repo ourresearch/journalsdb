@@ -8,6 +8,7 @@ import requests
 from sqlalchemy import exc
 
 from app import db
+from ingest.issn.issn_exceptions import InsufficientRecords
 from models.issn import (
     ISSNHistory,
     ISSNTemp,
@@ -16,30 +17,20 @@ from models.issn import (
 )
 
 
-crossref_issns_url = "https://api.unpaywall.org/crossref_issns.csv.gz"
-issn_org_zip_url = "https://www.issn.org/wp-content/uploads/2014/03/issnltables.zip"
+UNPAYWALL_ISSNS_URL = "https://api.unpaywall.org/crossref_issns.csv.gz"
+ISSN_ORG_ZIP_URL = "https://www.issn.org/wp-content/uploads/2014/03/issnltables.zip"
 
 
 def import_issns():
     """
-    Core function that imports the ISSNs.
+    Core function that imports the ISSNs. End result is to add ISSNs to the issn_to_issnl table, that are then mapped as
+    issn_l -> issns in the issn_metadata table. The issn_to_issnl table is kept safe by this function only adding issns
+    (not deleting). The issn column is set to unique, so if an issn already exists an error will occur.
     """
-    issn_tsv_file = get_zipfile()
+    copy_issn_org_issns_into_temp_table()
 
-    # ensure ISSN temp table is empty
-    clear_issn_temp_table()
-
-    # copy issn records into temp table
-    copy_tsv_to_temp_table(issn_tsv_file)
-
-    # sanity check
-    if ISSNTemp.query.count() < 2000000:
-        print("not enough records in file")
-        clear_issn_temp_table()
-        return
-
-    # add crossref labels to temp table
-    process_crossref_issns()
+    # mark the issns we want to keep
+    mark_issns_to_keep()
 
     # get new records in temp table
     print("run new records query")
@@ -48,19 +39,34 @@ def import_issns():
     )
     save_new_records(new_records)
     map_issns_to_issnl()
+
+    # cleanup
+    missing_journals = get_missing_journals()
+    mark_missing_journals_as_processed(missing_journals)
     clear_issn_temp_table()
 
 
-def clear_issn_temp_table():
-    db.session.query(ISSNTemp).delete()
-    db.session.commit()
+def copy_issn_org_issns_into_temp_table():
+    issn_org_tsv_file = get_zipfile()
+
+    # ensure ISSN temp table is empty
+    clear_issn_temp_table()
+
+    # copy issn records into temp table
+    copy_tsv_to_temp_table(issn_org_tsv_file)
+
+    # sanity check
+    if ISSNTemp.query.count() < 2000000:
+        print("not enough records in file")
+        clear_issn_temp_table()
+        raise InsufficientRecords("Not enough records in dataset")
 
 
 def get_zipfile():
     """
     Fetches the remote zip file.
     """
-    resp = urlopen(issn_org_zip_url)
+    resp = urlopen(ISSN_ORG_ZIP_URL)
     zipfile = ZipFile(BytesIO(resp.read()))
     file_name = find_file_name(zipfile)
     issn_tsv_file = zipfile.open(file_name)
@@ -77,9 +83,14 @@ def find_file_name(zipfile):
     return file
 
 
+def clear_issn_temp_table():
+    db.session.query(ISSNTemp).delete()
+    db.session.commit()
+
+
 def copy_tsv_to_temp_table(issn_file):
     """
-    Very fast way to copy 1 million or more rows into a table.
+    Copies the records from the issn.org tsv file into the issn_temp table.
     """
     print("load temp table")
     copy_sql = "COPY issn_temp(issn, issn_l) FROM STDOUT WITH (FORMAT CSV, DELIMITER '\t', HEADER)"
@@ -90,46 +101,105 @@ def copy_tsv_to_temp_table(issn_file):
     print("load temp table complete")
 
 
-def process_crossref_issns():
+def mark_issns_to_keep():
     """
     Iterate through crossref ISSNs coming from unpaywall, and add has_crossref True if the ISSN is in the issn.org list.
     If the ISSN is not in the issn.org list, then add it to the temp table.
     """
-    print("adding crossref label")
-    file = urlopen(crossref_issns_url)
-    data = pd.read_csv(file, compression="gzip")
+    print("marking issns we want to keep (with has_crossref label)")
+    issns_to_keep = get_issns_to_keep()
+    # mark_missing_journals_as_processed(missing_journals)
 
+    for issn in issns_to_keep:
+        mark_to_keep(issn)
+    print("marking issns complete.")
+
+
+def get_issns_to_keep():
+    unpaywall_issns = get_unpaywall_issns()
+    missing_issns = get_missing_issns()
+    issns_to_process = unpaywall_issns + missing_issns
+    return issns_to_process
+
+
+def get_unpaywall_issns():
+    file = urlopen(UNPAYWALL_ISSNS_URL)
+    data = pd.read_csv(file, compression="gzip")
     crossref_issns = data["issn"].tolist()
+    return crossref_issns
+
+
+def get_missing_issns():
+    """
+    List of ISSNs that were identified as missing based on the missing_journal endpoint.
+    """
+    missing_journals = get_missing_journals()
+    missing_issns = [j.issn for j in missing_journals]
+    return missing_issns
+
+
+def get_missing_journals():
+    """
+    Journal records that were submitted as 'missing' via the missing_journal endpoint.
+    """
     missing_journals = (
         db.session.query(MissingJournal)
         .filter_by(status="process", processed=False)
         .all()
     )
-    missing_issns = [j.issn for j in missing_journals]
-    mark_missing_journals_as_processed(missing_journals)
-    issns_to_process = crossref_issns + missing_issns
+    return missing_journals
 
-    for issn in issns_to_process:
-        r = db.session.query(ISSNTemp).filter_by(issn=issn).one_or_none()
-        if r:
-            issns_to_set = db.session.query(ISSNTemp).filter_by(issn_l=r.issn_l).all()
-            for item in issns_to_set:
-                item.has_crossref = True
+
+def mark_to_keep(issn):
+    r = db.session.query(ISSNTemp).filter_by(issn=issn).one_or_none()
+    if r:
+        issns_to_set = db.session.query(ISSNTemp).filter_by(issn_l=r.issn_l).all()
+        for item in issns_to_set:
+            item.has_crossref = True
+    else:
+        issn_exists = db.session.query(ISSNToISSNL).filter_by(issn=issn).one_or_none()
+        if not issn_exists:
+            # issn is not in the normal issn.org mapping, so we need to handle it differently
+            process_issn_not_in_issn_org(issn)
+    db.session.commit()
+
+
+def process_issn_not_in_issn_org(issn):
+    """
+    The issn is not in the standard issn.org mapping, so we are going to check to see if it is in
+    crossref via https://api.crossref.org/journals/<issn>.
+    """
+    crossref_api_issns = get_crossref_api_issns(issn)
+
+    # single issn, simply save to temp table
+    if len(crossref_api_issns["issns"]) == 1:
+        save_single_issn_from_crossref(issn)
+
+    # possible related issn
+    elif len(crossref_api_issns["issns"]) == 2:
+        related_issn = crossref_api_issns["issns"]
+        related_issn.remove(issn)  # remove the issn we already have
+        related_issn = related_issn[0]
+
+        # check for existing record
+        related_record = (
+            db.session.query(ISSNToISSNL).filter_by(issn=related_issn).one_or_none()
+        )
+        if related_record:
+            save_issn_using_related_issnl(issn, related_record)
         else:
-            issn_exists = (
-                db.session.query(ISSNToISSNL).filter_by(issn=issn).one_or_none()
-            )
-            if not issn_exists:
-                save_issn_not_in_issn_org(issn)
-        db.session.commit()
-    print("adding crossref label complete")
+            # add both records and use first record (electronic) as the issn_l
+            save_both_issns_from_crossref(crossref_api_issns)
+    else:
+        # don't do anything if there are more than two issns
+        print("more than 2 records found!")
 
 
 def get_crossref_api_issns(issn):
     crossref_url = "https://api.crossref.org/journals/{}".format(issn)
     r = requests.get(crossref_url)
 
-    result = {}
+    result = {"issns": []}
     try:
         if r.status_code == 200:
             result["issns"] = r.json()["message"]["ISSN"]
@@ -142,93 +212,75 @@ def get_crossref_api_issns(issn):
                     result["print_issn"] = issn["value"]
             return result
     except (requests.exceptions.ConnectionError, json.JSONDecodeError):
-        return None
+        return result
 
 
-def save_issn_not_in_issn_org(issn):
-    crossref_api_issns = get_crossref_api_issns(issn)
+def save_single_issn_from_crossref(issn):
+    new_record = ISSNTemp(issn_l=issn, issn=issn, has_crossref=True)
+    db.session.add(new_record)
+    db.session.commit()
+    print(
+        "adding single record {} that is in crossref list but not in issn org".format(
+            issn
+        )
+    )
 
-    if crossref_api_issns:
-        # single issn pair, simply save to temp table
-        if len(crossref_api_issns["issns"]) == 1:
-            new_record = ISSNTemp(issn_l=issn, issn=issn, has_crossref=True)
-            db.session.add(new_record)
+
+def save_issn_using_related_issnl(issn, related):
+    # add new issn but use the related record as the issn_l
+    new_record = ISSNTemp(issn_l=related.issn_l, issn=issn, has_crossref=True)
+    db.session.add(new_record)
+    db.session.commit()
+    print(
+        "adding {} but using related issn {} as the issn_l".format(issn, related.issn_l)
+    )
+
+
+def save_both_issns_from_crossref(crossref_api_issns):
+    if "electronic_issn" in crossref_api_issns and "print_issn" in crossref_api_issns:
+        try:
+            issn_exists = (
+                db.session.query(ISSNTemp)
+                .filter_by(issn=crossref_api_issns["electronic_issn"])
+                .one_or_none()
+            )
+            if issn_exists:
+                return
+            new_record_1 = ISSNTemp(
+                issn_l=crossref_api_issns["electronic_issn"],
+                issn=crossref_api_issns["electronic_issn"],
+                has_crossref=True,
+            )
+            db.session.add(new_record_1)
+            db.session.commit()
+        except exc.IntegrityError:
+            db.session.rollback()
+            print("duplicate record")
+
+        try:
+            issn_exists = (
+                db.session.query(ISSNTemp)
+                .filter_by(issn=crossref_api_issns["print_issn"])
+                .one_or_none()
+            )
+            if issn_exists:
+                return
+            new_record_2 = ISSNTemp(
+                issn_l=crossref_api_issns["electronic_issn"],
+                issn=crossref_api_issns["print_issn"],
+                has_crossref=True,
+            )
+            db.session.add(new_record_2)
             db.session.commit()
             print(
-                "adding single record {} that is in crossref list but not in issn org".format(
-                    issn
+                "adding {} and {} as electronic and print ISSNs".format(
+                    crossref_api_issns["electronic_issn"],
+                    crossref_api_issns["print_issn"],
                 )
             )
-
-        # possible related issn
-        elif len(crossref_api_issns["issns"]) == 2:
-            related_issn = crossref_api_issns["issns"]
-            related_issn.remove(issn)
-            related_issn = related_issn[0]
-
-            # check for existing record
-            r = db.session.query(ISSNToISSNL).filter_by(issn=related_issn).one_or_none()
-            if r:
-                # add new issn but use the related record as the issn_l
-                new_record = ISSNTemp(issn_l=r.issn_l, issn=issn, has_crossref=True)
-                db.session.add(new_record)
-                db.session.commit()
-                print(
-                    "adding {} but using related issn {} as the issn_l".format(
-                        issn, r.issn_l
-                    )
-                )
-            else:
-                # add both records and use first record (electronic) as the issn_l
-                if (
-                    "electronic_issn" in crossref_api_issns
-                    and "print_issn" in crossref_api_issns
-                ):
-                    try:
-                        issn_exists = (
-                            db.session.query(ISSNTemp)
-                            .filter_by(issn=crossref_api_issns["electronic_issn"])
-                            .one_or_none()
-                        )
-                        if issn_exists:
-                            return
-                        new_record_1 = ISSNTemp(
-                            issn_l=crossref_api_issns["electronic_issn"],
-                            issn=crossref_api_issns["electronic_issn"],
-                            has_crossref=True,
-                        )
-                        db.session.add(new_record_1)
-                        db.session.commit()
-                    except exc.IntegrityError:
-                        db.session.rollback()
-                        print("duplicate record")
-
-                    try:
-                        issn_exists = (
-                            db.session.query(ISSNTemp)
-                            .filter_by(issn=crossref_api_issns["print_issn"])
-                            .one_or_none()
-                        )
-                        if issn_exists:
-                            return
-                        new_record_2 = ISSNTemp(
-                            issn_l=crossref_api_issns["electronic_issn"],
-                            issn=crossref_api_issns["print_issn"],
-                            has_crossref=True,
-                        )
-                        db.session.add(new_record_2)
-                        db.session.commit()
-                        print(
-                            "adding {} and {} as electronic and print ISSNs".format(
-                                crossref_api_issns["electronic_issn"],
-                                crossref_api_issns["print_issn"],
-                            )
-                        )
-                    except exc.IntegrityError:
-                        db.session.rollback()
-                        print("duplicate record")
-        else:
-            print("more than 2 records found!")
+        except exc.IntegrityError:
+            db.session.rollback()
+            print("duplicate record")
 
 
 def save_new_records(new_records):
@@ -242,6 +294,12 @@ def save_new_records(new_records):
     db.session.bulk_save_objects(history)
     db.session.commit()
     print("save new records in issn_to_issnl table complete")
+
+
+def mark_missing_journals_as_processed(missing_journals):
+    for j in missing_journals:
+        j.processed = True
+    db.session.commit()
 
 
 def map_issns_to_issnl():
@@ -263,9 +321,3 @@ def map_issns_to_issnl():
     db.session.execute(sql)
     db.session.commit()
     print("map issns in metadata table complete")
-
-
-def mark_missing_journals_as_processed(missing_journals):
-    for j in missing_journals:
-        j.processed = True
-    db.session.commit()

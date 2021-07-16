@@ -1,0 +1,2 @@
+class InsufficientRecords(Exception):
+    pass

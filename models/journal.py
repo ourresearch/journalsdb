@@ -59,19 +59,17 @@ class Journal(db.Model):
     doi_counts = db.relationship(
         "DOICount",
         primaryjoin="Journal.issn_l == foreign(DOICount.issn_l)",
-        lazy="joined",
         uselist=False,
     )
     imprint = db.relationship("Imprint", cascade="all, delete")
-    issn_metadata = db.relationship("ISSNMetaData", lazy="joined")
+    issn_metadata = db.relationship("ISSNMetaData")
     journal_metadata = db.relationship(
-        "JournalMetadata", lazy="joined", backref="journal", cascade="all, delete"
+        "JournalMetadata", backref="journal", cascade="all, delete"
     )
     open_access = db.relationship(
         "OpenAccess",
         primaryjoin="Journal.issn_l == foreign(OpenAccess.issn_l)",
         order_by="desc(OpenAccess.year)",
-        lazy="joined",
     )
     permissions = db.relationship("AuthorPermissions", uselist=False, backref="journal")
     publisher = db.relationship(

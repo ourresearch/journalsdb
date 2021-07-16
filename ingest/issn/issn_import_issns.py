@@ -118,15 +118,15 @@ def mark_issns_to_keep():
 def get_issns_to_keep():
     unpaywall_issns = get_unpaywall_issns()
     missing_issns = get_missing_issns()
-    issns_to_process = unpaywall_issns + missing_issns
-    return issns_to_process
+    issns_to_keep = unpaywall_issns + missing_issns
+    return issns_to_keep
 
 
 def get_unpaywall_issns():
     file = urlopen(UNPAYWALL_ISSNS_URL)
     data = pd.read_csv(file, compression="gzip")
-    crossref_issns = data["issn"].tolist()
-    return crossref_issns
+    unpaywall_issns = data["issn"].tolist()
+    return unpaywall_issns
 
 
 def get_missing_issns():

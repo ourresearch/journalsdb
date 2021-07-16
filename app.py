@@ -54,4 +54,5 @@ with app.app_context():
     from ingest.journal_metadata.metadata_commands import *
     from utils.merge_publishers import *
     from operations.status.status_commands import *
+    from ingest.old_issn import *
     import views

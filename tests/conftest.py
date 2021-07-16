@@ -4,7 +4,8 @@ import pytest
 
 from app import db
 from tests.factories import import_api_test_data
-from ingest.issn import import_issn_apis, import_issns
+from ingest.old_issn import import_issn_apis
+from ingest.issn.issn_import_issns import import_issns
 from views import app
 
 NUMBER_OF_JOURNALS = 3

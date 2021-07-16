@@ -5,7 +5,6 @@ from zipfile import ZipFile
 
 import pandas as pd
 import requests
-from sqlalchemy import exc
 
 from app import db
 from ingest.issn.issn_exceptions import InsufficientRecords
@@ -35,7 +34,12 @@ def import_issns():
     # get new records in temp table
     print("run new records query")
     new_records = db.session.execute(
-        "SELECT issn, issn_l, has_crossref FROM issn_temp t WHERE t.has_crossref is True AND NOT EXISTS (SELECT 1 FROM issn_to_issnl i where i.issn=t.issn and i.issn_l=t.issn_l);"
+        """
+        SELECT issn, issn_l, has_crossref
+        FROM issn_temp t
+        WHERE t.has_crossref is True
+            AND NOT EXISTS(SELECT 1 FROM issn_to_issnl i where i.issn = t.issn and i.issn_l = t.issn_l);
+        """
     )
     save_new_records(new_records)
     map_issns_to_issnl()
@@ -190,9 +194,13 @@ def process_issn_not_in_issn_org(issn):
         else:
             # add both records and use first record (electronic) as the issn_l
             save_both_issns_from_crossref(crossref_api_issns)
-    else:
+    elif len(crossref_api_issns["issns"]) > 2:
         # don't do anything if there are more than two issns
-        print("more than 2 records found!")
+        print(
+            "more than 2 records found for issn {}, crossref_api_issns {}".format(
+                issn, crossref_api_issns
+            )
+        )
 
 
 def get_crossref_api_issns(issn):
@@ -211,6 +219,7 @@ def get_crossref_api_issns(issn):
                 elif issn["type"] == "print":
                     result["print_issn"] = issn["value"]
             return result
+        return result
     except (requests.exceptions.ConnectionError, json.JSONDecodeError):
         return result
 
@@ -238,14 +247,17 @@ def save_issn_using_related_issnl(issn, related):
 
 def save_both_issns_from_crossref(crossref_api_issns):
     if "electronic_issn" in crossref_api_issns and "print_issn" in crossref_api_issns:
-        try:
-            issn_exists = (
-                db.session.query(ISSNTemp)
-                .filter_by(issn=crossref_api_issns["electronic_issn"])
-                .one_or_none()
-            )
-            if issn_exists:
-                return
+        issn_exists_mapped = (
+            db.session.query(ISSNToISSNL)
+            .filter_by(issn=crossref_api_issns["electronic_issn"])
+            .one_or_none()
+        )
+        issn_exists_temp = (
+            db.session.query(ISSNTemp)
+            .filter_by(issn=crossref_api_issns["electronic_issn"])
+            .one_or_none()
+        )
+        if not issn_exists_mapped and not issn_exists_temp:
             new_record_1 = ISSNTemp(
                 issn_l=crossref_api_issns["electronic_issn"],
                 issn=crossref_api_issns["electronic_issn"],
@@ -253,18 +265,18 @@ def save_both_issns_from_crossref(crossref_api_issns):
             )
             db.session.add(new_record_1)
             db.session.commit()
-        except exc.IntegrityError:
-            db.session.rollback()
-            print("duplicate record")
 
-        try:
-            issn_exists = (
-                db.session.query(ISSNTemp)
-                .filter_by(issn=crossref_api_issns["print_issn"])
-                .one_or_none()
-            )
-            if issn_exists:
-                return
+        issn_exists_mapped = (
+            db.session.query(ISSNToISSNL)
+            .filter_by(issn=crossref_api_issns["print_issn"])
+            .one_or_none()
+        )
+        issn_exists_temp = (
+            db.session.query(ISSNTemp)
+            .filter_by(issn=crossref_api_issns["print_issn"])
+            .one_or_none()
+        )
+        if not issn_exists_mapped and not issn_exists_temp:
             new_record_2 = ISSNTemp(
                 issn_l=crossref_api_issns["electronic_issn"],
                 issn=crossref_api_issns["print_issn"],
@@ -278,18 +290,26 @@ def save_both_issns_from_crossref(crossref_api_issns):
                     crossref_api_issns["print_issn"],
                 )
             )
-        except exc.IntegrityError:
-            db.session.rollback()
-            print("duplicate record")
 
 
 def save_new_records(new_records):
     print("save new records in issn_to_issnl table")
+    issns_to_ignore = [
+        "1931-3756",
+        "2633-0032",
+        "2057-0481",
+        "2200-6974",
+        "2633-5603",
+        "1539-6053",
+    ]  # sage issns that were merged together and conflict with issn.org list
     objects = []
     history = []
     for new in new_records:
-        objects.append(ISSNToISSNL(issn=new.issn, issn_l=new.issn_l))
-        history.append(ISSNHistory(issn=new.issn, issn_l=new.issn_l, status="added"))
+        if new.issn not in issns_to_ignore:
+            objects.append(ISSNToISSNL(issn=new.issn, issn_l=new.issn_l))
+            history.append(
+                ISSNHistory(issn=new.issn, issn_l=new.issn_l, status="added")
+            )
     db.session.bulk_save_objects(objects)
     db.session.bulk_save_objects(history)
     db.session.commit()

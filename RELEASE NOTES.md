@@ -1,3 +1,22 @@
+**2021-07-16 - Add Sage subscription pricing, change status field, add journals**
+
+Added subscription pricing for 5 SAGE journals.
+
+Changed status field 'discontinued' to 'ceased' in order to simplify categorizing journals that are no longer publishing.
+
+Merged one SAGE journal together:  
+0971-7625 -> 0015-7325  
+
+Added ISSNs:  
+2050-3113, 0971-7633
+
+ISSNs combined with existing ISSNs:  
+1617-3838 added to 0941-2530  
+1944-4493 added to 0888-4064  
+
+Following ISSNs were submitted as missing but not found:  
+1531-8030, 1099-425X  
+
 **2021-07-14 - Add Sage subscription pricing, merge journals**
 
 Added subscription pricing for 17 SAGE journals.

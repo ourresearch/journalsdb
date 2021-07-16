@@ -201,7 +201,7 @@ class SubscriptionImport:
         it should be added without a region. Regions consist of many countries, so there
         is no need to specify a specific country.
         """
-        if self.journal and self.price:
+        if self.journal and isinstance(self.price, (int, float)):
             if self.country_id:
                 entries = self.get_country_entries()
             else:

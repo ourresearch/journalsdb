@@ -49,8 +49,8 @@ class CurrentlyPublishingStatus:
                 Journal.publisher_id.in_((11, 16, 20, 29, 36)),
                 Journal.status == "unknown",
             )
-            .order_by(Journal.status_as_of)
-            .limit(500)
+            .order_by(Journal.status_as_of.desc())
+            .limit(1000)
             .all()
         )
 

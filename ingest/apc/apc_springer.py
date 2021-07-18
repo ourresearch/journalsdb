@@ -1,5 +1,5 @@
 import pandas as pd
-from ingest.apc.apc_import import ImportAPC
+from ingest.apc.apc_base import ImportAPC
 
 
 class SpringerAPC(ImportAPC):

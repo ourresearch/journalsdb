@@ -118,8 +118,6 @@ class ImportAPC:
         Adds an APC price to the database.
         """
         if isinstance(self.row["price"], (int, float)):
-            print(self.row["price"])
-            print(self.row["issn-l"])
             entry = (
                 db.session.query(APCPrice)
                 .filter_by(
@@ -132,9 +130,6 @@ class ImportAPC:
                 )
                 .first()
             )
-
-            if entry:
-                print("Entry Exists")
 
             if not entry:
                 print("Creating new price entry")
@@ -153,11 +148,14 @@ class ImportAPC:
 
             if self.journal:
                 if entry not in self.journal.apc_prices:
-                    print("Adding price to journal: ", entry.price, self.journal.issn_l)
+                    print(
+                        "Adding price to journal: ",
+                        entry.price,
+                        self.journal.issn_l,
+                        self.journal.title,
+                    )
                     self.journal.apc_prices.append(entry)
                     db.session.commit()
-                else:
-                    print("Price already added to Journal")
 
             else:
                 print("No Journal for ISSN: ", self.row["issn-l"])

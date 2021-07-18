@@ -48,7 +48,7 @@ with app.app_context():
     from ingest.locations import *
     from ingest.currency.currency import *
     from ingest.retraction_watch import *
-    from ingest.apc.import_apc_pricing import *
+    from ingest.apc.apc_commands import *
     from ingest.subscription.subscription_commands import *
     from ingest.journals.journals_commands import *
     from ingest.journal_metadata.metadata_commands import *

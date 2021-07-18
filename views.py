@@ -1,8 +1,9 @@
 from datetime import datetime
+import json
 
 from flask import abort, jsonify, redirect, request, url_for
 from flasgger import swag_from
-import json
+from sqlalchemy.orm import joinedload
 
 from app import app, cache, db
 from models.journal import Journal, Publisher
@@ -283,7 +284,14 @@ def journals_paged():
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per-page", 100, type=int)
 
-    journals = Journal.query.order_by(Journal.created_at.asc()).paginate(page, per_page)
+    journals = (
+        Journal.query.order_by(Journal.created_at.asc())
+        .options(joinedload(Journal.doi_counts))
+        .options(joinedload(Journal.issn_metadata))
+        .options(joinedload(Journal.journal_metadata))
+        .options(joinedload(Journal.open_access))
+        .paginate(page, per_page)
+    )
 
     results = {
         "results": [],

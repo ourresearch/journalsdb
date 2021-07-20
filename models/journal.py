@@ -53,7 +53,11 @@ class Journal(db.Model):
 
     # relationships
     apc_prices = db.relationship(
-        "APCPrice", secondary=journal_apc_price, lazy="subquery", backref="journals"
+        "APCPrice",
+        secondary=journal_apc_price,
+        lazy="subquery",
+        backref="journals",
+        order_by="[desc(APCPrice.year), APCPrice.price]",
     )
     author_permissions = db.relationship("AuthorPermissions", cascade="all, delete")
     doi_counts = db.relationship(
@@ -81,6 +85,7 @@ class Journal(db.Model):
         secondary=journal_subscription_price,
         lazy="subquery",
         backref="journals",
+        order_by="[desc(SubscriptionPrice.year), SubscriptionPrice.price]",
     )
 
     @classmethod
@@ -120,6 +125,10 @@ class Journal(db.Model):
         return (
             self.current_journals[0].current_journal if self.current_journals else None
         )
+
+    @property
+    def open_access_recent(self):
+        return self.open_access[0] if self.open_access else None
 
     def to_dict(self):
         return OrderedDict(

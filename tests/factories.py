@@ -1,6 +1,6 @@
 from app import db
 from models.issn import ISSNMetaData
-from models.journal import Journal, Publisher, JournalMetadata
+from models.journal import Journal, Publisher, JournalMetadata, JournalRenamed
 from models.location import Country, Region
 from models.price import APCPrice, Currency, MiniBundle, SubscriptionPrice
 from models.usage import RetractionSummary, OpenAccess, Repository
@@ -340,4 +340,44 @@ def import_api_test_data():
     mb.subscription_prices.append(pr)
     mb.journals.append(j_wiley)
     db.session.add(mb)
+    db.session.commit()
+
+    md_wiley_2 = ISSNMetaData(
+        issn_l="5577-4444",
+        issn_org_issns=["5577-4444"],
+        issn_org_raw_api=None,
+        crossref_issns=None,
+        crossref_raw_api=None,
+    )
+    db.session.add(md_wiley_2)
+    db.session.commit()
+
+    j_three = Journal(
+        id=4,
+        issn_l="5577-4444",
+        title="Living Today",
+        journal_synonyms=None,
+        publisher=p_two,
+        internal_publisher_id="UA",
+        imprint_id=23,
+        uuid="557",
+        is_modified_title=True,
+        apc_prices=[],
+        author_permissions=[],
+        imprint=None,
+        issn_metadata=md_wiley_2,
+        journal_metadata=[],
+        permissions=None,
+        subjects=[],
+        subscription_prices=[pr],
+    )
+
+    db.session.add(j_two)
+    db.session.add(j_three)
+    db.session.commit()
+
+    jr = JournalRenamed()
+    jr.former_issn_l = "5577-4444"
+    jr.current_issn_l = "2291-5222"
+    db.session.add(jr)
     db.session.commit()

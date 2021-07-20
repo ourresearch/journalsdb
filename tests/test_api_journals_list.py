@@ -100,3 +100,8 @@ class TestAPIJournalsList:
         json_data = rv.get_json()
         assert rv.status_code == 400
         assert json_data["error"]
+
+    def test_journal_renamed(self, api_client):
+        rv = api_client.get("/journals/2291-5222")
+        json_data = rv.get_json()
+        assert json_data["formerly_known_as"][0]["issn_l"] == "5577-4444"

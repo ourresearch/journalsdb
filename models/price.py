@@ -110,6 +110,7 @@ class MiniBundle(db.Model, TimestampMixin):
         secondary=mini_bundle_journals,
         lazy="subquery",
         backref="mini_bundles",
+        order_by="Journal.title",
     )
 
     subscription_prices = db.relationship(
@@ -117,6 +118,7 @@ class MiniBundle(db.Model, TimestampMixin):
         secondary=journal_mini_bundle_price,
         lazy="subquery",
         backref="mini_bundles",
+        order_by="[desc(SubscriptionPrice.year), SubscriptionPrice.price]",
     )
 
     def to_dict(self):

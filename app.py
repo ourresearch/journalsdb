@@ -3,6 +3,7 @@ import os
 from flask import Flask
 from flask_caching import Cache
 from flask_cors import CORS
+from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flasgger import Swagger
@@ -34,6 +35,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 cache = Cache(app)
 db = SQLAlchemy(app)
+ma = Marshmallow(app)
 migrate = Migrate(app, db)
 
 
@@ -52,7 +54,6 @@ with app.app_context():
     from ingest.subscription.subscription_commands import *
     from ingest.journals.journals_commands import *
     from ingest.journal_metadata.metadata_commands import *
-    from utils.merge_publishers import *
     from operations.issn.issn_operations_commands import *
     from operations.status.status_commands import *
     from ingest.old_issn import *

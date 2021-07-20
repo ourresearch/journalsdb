@@ -1,4 +1,3 @@
-from datetime import datetime
 import json
 
 from flask import abort, jsonify, redirect, request, url_for
@@ -10,6 +9,8 @@ from models.journal import Journal, Publisher
 from models.usage import OpenAccess, Repository, RetractionSummary
 from models.issn import ISSNMetaData, MissingJournal
 from models.location import Region, Country
+from schemas.schema_combined import JournalDetailSchema, JournalListSchema
+from utils import build_link_header
 
 SITE_URL = "https://api.journalsdb.org"
 
@@ -23,6 +24,63 @@ def index():
             "msg": "Don't panic",
         }
     )
+
+
+@app.route("/journals/<issn>")
+@swag_from("docs/journal.yml")
+def journal_detail(issn):
+    redirect_param = request.args.get("redirect", "true", type=str)
+    redirect_param = json.loads(redirect_param)  # convert 'true' to True
+
+    journal = Journal.find_by_issn(issn)
+
+    if not journal:
+        return abort(404, description="Resource not found")
+
+    elif journal.current_journal and redirect_param:
+        # more recent version of the journal exists, so we should redirect to it
+        return redirect(url_for("journal_detail", issn=journal.current_journal.issn_l))
+
+    elif journal.issn_l != issn and issn in journal.issns:
+        # redirect to primary issn_l
+        return redirect(url_for("journal_detail", issn=journal.issn_l))
+
+    journal_detail_schema = JournalDetailSchema()
+    return journal_detail_schema.dump(journal)
+
+
+@app.route("/journals-paged")
+def journals_paged():
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per-page", 100, type=int)
+
+    journals = (
+        Journal.query.order_by(Journal.created_at.asc())
+        .options(joinedload(Journal.doi_counts))
+        .options(joinedload(Journal.issn_metadata))
+        .options(joinedload(Journal.journal_metadata))
+        .options(joinedload(Journal.open_access))
+        .paginate(page, per_page)
+    )
+
+    journal_list_schema = JournalListSchema()
+    journals_dumped = journal_list_schema.dump(journals.items, many=True)
+
+    results = {
+        "results": journals_dumped,
+        "pagination": {
+            "count": journals.total,
+            "page": page,
+            "per_page": per_page,
+            "pages": journals.pages,
+        },
+    }
+
+    base_url = SITE_URL + "/journals-paged"
+    link_header = build_link_header(
+        query=journals, base_url=base_url, per_page=per_page
+    )
+    return jsonify(results), 200, link_header
 
 
 @app.route("/journals")
@@ -182,200 +240,6 @@ def search():
             }
         )
     return jsonify(results)
-
-
-@app.route("/journals/<issn>")
-@swag_from("docs/journal.yml")
-def journal_detail(issn):
-    redirect_param = request.args.get("redirect", "true", type=str)
-    redirect_param = json.loads(redirect_param)  # convert 'true' to True
-
-    journal = Journal.find_by_issn(issn)
-
-    if not journal:
-        return abort(404, description="Resource not found")
-
-    elif journal.current_journal and redirect_param:
-        # more recent version of the journal exists, so we should redirect to it
-        return redirect(url_for("journal_detail", issn=journal.current_journal.issn_l))
-
-    elif journal.issn_l != issn and issn in journal.issns:
-        # redirect to primary issn_l
-        return redirect(url_for("journal_detail", issn=journal.issn_l))
-
-    journal_dict = build_journal_dict_detail(journal, issn)
-    return jsonify(journal_dict), 200
-
-
-def build_journal_dict_detail(journal, issn_l):
-    journal_dict = journal.to_dict()
-    journal_dict["journal_metadata"] = (
-        [m.to_dict() for m in journal.journal_metadata]
-        if journal.journal_metadata
-        else []
-    )
-    if journal.journals_renamed:
-        journal_dict["formerly_known_as"] = [
-            {
-                "issn_l": j.former_journal.issn_l,
-                "title": j.former_journal.title,
-                "url": SITE_URL
-                + url_for(
-                    "journal_detail",
-                    issn=j.former_journal.issn_l,
-                    redirect="false",
-                ),
-            }
-            for j in journal.journals_renamed
-        ]
-    if journal.current_journal:
-        journal_dict["currently_known_as"] = {
-            "issn_l": journal.current_journal.issn_l,
-            "title": journal.current_journal.title,
-            "url": SITE_URL
-            + url_for("journal_detail", issn=journal.current_journal.issn_l),
-        }
-    dois = journal.doi_counts
-    journal_dict["total_dois"] = dois.total_dois if dois else None
-    journal_dict["dois_by_issued_year"] = dois.dois_by_year_sorted if dois else None
-    journal_dict["sample_dois"] = dois.sample_doi_urls if dois else None
-    journal_dict["subscription_pricing"] = {
-        "provenance": journal.publisher.sub_data_source if journal.publisher else None,
-        "prices": sorted(
-            [p.to_dict() for p in journal.subscription_prices],
-            key=lambda p: p["year"],
-            reverse=True,
-        ),
-        "mini_bundles": [m.to_dict() for m in journal.mini_bundles],
-    }
-    journal_dict["apc_pricing"] = {
-        "provenance": journal.publisher.apc_data_source if journal.publisher else None,
-        "apc_prices": sorted(
-            [p.to_dict() for p in journal.apc_prices],
-            key=lambda p: p["year"],
-            reverse=True,
-        ),
-    }
-    journal_dict["open_access"] = (
-        journal.open_access[0].to_dict() if journal.open_access else None
-    )
-    journal_dict["status"] = journal.status.value
-    journal_dict["status_as_of"] = (
-        datetime.strftime(journal.status_as_of, "%Y-%m-%d")
-        if journal.status_as_of
-        else None
-    )
-    journal_dict["open_access_history"] = "{}/journals/{}/open-access".format(
-        SITE_URL, issn_l
-    )
-    journal_dict["repositories"] = "{}/journals/{}/repositories".format(
-        SITE_URL, issn_l
-    )
-    journal_dict["readership"] = [e.to_dict() for e in journal.extension_requests]
-    journal_dict["author_permissions"] = (
-        journal.permissions.to_dict() if journal.permissions else None
-    )
-    journal_dict["retractions"] = RetractionSummary.retractions_by_year(issn_l)
-    return journal_dict
-
-
-@app.route("/journals-paged")
-def journals_paged():
-    page = request.args.get("page", 1, type=int)
-    per_page = request.args.get("per-page", 100, type=int)
-
-    journals = (
-        Journal.query.order_by(Journal.created_at.asc())
-        .options(joinedload(Journal.doi_counts))
-        .options(joinedload(Journal.issn_metadata))
-        .options(joinedload(Journal.journal_metadata))
-        .options(joinedload(Journal.open_access))
-        .paginate(page, per_page)
-    )
-
-    results = {
-        "results": [],
-        "pagination": {
-            "count": journals.total,
-            "page": page,
-            "per_page": per_page,
-            "pages": journals.pages,
-        },
-    }
-
-    for j in journals.items:
-        journal_dict = build_journal_dict_paged(j)
-        results["results"].append(journal_dict)
-
-    base_url = SITE_URL + "/journals-paged"
-    link_header = build_link_header(
-        query=journals, base_url=base_url, per_page=per_page
-    )
-    return jsonify(results), 200, link_header
-
-
-def build_journal_dict_paged(journal):
-    journal_dict = journal.to_dict()
-    journal_dict["journal_metadata"] = (
-        [m.to_dict() for m in journal.journal_metadata]
-        if journal.journal_metadata
-        else []
-    )
-    dois = journal.doi_counts
-    journal_dict["total_dois"] = dois.total_dois if dois else None
-    journal_dict["dois_by_issued_year"] = dois.dois_by_year_sorted if dois else None
-    journal_dict["sample_dois"] = dois.sample_doi_urls if dois else None
-    journal_dict["subscription_pricing"] = {
-        "provenance": journal.publisher.sub_data_source if journal.publisher else None,
-        "prices": sorted(
-            [p.to_dict() for p in journal.subscription_prices],
-            key=lambda p: p["year"],
-            reverse=True,
-        ),
-        "mini_bundles": [m.to_dict() for m in journal.mini_bundles],
-    }
-    journal_dict["apc_pricing"] = {
-        "provenance": journal.publisher.apc_data_source if journal.publisher else None,
-        "apc_prices": sorted(
-            [p.to_dict() for p in journal.apc_prices],
-            key=lambda p: p["year"],
-            reverse=True,
-        ),
-    }
-    journal_dict["open_access"] = (
-        journal.open_access[0].to_dict() if journal.open_access else None
-    )
-    journal_dict["status"] = journal.status.value
-    journal_dict["status_as_of"] = (
-        datetime.strftime(journal.status_as_of, "%Y-%m-%d")
-        if journal.status_as_of
-        else None
-    )
-    return journal_dict
-
-
-def build_link_header(query, base_url, per_page):
-    links = [
-        '<{0}?page=1&per-page={1}>; rel="first"'.format(base_url, per_page),
-        '<{0}?page={1}&per-page={2}>; rel="last"'.format(
-            base_url, query.pages, per_page
-        ),
-    ]
-    if query.has_prev:
-        links.append(
-            '<{0}?page={1}&per-page={2}>; rel="prev"'.format(
-                base_url, query.prev_num, per_page
-            )
-        )
-    if query.has_next:
-        links.append(
-            '<{0}?page={1}&per-page={2}>; rel="next"'.format(
-                base_url, query.next_num, per_page
-            )
-        )
-
-    links = ",".join(links)
-    return dict(Link=links)
 
 
 @app.route("/journals/<issn>/open-access")

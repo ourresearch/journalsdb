@@ -22,9 +22,9 @@ class TestAPIJournalDetail:
         assert json_data["publisher"] == "JMIR Publications Inc."
         assert (
             json_data["open_access_history"]
-            == "https://api.journalsdb.org/journals/2291-5222/open-access"
+            == "http://localhost/journals/2291-5222/open-access"
         )
         assert (
             json_data["repositories"]
-            == "https://api.journalsdb.org/journals/2291-5222/repositories"
+            == "http://localhost/journals/2291-5222/repositories"
         )

@@ -20,6 +20,7 @@ Flask==1.1.2
 Flask-Admin==1.5.7
 Flask-Caching==1.10.1
 Flask-Cors==3.0.9
+flask-marshmallow==0.14.0
 Flask-Migrate==3.0.1
 Flask-SQLAlchemy==2.4.4
 fsspec==0.8.7
@@ -35,6 +36,7 @@ jmespath==0.10.0
 jsonschema==3.2.0
 Mako==1.1.4
 MarkupSafe==1.1.1
+marshmallow-sqlalchemy==0.26.1
 memory-profiler==0.58.0
 mimerender==0.6.0
 mistune==0.8.4

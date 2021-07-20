@@ -8,7 +8,7 @@ from ingest.old_issn import import_issn_apis
 from ingest.issn.issn_import_issns import import_issns
 from views import app
 
-NUMBER_OF_JOURNALS = 3
+NUMBER_OF_JOURNALS = 4
 SAMPLE_DIRECTORY = "tests/ingest_sample_data"
 TEST_DATABASE_URI = "postgresql://localhost/journalsdb_test"
 

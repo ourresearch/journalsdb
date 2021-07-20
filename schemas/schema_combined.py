@@ -87,9 +87,9 @@ class JournalListSchema(ma.Schema):
 
     @post_dump()
     def remove_null_former_current_fields(self, data, many, **kwargs):
-        if len(data["formerly_known_as"]) == 0:
+        if "formerly_known_as" in data and len(data["formerly_known_as"]) == 0:
             del data["formerly_known_as"]
-        if data["currently_known_as"] is None:
+        if "currently_known_as" in data and data["currently_known_as"] is None:
             del data["currently_known_as"]
         return data
 

@@ -6,11 +6,10 @@ from sqlalchemy.orm import joinedload
 
 from app import app, cache, db
 from models.journal import Journal, Publisher
-from models.usage import OpenAccess, Repository, RetractionSummary
+from models.usage import OpenAccess, Repository
 from models.issn import ISSNMetaData, MissingJournal
-from models.location import Region, Country
 from schemas.schema_combined import JournalDetailSchema, JournalListSchema
-from utils import build_link_header
+from utils import build_link_header, process_only_fields
 
 SITE_URL = "https://api.journalsdb.org"
 
@@ -51,9 +50,13 @@ def journal_detail(issn):
 
 @app.route("/journals-paged")
 def journals_paged():
+    # process query parameters
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per-page", 100, type=int)
+    attrs = request.args.get("attrs")
+    only = process_only_fields(attrs) if attrs else None
 
+    # query
     journals = (
         Journal.query.order_by(Journal.created_at.asc())
         .options(joinedload(Journal.doi_counts))
@@ -63,9 +66,11 @@ def journals_paged():
         .paginate(page, per_page)
     )
 
-    journal_list_schema = JournalListSchema()
+    # schema filtered to only fields
+    journal_list_schema = JournalListSchema(only=only)
     journals_dumped = journal_list_schema.dump(journals.items, many=True)
 
+    # combined results with pagination
     results = {
         "results": journals_dumped,
         "pagination": {
@@ -76,6 +81,7 @@ def journals_paged():
         },
     }
 
+    # paginated link headers
     base_url = SITE_URL + "/journals-paged"
     link_header = build_link_header(
         query=journals, base_url=base_url, per_page=per_page

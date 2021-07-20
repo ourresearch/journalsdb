@@ -27,7 +27,7 @@ class JournalListSchema(ma.Schema):
     issn_l = fields.String()
     issns = fields.List(fields.String())
     title = fields.String()
-    publisher = fields.String(attribute="publisher.name")
+    publisher = fields.String(attribute="publisher.name", default=None)
     journal_metadata = fields.Nested(JournalMetadataSchema, many=True)
 
     # formerly / currently known as
@@ -37,11 +37,15 @@ class JournalListSchema(ma.Schema):
     current_journal = fields.Nested(CurrentRenamedSchema, data_key="currently_known_as")
 
     # doi stats
-    total_dois = fields.Integer(attribute="doi_counts.total_dois")
+    total_dois = fields.Integer(attribute="doi_counts.total_dois", default=None)
     dois_by_issued_year = fields.List(
-        fields.List(fields.Integer), attribute="doi_counts.dois_by_year_sorted"
+        fields.List(fields.Integer),
+        attribute="doi_counts.dois_by_year_sorted",
+        default=[],
     )
-    sample_dois = fields.List(fields.String, attribute="doi_counts.sample_doi_urls")
+    sample_dois = fields.List(
+        fields.String, attribute="doi_counts.sample_doi_urls", default=None
+    )
 
     # pricing
     sub_data_source = fields.Function(

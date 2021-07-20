@@ -57,8 +57,9 @@ def process_only_fields(attrs):
         only = only + ["journals_renamed"]
 
     # remove any invalid fields
+    schema_fields = [j for j in JournalListSchema._declared_fields]
     for field in only:
-        if field not in JournalListSchema.__dict__.keys():
+        if field not in schema_fields:
             only.remove(field)
 
     return only

@@ -1,3 +1,4 @@
+from models.journal import Publisher
 from schemas.schema_combined import JournalListSchema
 
 
@@ -63,3 +64,14 @@ def process_only_fields(attrs):
             only.remove(field)
 
     return only
+
+
+def get_publisher_ids(publisher_names):
+    publisher_names = publisher_names.split(",")
+    publisher_ids = []
+    for p in publisher_names:
+        publisher = Publisher.query.filter_by(name=p.title()).one_or_none()
+        if publisher:
+            publisher_ids.append(publisher.id)
+
+    return publisher_ids

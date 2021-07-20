@@ -9,7 +9,7 @@ from models.journal import Journal, Publisher
 from models.usage import OpenAccess, Repository
 from models.issn import ISSNMetaData, MissingJournal
 from schemas.schema_combined import JournalDetailSchema, JournalListSchema
-from utils import build_link_header, process_only_fields
+from utils import build_link_header, get_publisher_ids, process_only_fields
 
 SITE_URL = "https://api.journalsdb.org"
 
@@ -55,10 +55,13 @@ def journals_paged():
     per_page = request.args.get("per-page", 100, type=int)
     attrs = request.args.get("attrs")
     only = process_only_fields(attrs) if attrs else None
+    publishers = request.args.get("publishers")
+    publisher_ids = get_publisher_ids(publishers) if publishers else []
 
     # query
     journals = (
         Journal.query.order_by(Journal.created_at.asc())
+        .filter(Journal.publisher_id.in_(publisher_ids))
         .options(joinedload(Journal.doi_counts))
         .options(joinedload(Journal.issn_metadata))
         .options(joinedload(Journal.journal_metadata))

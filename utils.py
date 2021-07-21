@@ -1,4 +1,6 @@
-from models.journal import Publisher
+from urllib.parse import unquote
+
+from models.journal import Publisher, JournalStatus
 from schemas.schema_combined import JournalListSchema
 
 
@@ -69,9 +71,16 @@ def process_only_fields(attrs):
 def get_publisher_ids(publisher_names):
     publisher_names = publisher_names.split(",")
     publisher_ids = []
-    for p in publisher_names:
-        publisher = Publisher.query.filter_by(name=p.title()).one_or_none()
+    for name in publisher_names:
+        name = unquote(name)  # convert special characters back to string
+        publisher = Publisher.query.filter(Publisher.name.ilike(name)).first()
         if publisher:
             publisher_ids.append(publisher.id)
 
     return publisher_ids
+
+
+def validate_status(status):
+    valid_status_values = [j.value for j in JournalStatus]
+    if status and status in valid_status_values:
+        return status

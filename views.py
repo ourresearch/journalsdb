@@ -9,7 +9,12 @@ from models.journal import Journal, Publisher
 from models.usage import OpenAccess, Repository
 from models.issn import ISSNMetaData, MissingJournal
 from schemas.schema_combined import JournalDetailSchema, JournalListSchema
-from utils import build_link_header, get_publisher_ids, process_only_fields
+from utils import (
+    build_link_header,
+    get_publisher_ids,
+    process_only_fields,
+    validate_status,
+)
 
 SITE_URL = "https://api.journalsdb.org"
 
@@ -57,19 +62,28 @@ def journals_paged():
     only = process_only_fields(attrs) if attrs else None
     publishers = request.args.get("publishers")
     publisher_ids = get_publisher_ids(publishers) if publishers else []
+    valid_status = validate_status(request.args.get("status"))
 
-    # query
+    # primary query
     journals = (
         Journal.query.order_by(Journal.created_at.asc())
-        .filter(Journal.publisher_id.in_(publisher_ids))
         .options(joinedload(Journal.doi_counts))
         .options(joinedload(Journal.issn_metadata))
         .options(joinedload(Journal.journal_metadata))
         .options(joinedload(Journal.open_access))
-        .paginate(page, per_page)
     )
 
-    # schema filtered to only fields
+    # filters
+    if publisher_ids:
+        journals = journals.filter(Journal.publisher_id.in_(publisher_ids))
+
+    if valid_status:
+        journals = journals.filter_by(status=valid_status)
+
+    # pagination
+    journals = journals.paginate(page, per_page)
+
+    # schema with displayed fields based on attrs
     journal_list_schema = JournalListSchema(only=only)
     journals_dumped = journal_list_schema.dump(journals.items, many=True)
 

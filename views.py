@@ -5,6 +5,7 @@ from flasgger import swag_from
 from sqlalchemy.orm import joinedload
 
 from app import app, cache, db
+from exceptions import APIError
 from models.journal import Journal, Publisher
 from models.usage import OpenAccess, Repository
 from models.issn import ISSNMetaData, MissingJournal
@@ -13,6 +14,7 @@ from utils import (
     build_link_header,
     get_publisher_ids,
     process_only_fields,
+    validate_per_page,
     validate_status,
 )
 
@@ -57,7 +59,7 @@ def journal_detail(issn):
 def journals_paged():
     # process query parameters
     page = request.args.get("page", 1, type=int)
-    per_page = request.args.get("per-page", 100, type=int)
+    per_page = validate_per_page(request.args.get("per-page", 100, type=int))
     attrs = request.args.get("attrs")
     only = process_only_fields(attrs) if attrs else None
     publishers = request.args.get("publishers")
@@ -322,6 +324,17 @@ def missing_journal():
     db.session.add(journal)
     db.session.commit()
     return jsonify({"message": message}), 201
+
+
+@app.errorhandler(APIError)
+def handle_exception(err):
+    """Return custom JSON when APIError or its children are raised"""
+    response = {"error": err.description, "message": ""}
+    if len(err.args) > 0:
+        response["message"] = err.args[0]
+    # Add some logging so that we can monitor different types of errors
+    app.logger.error("{}: {}".format(err.description, response["message"]))
+    return jsonify(response), err.code
 
 
 if __name__ == "__main__":

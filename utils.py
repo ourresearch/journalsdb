@@ -1,5 +1,6 @@
 from urllib.parse import unquote
 
+from exceptions import APIPaginationError
 from models.journal import Publisher, JournalStatus
 from schemas.schema_combined import JournalListSchema
 
@@ -78,6 +79,13 @@ def get_publisher_ids(publisher_names):
             publisher_ids.append(publisher.id)
 
     return publisher_ids
+
+
+def validate_per_page(per_page):
+    if per_page and per_page > 100 or per_page < 1:
+        raise APIPaginationError("per-page parameter must be between 1 and 100")
+
+    return per_page
 
 
 def validate_status(status):

@@ -28,3 +28,8 @@ class TestAPIJournalDetail:
             json_data["repositories"]
             == "http://localhost/journals/2291-5222/repositories"
         )
+
+    def test_journal_renamed(self, api_client):
+        rv = api_client.get("/journals/2291-5222")
+        json_data = rv.get_json()
+        assert json_data["formerly_known_as"][0]["issn_l"] == "5577-4444"

@@ -4,11 +4,11 @@ from flask import abort, jsonify, redirect, request, url_for
 from flasgger import swag_from
 from sqlalchemy.orm import joinedload
 
-from app import app, cache, db
+from app import app, db
 from exceptions import APIError
-from models.journal import Journal, Publisher
+from models.journal import Journal
 from models.usage import OpenAccess, Repository
-from models.issn import ISSNMetaData, MissingJournal
+from models.issn import MissingJournal
 from schemas.schema_combined import JournalDetailSchema, JournalListSchema
 from utils import (
     build_link_header,
@@ -106,129 +106,6 @@ def journals_paged():
         query=journals, base_url=base_url, per_page=per_page
     )
     return jsonify(results), 200, link_header
-
-
-@app.route("/journals")
-@cache.cached(timeout=60 * 60 * 6, query_string=True)
-@swag_from("docs/journals.yml")
-def journals():
-    attrs = request.args.get("attrs")
-    pub_name = request.args.get("publisher_name")
-    filter = {"name": pub_name}
-    multi_pubs = True
-    if pub_name:
-        publishers = (
-            db.session.query(Publisher)
-            .filter(Publisher.publisher_synonyms.contains(json.dumps(pub_name)))
-            .all()
-        )
-        if not publishers:
-            publisher = (
-                db.session.query(Publisher).filter_by(name=pub_name).one_or_none()
-            )
-            multi_pubs = False
-            if not publisher:
-                return jsonify({"error": "Invalid publisher"}), 400
-    if attrs:
-        attrs = set(attrs.split(","))
-        if not is_valid_attrs(attrs):
-            return jsonify({"error": "Invalid attributes"}), 400
-        journal_attrs, publisher_attrs, metadata_attrs = process_attrs(attrs)
-        journals = get_journals(
-            journal_attrs, publisher_attrs, metadata_attrs, filter, multi_pubs
-        )
-    else:
-        column = getattr(Journal, "issn_l")
-        journals = db.session.query(Journal).with_entities(column).all()
-
-    journal_results = []
-    for j in journals:
-        result = j._asdict()
-
-        # handle issns
-        if attrs and metadata_attrs and "issns" in metadata_attrs:
-            result["issns"] = list(set(result["issn_org_issns"]))
-            del result["crossref_issns"]
-            del result["issn_org_issns"]
-
-        # set publisher key name
-        if attrs and publisher_attrs and "name" in publisher_attrs:
-            result["publisher_name"] = result["name"]
-            del result["name"]
-
-        journal_results.append(result)
-
-    response = {"journals": journal_results, "count": len(journals)}
-    return jsonify(response)
-
-
-def is_valid_attrs(attrs):
-    valid_attrs = {
-        "issn_l",
-        "journal_synonyms",
-        "title",
-        "uuid",
-        "publisher_name",
-        "publisher_synonyms",
-        "issns",
-    }
-
-    if attrs.difference(valid_attrs):
-        is_valid = False
-    else:
-        is_valid = True
-    return is_valid
-
-
-def process_attrs(attrs):
-    valid_journal_attrs = {"issn_l", "journal_synonyms", "title", "uuid"}
-    valid_publisher_attrs = {"publisher_name", "publisher_synonyms"}
-    valid_metadata_attrs = {"issns"}
-
-    journal_attrs = attrs.intersection(valid_journal_attrs)
-    publisher_attrs = attrs.intersection(valid_publisher_attrs)
-    publisher_attrs = [a.replace("publisher_name", "name") for a in publisher_attrs]
-    metadata_attrs = attrs.intersection(valid_metadata_attrs)
-    return journal_attrs, publisher_attrs, metadata_attrs
-
-
-def get_journals(journal_attrs, publisher_attrs, metadata_attrs, filters, multi_pubs):
-    columns = [getattr(Journal, i) for i in journal_attrs]
-
-    if publisher_attrs:
-        columns.extend([getattr(Publisher, i) for i in publisher_attrs])
-
-    if "issns" in metadata_attrs:
-        metadata_columns = ["issn_org_issns", "crossref_issns"]
-        columns.extend([getattr(ISSNMetaData, i) for i in metadata_columns])
-
-    if not multi_pubs:
-        return (
-            db.session.query(Journal)
-            .outerjoin(Journal.publisher)
-            .filter_by(**filters)
-            .join(Journal.issn_metadata)
-            .with_entities(*columns)
-            .all()
-        )
-
-    if filters["name"]:
-        return (
-            db.session.query(Journal)
-            .join(Journal.publisher)
-            .filter(Publisher.publisher_synonyms.contains(json.dumps(filters["name"])))
-            .join(Journal.issn_metadata)
-            .with_entities(*columns)
-            .all()
-        )
-
-    return (
-        db.session.query(Journal)
-        .outerjoin(Journal.publisher)
-        .join(Journal.issn_metadata)
-        .with_entities(*columns)
-        .all()
-    )
 
 
 @app.route("/journals/<issn_l>/repositories")

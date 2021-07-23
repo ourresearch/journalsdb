@@ -1,7 +1,20 @@
 import click
 
 from app import app
+from ingest.journals.new_journal import NewJournal
 from ingest.journals.journals_manual_add import ManualAdd
+from models.issn import ISSNMetaData
+
+
+@app.cli.command("process_new_journals")
+def process_new_journals():
+    """
+    Command that iterates through issn_metadata and saves new journals if a title exists.
+    """
+    issns = ISSNMetaData.query.filter_by(updated_at=None).all()
+    for issn_metadata in issns:
+        new_journal = NewJournal(issn_metadata)
+        new_journal.process()
 
 
 @app.cli.command("manual_add")

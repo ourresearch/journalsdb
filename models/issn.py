@@ -56,71 +56,10 @@ class ISSNMetaData(db.Model):
     )
 
     @property
-    def title_from_issn_api(self):
-        if not self.issn_org_raw_api:
-            return self.title_from_crossref_api
-        else:
-            try:
-                # find element with name or mainTitle
-                title_dict = next(
-                    d
-                    for d in self.issn_org_raw_api["@graph"]
-                    if "name" in d.keys() or "mainTitle" in d.keys()
-                )
-            except StopIteration:
-                return self.title_from_crossref_api
-
-        title = (
-            title_dict["mainTitle"]
-            if "mainTitle" in title_dict
-            else title_dict.get("name")
-        )
-        if isinstance(title, list):
-            # get shortest title from the list
-            if "." in title:
-                title.remove(".")
-            title = min(title, key=len)
-        title = title.strip()
-        return title
-
-    @property
-    def title_from_crossref_api(self):
-        if not self.crossref_raw_api:
-            return
-        else:
-            if "title" in self.crossref_raw_api["message"]:
-                return self.crossref_raw_api["message"]["title"]
-
-    @property
     def issns_from_crossref_api(self):
         return (
             self.crossref_raw_api["message"]["ISSN"] if self.crossref_raw_api else None
         )
-
-    @property
-    def publisher(self):
-        name = (
-            self.crossref_raw_api["message"]["publisher"]
-            if self.crossref_raw_api
-            else None
-        )
-        name = name.strip('"').strip() if name else None
-
-        # normalize publisher
-        if name and "informa uk" in name.lower():
-            name = "Taylor & Francis"
-        elif name and "wiley" in name.lower():
-            name = "Wiley"
-        elif (
-            name
-            and "springer" in name.lower()
-            and name != "Springer Publishing Company"
-        ):
-            name = "Springer Nature"
-        elif name and "sage publications" in name.lower():
-            name = "SAGE"
-
-        return name
 
     @property
     def issns(self):

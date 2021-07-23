@@ -4,7 +4,7 @@ import pytest
 
 from app import db
 from tests.factories import import_api_test_data
-from ingest.old_issn import import_issn_apis
+from ingest.journals.journals_commands import process_new_journals
 from ingest.issn.issn_import_issns import import_issns
 from views import app
 
@@ -83,6 +83,6 @@ def run_import_issns_with_api():
         runner.invoke(import_issns, ["--file_path", file_path])
 
         # run api import
-        runner.invoke(import_issn_apis)
+        runner.invoke(process_new_journals)
 
     return _import

@@ -1,3 +1,22 @@
+**2021-07-23 - Add ISSNs, refactor journals-paged endpoint, begin Springer Nature deep dive**
+
+ISSNs mapped to existing ISSNs:  
+1573-8763 -> 1062-7391  
+1555-7898 -> 1080-6954  
+1521-6047 -> 0090-6964  
+
+Added ISSNs:  
+1578-195X, 2214-5370
+
+ISSNs were not found:  
+1743-4230, 5555-1515
+
+The `/journals-paged` endpoint now supports attrs so that a user can display any top-level field. You can 
+also filter by publishers or status.
+
+Began deep dive on Springer Nature subscription pricing and missing metadata.
+
+
 **2021-07-16 - Add Sage subscription pricing, change status field, add journals**
 
 Added subscription pricing for 5 SAGE journals.

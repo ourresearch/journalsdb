@@ -2,7 +2,6 @@ import json
 
 from flask import abort, jsonify, redirect, request, url_for
 from flasgger import swag_from
-from sqlalchemy.orm import joinedload
 
 from app import app, db
 from exceptions import APIError
@@ -67,13 +66,7 @@ def journals_paged():
     valid_status = validate_status(request.args.get("status"))
 
     # primary query
-    journals = (
-        Journal.query.order_by(Journal.created_at.asc())
-        .options(joinedload(Journal.doi_counts))
-        .options(joinedload(Journal.issn_metadata))
-        .options(joinedload(Journal.journal_metadata))
-        .options(joinedload(Journal.open_access))
-    )
+    journals = Journal.query.order_by(Journal.created_at.asc())
 
     # filters
     if publisher_ids:

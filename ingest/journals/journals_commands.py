@@ -1,7 +1,7 @@
 import click
 
 from app import app
-from ingest.journals.new_journal import NewJournal
+from ingest.journals.journals_new_journal import NewJournal
 from ingest.journals.journals_manual_add import ManualAdd
 from models.issn import ISSNMetaData
 

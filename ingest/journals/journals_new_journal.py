@@ -45,17 +45,6 @@ class NewJournal:
             if r.status_code == 200 and "@graph" in r.json():
                 self.issn_metadata.issn_org_raw_api = r.json()
                 db.session.commit()
-                print(
-                    "saving issn_metadata org data for issn_metadata {}".format(
-                        self.issn_metadata.issn_l
-                    )
-                )
-            else:
-                print(
-                    "no issn_metadata org data found for {}".format(
-                        self.issn_metadata.issn_l
-                    )
-                )
         except (requests.exceptions.ConnectionError, json.JSONDecodeError):
             return
 
@@ -71,17 +60,6 @@ class NewJournal:
                     self.issn_metadata.issns_from_crossref_api
                 )
                 db.session.commit()
-                print(
-                    "saving crossref data for issn_metadata {}".format(
-                        self.issn_metadata.issn_l
-                    )
-                )
-            else:
-                print(
-                    "no crossref data for issn_metadata {}".format(
-                        self.issn_metadata.issn_l
-                    )
-                )
         except requests.exceptions.ConnectionError:
             return None
 

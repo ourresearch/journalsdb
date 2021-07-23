@@ -153,14 +153,26 @@ class NewJournal:
         return name
 
     def save_journal(self, title, publisher):
-        j = Journal(issn_l=self.issn_metadata.issn_l, title=title, publisher=publisher)
-        db.session.add(j)
-        db.session.commit()
-        print(
-            "added new journal with issn_l {}, title {}, publisher {}".format(
-                self.issn_metadata.issn_l, title, publisher
+        journal_exists = Journal.query.filter_by(
+            issn_l=self.issn_metadata.issn_l
+        ).one_or_none()
+        if journal_exists:
+            print(
+                "error: journal with issn {} already exists.".format(
+                    self.issn_metadata.issn_l
+                )
             )
-        )
+        else:
+            j = Journal(
+                issn_l=self.issn_metadata.issn_l, title=title, publisher=publisher
+            )
+            db.session.add(j)
+            db.session.commit()
+            print(
+                "added new journal with issn_l {}, title {}, publisher {}".format(
+                    self.issn_metadata.issn_l, title, publisher
+                )
+            )
 
     def link_issn_l(self):
         try:

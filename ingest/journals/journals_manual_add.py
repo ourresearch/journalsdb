@@ -17,12 +17,23 @@ class ManualAdd:
         self.save_journal_record()
 
     def add_issn_to_issnl_mapping(self):
-        issn_to_issnl = ISSNToISSNL(issn_l=self.issn, issn=self.issn)
-        db.session.add(issn_to_issnl)
-        db.session.commit()
-        print(
-            "issn {} mapped to {} in issn to issnl table".format(self.issn, self.issn)
-        )
+        # check if exists
+        exists = ISSNToISSNL.query.filter_by(issn=self.issn).one_or_none()
+        if exists:
+            print(
+                "error: issn {} already exists in the issn_to_issnl table".format(
+                    self.issn
+                )
+            )
+        else:
+            issn_to_issnl = ISSNToISSNL(issn_l=self.issn, issn=self.issn)
+            db.session.add(issn_to_issnl)
+            db.session.commit()
+            print(
+                "issn {} mapped to {} in issn to issnl table".format(
+                    self.issn, self.issn
+                )
+            )
 
     def add_issn_to_issn_org_issns(self):
         metadata = ISSNMetaData(

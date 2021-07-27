@@ -1,3 +1,39 @@
+**2021-07-27 Add missing journals**
+
+Added following Elsevier journals with metadata:    
+2772-6711 https://www.journals.elsevier.com/e-prime  
+2772-6940 https://www.journals.elsevier.com/animal-open-space  
+2772-5030 https://www.journals.elsevier.com/telematics-and-informatics-reports  
+2772-3755 https://www.journals.elsevier.com/smart-agricultural-technology   
+2772-5693 https://www.journals.elsevier.com/science-talks  
+2772-5987 https://www.journals.elsevier.com/psychiatry-research-communications  
+2772-3704 https://www.journals.elsevier.com/power-electronic-devices-and-components  
+2667-1425 https://www.journals.elsevier.com/pharmacological-research-modern-chinese-medicine  
+2772-6282 https://www.journals.elsevier.com/pec-innovation  
+2772-6541 https://www.journals.elsevier.com/osteoarthritis-imaging  
+2772-7041 https://www.journals.elsevier.com/newborn  
+2664-3294 https://www.journals.elsevier.com/new-techno-humanities  
+2772-5286 https://www.journals.elsevier.com/neuroscience-informatics  
+2772-4085 https://www.journals.elsevier.com/neuroscience-applied  
+2772-4115 https://www.journals.elsevier.com/nature-based-solutions  
+2772-4212 https://www.journals.elsevier.com/journal-of-membrane-science-letters  
+2772-4220 https://www.journals.elsevier.com/journal-of-ionic-liquids  
+2772-4166 https://www.journals.elsevier.com/journal-of-hazardous-materials-advances  
+2667-2774 https://www.journals.elsevier.com/journal-of-business-venturing-design  
+2772-6967 https://www.journals.elsevier.com/jsams-plus  
+2772-414X https://www.journals.elsevier.com/jada-foundational-science  
+2772-4441 https://www.journals.elsevier.com/invention-disclosure  
+2772-4875 https://www.journals.elsevier.com/international-journal-of-cardiology-cardiovascular-risk-and-prevention  
+2667-3053 https://www.journals.elsevier.com/intelligent-systems-with-applications  
+2772-431X https://www.journals.elsevier.com/infectious-medicine  
+2667-2588 https://www.journals.elsevier.com/ipem-translation  
+2772-5014 https://www.journals.elsevier.com/human-factors-in-healthcare  
+2772-6320 https://www.journals.elsevier.com/health-sciences-review  
+2772-5774 https://www.journals.elsevier.com/green-analytical-chemistry  
+
+ISSNs set as formerly known as:  
+0893-7524 -> 2151-464X  
+
 **2021-07-23 - Add ISSNs, refactor journals-paged endpoint, begin Springer Nature deep dive**
 
 ISSNs mapped to existing ISSNs:  

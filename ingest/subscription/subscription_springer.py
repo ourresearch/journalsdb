@@ -67,7 +67,7 @@ class SpringerNature2022(SubscriptionImport):
         publisher_name = "Springer Nature"
         regions_and_currencies = [
             ("USA", "USD"),
-            ("Japan", "YEN"),
+            ("Japan", "JPY"),
             ("Europe", "EUR"),
         ]
         super().__init__(
@@ -83,7 +83,6 @@ class SpringerNature2022(SubscriptionImport):
         """
         currency_from_file_path = file_path[-8:-5].upper()
         self.set_currency(currency_from_file_path)
-        self.set_country()
 
         tab_name = "SN Journals {} Price List 2022".format(self.currency.acronym)
         xls = pd.ExcelFile(file_path)
@@ -91,22 +90,16 @@ class SpringerNature2022(SubscriptionImport):
         df.replace("", np.nan, inplace=True)
         self.df = df
 
-    def set_country(self):
+    def set_country_or_region(self):
         """
-        Gets a country given the provided acronym
+        Sets a country or region given the provided currency acronym
         """
-        self.country = None
-        self.country_id = None
-        if not self.current_region:
-            self.country = (
-                db.session.query(Country)
-                .filter_by(name="United States of America")
-                .first()
-            )
-            if self.country:
-                self.country_id = self.country.id
-            else:
-                print("No country for region:", self.country)
+        if self.currency.acronym == "USD":
+            self.set_country("USA")
+        elif self.currency.acronym == "JPY":
+            self.set_country("Japan")
+        elif self.currency.acronym == "EUR":
+            self.set_region("EUR")
 
     def import_prices(self):
         """
@@ -115,14 +108,13 @@ class SpringerNature2022(SubscriptionImport):
         price_column = "Institutional Price electronic only {}".format(
             self.currency.acronym
         )
+        self.set_country_or_region()
         for index, row in self.df.iterrows():
             self.set_journal_name(row["Title"])
             self.set_issn(row["ISSN electronic"])
             self.set_journal()
             self.set_product_id(row["Product ID"])
             self.set_price(row[price_column])
-            title = self.journal.title if self.journal else None
-            print(title, self.price)
-            # self.add_price_to_db()
+            self.add_price_to_db()
 
         db.session.commit()

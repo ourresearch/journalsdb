@@ -1,11 +1,3 @@
-"""
-Goal is to import journal pricing data from the top five academic journal publishers. So overall flow is:
-
-1. Look up journal by ISSN (using method Journal.find_by_issn(issn))
-2. Save subscription price with associated currency and region (USA, UK, rest of world, etc)
-3. Save publisher's internal ID as internal_publisher_id in the journals table
-4. Some journals are part of a package or 'mini bundle' so will need to be saved as a mini bundle.
-"""
 import os
 
 import click
@@ -14,14 +6,17 @@ import pandas as pd
 from app import app, db
 from ingest.subscription.subscription_elsevier import Elsevier
 from ingest.subscription.subscription_sage import Sage, SageMiniBundle
-from ingest.subscription.subscription_springer import SpringerNature
+from ingest.subscription.subscription_springer import (
+    SpringerNature2021,
+    SpringerNature2022,
+)
 from ingest.subscription.subscription_taylor import TaylorFrancis, TaylorMiniBundle
 from ingest.subscription.subscription_wiley import WileyBlackwell
 from models.journal import Journal
 from models.price import Country, Currency, MiniBundle, Region, SubscriptionPrice
 from ingest.utils import get_or_create
 
-CSV_DIRECTORY = "ingest/subscription/files/"
+CSV_DIRECTORY = "ingest/subscription/files/2022"
 
 
 @app.cli.command("import_wb")
@@ -68,12 +63,23 @@ def import_sage(file_name, year):
     s.import_prices()
 
 
-@app.cli.command("import_springer")
+@app.cli.command("import_springer_2021")
 @click.option("--file_name", default="springer_sub_2021.xlsx")
 @click.option("--year", required=True)
-def import_springer(file_name, year):
+def import_springer_2021(file_name, year):
     file_path = os.path.join(app.root_path, CSV_DIRECTORY, file_name)
-    s = SpringerNature(year)
+    s = SpringerNature2021(year)
+    s.format_springer_dataframe(file_path)
+    s.add_regions_to_db()
+    s.import_prices()
+
+
+@app.cli.command("import_springer_2022")
+@click.option("--file_name")
+@click.option("--year", required=True)
+def import_springer_2022(file_name, year):
+    file_path = os.path.join(app.root_path, CSV_DIRECTORY, file_name)
+    s = SpringerNature2022(year)
     s.format_springer_dataframe(file_path)
     s.add_regions_to_db()
     s.import_prices()
@@ -152,7 +158,7 @@ def import_mini_bundle(file_name, year):
 
 
 @app.cli.command("sage_mb")
-@click.option("--file_name", default="sage_sub_2021.xlsx")
+@click.option("--file_name", default="2021/sage_sub_2021.xlsx")
 @click.option("--year", required=True)
 def sage_mb(file_name, year):
     file_path = os.path.join(app.root_path, CSV_DIRECTORY, file_name)
@@ -162,7 +168,7 @@ def sage_mb(file_name, year):
 
 
 @app.cli.command("taylor_mb")
-@click.option("--file_name", default="taylor_francis_sub_2021.xlsx")
+@click.option("--file_name", default="2021/taylor_francis_sub_2021.xlsx")
 @click.option("--year", required=True)
 def taylor_mb(file_name, year):
     file_path = os.path.join(app.root_path, CSV_DIRECTORY, file_name)

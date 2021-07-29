@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from datetime import datetime
 import enum
 import json
@@ -172,16 +171,6 @@ class Journal(db.Model):
         dois_combined_and_sorted = list(sorted(dois_by_year.items(), reverse=True))
         return dois_combined_and_sorted
 
-    def to_dict(self):
-        return OrderedDict(
-            {
-                "issn_l": self.issn_l,
-                "issns": self.issns,
-                "title": self.title,
-                "publisher": self.publisher.name if self.publisher else "",
-            }
-        )
-
 
 class JournalMetadata(db.Model, TimestampMixin):
     __tablename__ = "journal_metadata"
@@ -199,17 +188,6 @@ class JournalMetadata(db.Model, TimestampMixin):
     wikidata_url = db.Column(db.String(500))
     is_society_journal = db.Column(db.Boolean, default=False)
     societies = db.Column(JSONB)
-
-    def to_dict(self):
-        dict_ = {}
-        for key in self.__mapper__.c.keys():
-            dict_[key] = getattr(self, key)
-
-        fields_to_remove = ["id", "journal_id", "created_at", "updated_at"]
-        for field in fields_to_remove:
-            dict_.pop(field)
-
-        return dict_
 
 
 class JournalRenamed(db.Model):

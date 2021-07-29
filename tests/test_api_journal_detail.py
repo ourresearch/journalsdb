@@ -33,3 +33,25 @@ class TestAPIJournalDetail:
         rv = api_client.get("/journals/2291-5222")
         json_data = rv.get_json()
         assert json_data["formerly_known_as"][0]["issn_l"] == "5577-4444"
+
+    def test_journal_renamed_merged_dois_by_year(self, api_client):
+        rv = api_client.get("/journals/2291-5222")
+        json_data = rv.get_json()
+        assert json_data["total_dois"] == 4
+
+    def test_journal_renamed_merged_total_dois(self, api_client):
+        rv = api_client.get("/journals/2291-5222")
+        json_data = rv.get_json()
+        assert json_data["dois_by_issued_year"] == [[2021, 2], [2020, 2]]
+
+    def test_journal_renamed_merge_flag(self, api_client):
+        rv = api_client.get("/journals/2291-5222?merge=true")
+        json_data = rv.get_json()
+        assert json_data["total_dois"] == 4
+        assert json_data["dois_by_issued_year"] == [[2021, 2], [2020, 2]]
+
+    def test_journal_renamed_no_merge(self, api_client):
+        rv = api_client.get("/journals/2291-5222?merge=false")
+        json_data = rv.get_json()
+        assert json_data["total_dois"] == 2
+        assert json_data["dois_by_issued_year"] == [[2021, 2]]

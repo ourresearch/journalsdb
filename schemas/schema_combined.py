@@ -27,7 +27,7 @@ class JournalListSchema(ma.Schema):
     issn_l = fields.String()
     issns = fields.List(fields.String())
     title = fields.String()
-    publisher = fields.String(attribute="publisher.name", default=None)
+    publisher = fields.String(attribute="publisher.name", dump_default=None)
     journal_metadata = fields.Nested(JournalMetadataSchema, many=True)
 
     # formerly / currently known as
@@ -37,14 +37,10 @@ class JournalListSchema(ma.Schema):
     current_journal = fields.Nested(CurrentRenamedSchema, data_key="currently_known_as")
 
     # doi stats
-    total_dois = fields.Integer(attribute="doi_counts.total_dois", default=None)
-    dois_by_issued_year = fields.List(
-        fields.List(fields.Integer),
-        attribute="doi_counts.dois_by_year_sorted",
-        default=[],
-    )
+    total_dois = fields.Method("get_total_dois", dump_default=None)
+    dois_by_issued_year = fields.Method("get_dois_by_year", dump_default=None)
     sample_dois = fields.List(
-        fields.String, attribute="doi_counts.sample_doi_urls", default=None
+        fields.String, attribute="doi_counts.sample_doi_urls", dump_default=None
     )
 
     # pricing
@@ -65,6 +61,20 @@ class JournalListSchema(ma.Schema):
     )
     status = fields.String(attribute="status.value")
     status_as_of = fields.DateTime(format="%Y-%m-%d", attribute="status_as_of")
+
+    def get_total_dois(self, obj):
+        merge_records = self.context.get("merge")
+        if merge_records:
+            return obj.total_dois_merged
+        else:
+            return obj.total_dois_single
+
+    def get_dois_by_year(self, obj):
+        merge_records = self.context.get("merge")
+        if merge_records:
+            return obj.dois_by_year_merged or []
+        else:
+            return obj.dois_by_year_single or []
 
     @post_dump()
     def move_provenance(self, data, many, **kwargs):

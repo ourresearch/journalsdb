@@ -1,9 +1,9 @@
 from app import db
 from models.issn import ISSNMetaData
-from models.journal import Journal, Publisher, JournalMetadata, JournalRenamed
+from models.journal import Journal, JournalMetadata, JournalRenamed, Publisher
 from models.location import Country, Region
 from models.price import APCPrice, Currency, MiniBundle, SubscriptionPrice
-from models.usage import RetractionSummary, OpenAccess, Repository
+from models.usage import DOICount, OpenAccess, Repository, RetractionSummary
 
 
 def import_api_test_data():
@@ -380,4 +380,10 @@ def import_api_test_data():
     jr.former_issn_l = "5577-4444"
     jr.current_issn_l = "2291-5222"
     db.session.add(jr)
+
+    # DOIs to test merged journal data due to renames
+    d1 = DOICount(issn_l="5577-4444", dois_by_year={"2020": 2})
+    d2 = DOICount(issn_l="2291-5222", dois_by_year={"2021": 2})
+    db.session.add(d1)
+    db.session.add(d2)
     db.session.commit()

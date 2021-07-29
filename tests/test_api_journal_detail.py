@@ -29,6 +29,107 @@ class TestAPIJournalDetail:
             == "http://localhost/journals/2291-5222/repositories"
         )
 
+    def test_journal_detail_fields(self, api_client):
+        """
+        Ensure we are displaying the correct top-level fields in the correct order.
+        """
+        rv = api_client.get("/journals/1907-1760")
+        json_data = rv.get_json()
+        top_level_keys = [
+            "issn_l",
+            "issns",
+            "title",
+            "publisher",
+            "journal_metadata",
+            "total_dois",
+            "dois_by_issued_year",
+            "sample_dois",
+            "subscription_pricing",
+            "apc_pricing",
+            "open_access",
+            "status",
+            "status_as_of",
+            "open_access_history",
+            "repositories",
+            "readership",
+            "author_permissions",
+            "retractions",
+        ]
+
+        i = 0
+        for key in json_data.keys():
+            assert key == top_level_keys[i]
+            i += 1
+
+    def test_journal_detail_fields_renamed_current(self, api_client):
+        """
+        Ensure we are displaying the correct top-level fields in the correct order.
+        New journals that have been renamed and are the current journal have an extra
+        field called formerly_known_as.
+        """
+        rv = api_client.get("/journals/2291-5222")
+        json_data = rv.get_json()
+        top_level_keys = [
+            "issn_l",
+            "issns",
+            "title",
+            "publisher",
+            "journal_metadata",
+            "formerly_known_as",
+            "total_dois",
+            "dois_by_issued_year",
+            "sample_dois",
+            "subscription_pricing",
+            "apc_pricing",
+            "open_access",
+            "status",
+            "status_as_of",
+            "open_access_history",
+            "repositories",
+            "readership",
+            "author_permissions",
+            "retractions",
+        ]
+
+        i = 0
+        for key in json_data.keys():
+            assert key == top_level_keys[i]
+            i += 1
+
+    def test_journal_detail_fields_renamed_former(self, api_client):
+        """
+        Ensure we are displaying the correct top-level fields in the correct order.
+        Old journals that have been renamed have an extra field called currently_known_as.
+        """
+        rv = api_client.get("/journals/5577-4444?redirect=false")
+        json_data = rv.get_json()
+        top_level_keys = [
+            "issn_l",
+            "issns",
+            "title",
+            "publisher",
+            "journal_metadata",
+            "currently_known_as",
+            "total_dois",
+            "dois_by_issued_year",
+            "sample_dois",
+            "subscription_pricing",
+            "apc_pricing",
+            "open_access",
+            "status",
+            "status_as_of",
+            "open_access_history",
+            "repositories",
+            "readership",
+            "author_permissions",
+            "retractions",
+        ]
+
+        i = 0
+        for key in json_data.keys():
+            assert key == top_level_keys[i]
+            i += 1
+
     def test_journal_renamed(self, api_client):
         rv = api_client.get("/journals/2291-5222")
         json_data = rv.get_json()

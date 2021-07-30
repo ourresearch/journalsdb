@@ -1,3 +1,37 @@
+**2021-07-30 Add Springer 2022 pricing, missing journals, metadata**
+
+Added year 2022 subscription pricing for Springer Nature journals.
+
+Added metadata (home page, etc) for 317 Springer Nature journals and 36 new Elsevier journals.
+
+Added following Elsevier journals with metadata:
+
+2667-0097 https://www.journals.elsevier.com/global-pediatrics  
+2667-0259 https://www.journals.elsevier.com/food-hydrocolloids-for-health  
+2666-5506 https://www.journals.elsevier.com/european-economic-review-plus  
+2772-4271 https://www.journals.elsevier.com/energy-nexus  
+2772-5081 https://www.journals.elsevier.com/digital-chemical-engineering  
+2772-6533 https://www.journals.elsevier.com/dialogues-in-health  
+2772-6622 https://www.journals.elsevier.com/decision-analytics-journal  
+2665-9298 https://www.journals.elsevier.com/current-research-in-genetics-and-development  
+2772-4247 https://www.journals.elsevier.com/communications-in-transportation-research  
+2772-6134 https://www.journals.elsevier.com/clinical-immunology-communications  
+2772-3712 https://www.journals.elsevier.com/clinical-complementary-medicine-and-pharmacology  
+2666-7916 https://www.journals.elsevier.com/cleaner-production-letters  
+2772-3976 https://www.journals.elsevier.com/cleaner-materials  
+2772-3909 https://www.journals.elsevier.com/cleaner-logistics-and-supply-chain  
+2709-4723 https://www.journals.elsevier.com/chip  
+2772-5588 https://www.journals.elsevier.com/chinese-medical-journal-pulmonary-and-critical-care-medicine  
+2772-6568 https://www.journals.elsevier.com/carbon-capture-science-and-technology  
+2666-5794 https://www.journals.elsevier.com/brainscience  
+2772-5294 https://www.journals.elsevier.com/brain-and-spine  
+2667-0747 https://www.cell.com/biophysreports/home  
+2772-5022 https://www.journals.elsevier.com/applied-food-research  
+2772-6878 https://www.journals.elsevier.com/annals-of-vascular-surgery-brief-reports-and-innovations  
+2667-0364 https://www.journals.elsevier.com/american-journal-of-medicine-open  
+2772-5820 https://www.journals.elsevier.com/advances-in-sample-preparation  
+2667-3762 https://www.journals.elsevier.com/advances-in-ophthalmology-practice-and-research  
+
 **2021-07-27 Add missing journals**
 
 Added following Elsevier journals with metadata:    

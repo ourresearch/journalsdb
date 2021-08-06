@@ -11,12 +11,12 @@ from ingest.subscription.subscription_springer import (
     SpringerNature2022,
 )
 from ingest.subscription.subscription_taylor import TaylorFrancis, TaylorMiniBundle
-from ingest.subscription.subscription_wiley import WileyBlackwell
+from ingest.subscription.subscription_wiley import Wiley, WileyMiniBundle
 from models.journal import Journal
 from models.price import Country, Currency, MiniBundle, Region, SubscriptionPrice
 from ingest.utils import get_or_create
 
-CSV_DIRECTORY = "ingest/subscription/files/2022"
+CSV_DIRECTORY = "ingest/subscription/files/"
 
 
 @app.cli.command("import_wb")
@@ -24,7 +24,7 @@ CSV_DIRECTORY = "ingest/subscription/files/2022"
 @click.option("--year", required=True)
 def import_wb(file_name, year):
     file_path = os.path.join(app.root_path, CSV_DIRECTORY, file_name)
-    wb = WileyBlackwell(year)
+    wb = Wiley(year)
     wb.format_wb_dataframe(file_path)
     wb.add_regions_to_db()
     wb.import_wiley_blackwell()
@@ -175,3 +175,14 @@ def taylor_mb(file_name, year):
     t = TaylorMiniBundle(year)
     t.format_tf_dataframe(file_path)
     t.import_prices()
+
+
+@app.cli.command("wiley_mb")
+@click.option("--file_name", default="2021/wiley_sub_2021.xlsx")
+@click.option("--year", required=True)
+def wiley_mb(file_name, year):
+    file_path = os.path.join(app.root_path, CSV_DIRECTORY, file_name)
+    wb = WileyMiniBundle(year)
+    wb.format_wb_dataframe(file_path)
+    wb.add_regions_to_db()
+    wb.import_wiley_mini_bundles()

@@ -1,3 +1,24 @@
+**2021-08-06 Add Wiley mini bundle pricing, Springer new start journals**
+
+Added 76 Wiley mini bundles with subscription pricing.
+
+Added the following Springer Nature 2022 [new start journals](https://www.springernature.com/gp/librarians/licensing/journals-catalog/new-starts):
+2731-0582   
+2731-0574  
+2731-0590  
+2730-9657  
+2731-3441 (with 2731-3433)  
+2731-4588  
+2662-9747   
+2662-8473  
+
+Added the following other journals:  
+1839-4728  
+0149-192X   
+
+The following ISSNs were submitted as missing but not found:  
+2731-3972
+
 **2021-08-03 Add missing journals**
 
 Added the following journals with publisher and metadata, where applicable:   

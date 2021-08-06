@@ -1,3 +1,19 @@
+**2021-08-03 Add missing journals**
+
+Added the following journals with publisher and metadata, where applicable:   
+1467-0445, 1523-388X, 0954-6146, 1467-5978, 1467-5862. 0743-8141, 1467-5900, 0079-6743, 2080-9778, 
+1262-4586, 1557-7872, 1557-8135, 1557-8143, 1559-7814, 1557-8186, 1557-8178, 1365-1617, 0954-0504, 
+0953-9611, 0305-196X, 1557-7864, 0030-4565
+
+ISSNs merged into other journals:  
+0079-6743 set as formerly known as for 1468-6783  
+2201-6718 -> 1444-5921  
+2333-486X -> 1890-2138  
+2333-4843 -> 1890-2138  
+
+ISSNs identified as missing but but not found:  
+2379-4841, 1903-2417, 1045-3356
+
 **2021-07-30 Add Springer 2022 pricing, missing journals, metadata**
 
 Added year 2022 subscription pricing for Springer Nature journals.

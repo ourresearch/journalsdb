@@ -95,16 +95,10 @@ class Journal(db.Model):
             return journal
 
         # find in issn_org issns
-        issn_in_issn_org = ISSNMetaData.query.filter(
+        metadata_record = ISSNMetaData.query.filter(
             ISSNMetaData.issn_org_issns.contains(json.dumps(issn))
         ).first()
 
-        # find in crossref issns
-        issn_in_crossref = ISSNMetaData.query.filter(
-            ISSNMetaData.crossref_issns.contains(json.dumps(issn))
-        ).first()
-
-        metadata_record = issn_in_issn_org or issn_in_crossref
         if metadata_record:
             return cls.query.filter_by(issn_l=metadata_record.issn_l).one_or_none()
 

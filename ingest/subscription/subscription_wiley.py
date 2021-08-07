@@ -178,9 +178,7 @@ class WileyMiniBundle(SubscriptionImport):
         self.includes = None
         self.journal_info = None
         self.journals = []
-        self.media_type = None
         self.mini_bundle_name = None
-        self.online_found = False
 
         regions_and_currencies = [
             ("USA", "USD"),
@@ -209,16 +207,13 @@ class WileyMiniBundle(SubscriptionImport):
                 self.reset_journal_data()
                 continue
 
-            if self.mini_bundle_name and self.journals:
-                self.set_media_type(row["Media"])
-
-                if self.media_type == "Online":
-                    for region, currency_acronym in self.regions_and_currencies:
-                        self.set_price(row[region])
-                        self.set_currency(currency_acronym)
-                        self.set_region(region)
-                        self.set_country(region)
-                        self.add_price_to_db()
+            if self.mini_bundle_name and self.journals and row["Media"] == "Online":
+                for region, currency_acronym in self.regions_and_currencies:
+                    self.set_price(row[region])
+                    self.set_currency(currency_acronym)
+                    self.set_region(region)
+                    self.set_country(region)
+                    self.add_price_to_db()
 
             db.session.commit()
 
@@ -281,27 +276,10 @@ class WileyMiniBundle(SubscriptionImport):
 
         Sets all journal related variables to None, so the new journal can be ingested
         """
-        self.journal_info = None
-        self.mini_bundle_name = None
-        self.journals.clear()
-        self.product_group = None
         self.includes = None
-        self.online_found = False
-
-    def set_media_type(self, cell):
-        """
-        Media types could contain "Print & Online", "Online", "Print" or an unrelated string.
-        Only 'Online' mediums should be added to the database. If an online medium does not exist,
-        print should be added.
-        """
-        if pd.isnull(cell):
-            self.media_type = None
-        elif cell == "Online":
-            self.media_type = cell
-            self.online_found = True
-        elif cell == "Print" and not self.online_found:
-            self.media_type = cell
-            print("Online pricing does not exist: ", self.issn)
+        self.journal_info = None
+        self.journals.clear()
+        self.mini_bundle_name = None
 
     def add_price_to_db(self):
         """
@@ -317,11 +295,13 @@ class WileyMiniBundle(SubscriptionImport):
         # create price if it does not exist
         currency = self.currency
         country = self.country
+        region = self.current_region
         price_found = False
         for p in mb.subscription_prices:
             if (
                 p.price == self.price
                 and p.country == country
+                and p.region == region
                 and p.currency == currency
             ):
                 print(
@@ -335,6 +315,7 @@ class WileyMiniBundle(SubscriptionImport):
             new_price = SubscriptionPrice(
                 price=self.price,
                 country=country,
+                region=region,
                 currency=currency,
                 year=self.year,
             )

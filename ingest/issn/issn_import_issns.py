@@ -305,6 +305,7 @@ def save_new_records(new_records):
         "0263-8762",
         "1744-3563",
         "2145-7166",
+        "2499-5975",
     ]  # sage issns that were merged together and conflict with issn.org list
     objects = []
     history = []

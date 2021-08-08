@@ -1,3 +1,14 @@
+**2021-08-08 Add Wiley metadata, missing journals**
+
+Added/updated metadata for 316 recent Wiley journals.
+
+Added following missing journals:  
+2190-8036  
+1876-8784
+
+Following ISSN was submitted as missing but not found:  
+2731-3999
+
 **2021-08-06 Add Wiley mini bundle pricing, Springer new start journals**
 
 Added 76 Wiley mini bundles with subscription pricing.

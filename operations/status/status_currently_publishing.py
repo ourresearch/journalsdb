@@ -45,10 +45,7 @@ class CurrentlyPublishingStatus:
     def journals_to_update():
         return (
             db.session.query(Journal)
-            .filter(
-                Journal.publisher_id.in_((11, 16, 20, 29, 36)),
-                Journal.status == "unknown",
-            )
+            .filter(Journal.status == "unknown")
             .order_by(Journal.status_as_of.desc())
             .limit(1000)
             .all()

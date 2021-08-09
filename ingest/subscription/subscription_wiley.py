@@ -259,7 +259,9 @@ class WileyMiniBundle(SubscriptionImport):
 
     def set_included_journals(self):
         self.includes = self.journal_info.replace("Includes", "").split(",")
-        self.includes = [title.replace(".", "").strip() for title in self.includes]
+        self.includes = [
+            title.replace(".", "").replace("\\", ",").strip() for title in self.includes
+        ]
         for title in self.includes:
             j = Journal.query.filter(
                 func.lower(Journal.title) == func.lower(title)

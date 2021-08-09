@@ -75,7 +75,7 @@ class NewJournal:
             title = self.title_from_crossref()
 
         if title:
-            title = self.format_title(title)
+            title = self.clean_title(title)
         return title
 
     def title_from_crossref(self):
@@ -110,11 +110,21 @@ class NewJournal:
         return title
 
     @staticmethod
-    def format_title(title):
+    def clean_title(title):
         title = title.strip()
+
+        # remove trailing period
         if title and title[-1] == ".":
             title = title[:-1]
+
+        # remove control characters
         title = remove_control_characters(title)
+
+        # remove (print) and (electronic)
+        title = title.replace("(Print)", "").replace("(print)", "")
+        title = title.replace("(Electronic)", "").replace("(electronic)", "")
+
+        title = title.strip()
         return title
 
     def get_publisher(self):

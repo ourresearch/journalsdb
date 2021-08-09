@@ -294,30 +294,18 @@ def save_both_issns_from_crossref(crossref_api_issns):
 
 def save_new_records(new_records):
     print("save new records in issn_to_issnl table")
-    issns_to_ignore = [
-        "1931-3756",
-        "2633-0032",
-        "2057-0481",
-        "2200-6974",
-        "2633-5603",
-        "1539-6053",
-        "0971-7625",
-        "0263-8762",
-        "1744-3563",
-        "2145-7166",
-        "2499-5975",
-        "2477-4715",
-    ]  # sage issns that were merged together and conflict with issn.org list
-    objects = []
-    history = []
     for new in new_records:
-        if new.issn not in issns_to_ignore:
-            objects.append(ISSNToISSNL(issn=new.issn, issn_l=new.issn_l))
-            history.append(
-                ISSNHistory(issn=new.issn, issn_l=new.issn_l, status="added")
-            )
-    db.session.bulk_save_objects(objects)
-    db.session.bulk_save_objects(history)
+        # check for duplicate issns before saving
+        issn_exists = ISSNToISSNL.query.filter_by(issn=new.issn).one_or_none()
+
+        if issn_exists:
+            print("issn {} already exists".format(new.issn))
+        else:
+            new_issn = ISSNToISSNL(issn=new.issn, issn_l=new.issn_l)
+            db.session.add(new_issn)
+
+            new_history = ISSNHistory(issn=new.issn, issn_l=new.issn_l, status="added")
+            db.session.add(new_history)
     db.session.commit()
     print("save new records in issn_to_issnl table complete")
 

@@ -142,3 +142,26 @@ class TestAPIJournalsPaged:
         for key in sample.keys():
             assert key == top_level_keys[i]
             i += 1
+
+    def test_journals_paged_pagination_headers_default(self, api_client):
+        rv = api_client.get("/journals-paged")
+        assert "Link" in rv.headers
+        link_header_actual = rv.headers["Link"]
+        link_header_expected = (
+            '<https://api.journalsdb.org/journals-paged?page=1&per-page=100>; rel="first"'
+            ',<https://api.journalsdb.org/journals-paged?page=1&per-page=100>; rel="last"'
+        )
+        assert link_header_actual == link_header_expected
+
+    def test_journals_paged_pagination_headers_with_query_params(self, api_client):
+        rv = api_client.get("/journals-paged?page=2&per-page=1")
+        assert "Link" in rv.headers
+        link_header_actual = rv.headers["Link"]
+        link_header_expected = (
+            "<https://api.journalsdb.org/journals-paged?page=1&per-page=1>; "
+            'rel="first",<https://api.journalsdb.org/journals-paged?page=4&per-page=1>; '
+            'rel="last",<https://api.journalsdb.org/journals-paged?page=1&per-page=1>; '
+            'rel="prev",<https://api.journalsdb.org/journals-paged?page=3&per-page=1>; '
+            'rel="next"'
+        )
+        assert link_header_actual == link_header_expected

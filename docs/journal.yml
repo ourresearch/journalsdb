@@ -1,41 +1,11 @@
 tags:
-  - Endpoints
+  - Core endpoints
 parameters:
   - name: issn
     in: path
     type: string
+    description: journal ISSN
     required: true
 responses:
   200:
     description: Journal details
-    schema:
-    examples:
-      application/json: {
-        "apc_pricing": {
-          "apc_prices": [],
-          "provenance": null
-        },
-        "author_permissions": null,
-        "dois_by_issued_year": [
-          [
-            2016,
-            45
-          ],
-        ],
-        "issn_l": "1541-2040",
-        "issns": [
-          "1556-9330",
-          "1541-2040"
-        ],
-        "open_access": "https://api.journalsdb.org/journal/1541-2040/open-access",
-        "publisher": "SAGE Publications",
-        "readership": [],
-        "repositories": "https://api.journalsdb.org/journal/1541-2040/repositories",
-        "retractions": null,
-        "subscription_pricing": {
-          "prices": [],
-          "provenance": "https://us.sagepub.com/en-us/nam/sage-journals-and-subscription-info"
-        },
-        "title": "Youth violence and juvenile justice",
-        "total_dois": 434
-      }

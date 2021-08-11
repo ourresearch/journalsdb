@@ -1,28 +1,188 @@
 tags:
-  - Endpoints
+  - Core endpoints
 parameters:
+  - name: page
+    description: page number
+    in: query
+    type: integer
+    required: false
+    default: 1
+  - name: per-page
+    description: records to retrieve per page
+    in: query
+    type: integer
+    required: false
+    default: 100
   - name: attrs
+    description: limit display to top-level keys
     in: query
     type: array
     items:
       type: string
-      enum: ['issn_l', 'issns', 'journal_synonyms', 'title', 'uuid', 'publisher_name', 'publisher_synonyms']
+      enum: ['issn_l', 'issns', 'title', 'publisher', 'journal_metadata', 'total_dois', 'dois_by_issued_year', 'subscription_pricing', 'apc_pricing', 'status', 'status_as_of']
     collectionFormat: csv
     required: false
-    default: 'issn_l'
+  - name: publishers
+    description: filter journals list to publishers via a comma-separated list of publisher names
+    in: query
+    type: array
+    items:
+      type: string
+    collectionFormat: csv
+    required: false
+  - name: status
+    description: filter journals by status
+    in: query
+    type: array
+    items:
+      type: string
+      enum: [ 'ceased', 'incorporated', 'publishing', 'renamed', 'unknown' ]
+    collectionFormat: csv
+    required: false
+  - name: merge
+    description: if true, journals that have been renamed will have DOI statistics merged into the current version of the journal
+    in: query
+    type: boolean
+    required: false
+    default: true
+
 responses:
   '200':
-    description: List of journals in the database
+    description: Paginated list of journals
     examples:
       application/json: {
-        count: 79879,
-        journals: [{
-          'issn_l': '1907-1760', 
-          'issns': ['2460-6626', '1907-1760'],
-          'journal_synonyms': null,
-          'publisher_name': 'Universitas Andalas', 
-          'publisher_synonyms': null,
-          'title': 'Jurnal peternakan Indonesia', 
-          'uuid': 'F27TZDt8RAeL4QGAWXPEQi',
+        results: [
+          {
+            issn_l: "1248-9204",
+            issns: [
+                "1265-4906",
+                "1248-9204"
+            ],
+            title: "Hernia",
+            publisher: "Springer Nature",
+            journal_metadata: [
+              {
+                home_page_url: "https://link.springer.com/journal/10029",
+                author_instructions_url: "https://www.springer.com/journal/10029/submission-guidelines",
+                editorial_page_url: null,
+                facebook_url: null,
+                linkedin_url: null,
+                twitter_url: null,
+                wikidata_url: "https://www.wikidata.org/wiki/Q26842781",
+                is_society_journal: true,
+                societies: [
+                  {
+                    url: "https://www.europeanherniasociety.eu/",
+                    organization: "European Hernia Society (EHS)"
+                  }
+                ]
+              }
+            ],
+            total_dois: 3163,
+            dois_by_issued_year: [
+              [
+                  2021,
+                  131
+              ],
+              [
+                  2020,
+                  236
+              ],
+              [
+                  2019,
+                  231
+              ]
+            ],
+            sample_dois: [
+                "https://doi.org/10.1007/s10029-020-02191-w",
+                "https://doi.org/10.1007/s10029-003-0196-z",
+                "https://doi.org/10.1007/s10029-012-0981-7"
+            ],
+            subscription_pricing: {
+              prices: [
+                {
+                  fte_to: null,
+                  fte_from: null,
+                  price: "2055.00",
+                  currency: "EUR",
+                  region: "EUR",
+                  year: 2022
+                },
+                {
+                  fte_to: null,
+                  fte_from: null,
+                  price: "2562.00",
+                  currency: "USD",
+                  country: "United States of America",
+                  year: 2022
+                },
+                {
+                  fte_to: null,
+                  fte_from: null,
+                  price: "277000.00",
+                  currency: "JPY",
+                  country: "Japan",
+                  year: 2022
+                },
+                {
+                  fte_to: null,
+                  fte_from: null,
+                  price: "2148.00",
+                  currency: "USD",
+                  country: "United States of America",
+                  year: 2021
+                }
+              ],
+              mini_bundles: [ ],
+              provenance: "https://www.springernature.com/gp/librarians/licensing/journals-catalog/journal-price-lists"
+            },
+            apc_pricing: {
+              apc_prices: [
+                {
+                  price: "2560.00",
+                  currency: "GBP",
+                  country: "United Kingdom of Great Britain & Northern Ireland",
+                  year: 2021
+                },
+                {
+                  price: "3060.00",
+                  currency: "EUR",
+                  region: "EUR",
+                  year: 2021
+                },
+                {
+                  price: "3860.00",
+                  currency: "USD",
+                  country: "United States of America",
+                  year: 2021
+                }
+              ],
+              provenance: "https://www.springernature.com/gp/open-research/journals-books/journals"
+            },
+            open_access: {
+              bronze_rate: 0.0977443609022556,
+              gold_rate: 0,
+              green_rate: 0.0075187969924812,
+              hybrid_rate: 0.1804511278195488,
+              is_gold_journal: false,
+              is_in_doaj: false,
+              num_bronze: 13,
+              num_dois: 133,
+              num_gold: 0,
+              num_green: 1,
+              num_hybrid: 24,
+              num_open: 38,
+              open_rate: 0.2857142857142857,
+              year: 2021
+            },
+            status: "publishing",
+            status_as_of: "2021-07-08"
           }
-        ]}
+        ],
+        pagination: {
+          count: 97211,
+          page: 1,
+          per_page: 1,
+          pages: 97211
+        }
+      }

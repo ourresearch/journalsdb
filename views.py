@@ -58,6 +58,8 @@ def journal_detail(issn):
 
 
 @app.route("/journals-paged")
+@app.route("/journals")
+@swag_from("docs/journals.yml")
 def journals_paged():
     # process query parameters
     page = request.args.get("page", 1, type=int)

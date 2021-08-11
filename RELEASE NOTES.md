@@ -1,3 +1,31 @@
+**2021-08-11 Finish 2021 subscription pricing, add missing journals**
+
+Updated [API documentation](https://api.journalsdb.org/apidocs/#/) to match current endpoints.
+
+Finished 2021 subscription pricing deep dive.
+
+Add Excerpta Medica journals with Elsevier as publisher, Excerpta Medica as imprint:  
+0014-407X Excerpta medica. Section 3: Endocrinology: expermental and clinical  
+0014-4258 Excerpta medica. Section 21: Developmental biology and teratology  
+0014-4177 Excerpta medica. Section 13: Dermatology and venereology  
+0014-4193 Excerpta medica. Section 15: Chest diseases, thoracic surgery and tubercolosis  
+0014-4223 Excerpta medica. Section 18: Cardiovascular disease and cardiovascular surgery  
+0014-4207 Excerpta medica. Section 16: Cancer  
+0014-4312 Excerpta medica. Section 27: Biophysics, bioengineering and medical instrumentation  
+0014-4355 Excerpta medica. Section 6B: Arthritis and rheumatism  
+0014-4282 Excerpta medica. Section 24: Anesthesiology  
+0014-4053 Excerpta medica. Section 1: Anatomy, anthropology, embryology and histology  
+
+Add following ISSNs:  
+0001-8848, 2522-8773, 2522-8536, 2524-4493, 2524-7689
+
+Mapped ISSNs to existing ISSNs:  
+0570-0833 as formerly known as for 1433-7851  
+1467-6346 -> 0001-9852  
+2053-227X -> 0001-9852  
+1571-512X -> 1571-5124  
+
+
 **2021-08-08 Add Wiley metadata, missing journals**
 
 Added/updated metadata for 316 recent Wiley journals.

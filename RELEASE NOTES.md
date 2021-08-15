@@ -1,3 +1,15 @@
+**2021-08-15 Add missing journals**
+
+Processed Elsevier APC pricing.
+
+Add Excerpta medica journals:  
+
+0927-2798, 0927-278X, 0031-3580, 0303-8459, 0031-0743, 0300-5194, 0014-4320, 0014-4363, 
+0014-4134, 0014-4231, 0014-4185, 0014-410X, 0014-4266, 0014-4290, 0014-4096, 0014-4371, 0014-4169
+0014-4142, 0014-4274, 0014-4126
+
+0964-8712
+
 **2021-08-11 Finish 2021 subscription pricing, add missing journals**
 
 Updated [API documentation](https://api.journalsdb.org/apidocs/#/) to match current endpoints.

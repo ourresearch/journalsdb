@@ -45,42 +45,6 @@ def import_api_test_data():
 
     db.session.add(r)
 
-    apc = APCPrice(
-        id=1,
-        price=200,
-        year=1990,
-        notes=None,
-        country=country,
-        currency=cur,
-        region=r,
-    )
-
-    db.session.add(apc)
-
-    apc2 = APCPrice(
-        id=2,
-        price=300,
-        year=1991,
-        notes=None,
-        country=country,
-        currency=cur,
-        region=r,
-    )
-
-    db.session.add(apc2)
-
-    apc3 = APCPrice(
-        id=3,
-        price=400,
-        year=1992,
-        notes=None,
-        country=country,
-        currency=cur,
-        region=r,
-    )
-
-    db.session.add(apc3)
-
     pr = SubscriptionPrice(
         id=1,
         price=200.00,
@@ -217,7 +181,6 @@ def import_api_test_data():
         imprint_id=23,
         uuid="23",
         is_modified_title=True,
-        apc_prices=[apc, apc2, apc3],
         author_permissions=[],
         imprint=None,
         issn_metadata=md,
@@ -256,6 +219,42 @@ def import_api_test_data():
     )
 
     db.session.add(md)
+
+    apc = APCPrice(
+        id=1,
+        journal_id=1,
+        price=200,
+        year=1990,
+        country=country,
+        currency=cur,
+        region=r,
+    )
+
+    db.session.add(apc)
+
+    apc2 = APCPrice(
+        id=2,
+        journal_id=1,
+        price=300,
+        year=1991,
+        country=country,
+        currency=cur,
+        region=r,
+    )
+
+    db.session.add(apc2)
+
+    apc3 = APCPrice(
+        id=3,
+        journal_id=1,
+        price=400,
+        year=1992,
+        country=country,
+        currency=cur,
+        region=r,
+    )
+
+    db.session.add(apc3)
 
     p_two = Publisher(
         id=2,

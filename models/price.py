@@ -36,37 +36,8 @@ class SubscriptionPrice(db.Model, TimestampMixin):
         }
 
 
-class APCPrice(db.Model, TimestampMixin):
+class APCPrice(db.Model):
     __tablename__ = "apc_price"
-
-    id = db.Column(db.Integer, primary_key=True)
-    price = db.Column(db.Numeric(10, 2), nullable=False)
-    currency_id = db.Column(
-        db.Integer, db.ForeignKey("currency.id"), nullable=False, index=True
-    )
-    country_id = db.Column(db.Integer, db.ForeignKey("countries.id"), index=True)
-    region_id = db.Column(db.Integer, db.ForeignKey("regions.id"), index=True)
-    year = db.Column(db.Integer, nullable=False, index=True)
-    notes = db.Column(db.Text)
-
-    # relationships
-    country = db.relationship("Country", lazy="joined")
-    currency = db.relationship("Currency", lazy="joined")
-    region = db.relationship("Region", lazy="joined")
-
-    def to_dict(self):
-        return {
-            "price": str(self.price),
-            "currency": self.currency.acronym,
-            "region": self.region.name if self.region else None,
-            "country": self.country.name if self.country else None,
-            "notes": self.notes,
-            "year": self.year,
-        }
-
-
-class APCPriceNew(db.Model):
-    __tablename__ = "apc_price_new"
 
     id = db.Column(db.Integer, primary_key=True)
     journal_id = db.Column(
@@ -87,7 +58,6 @@ class APCPriceNew(db.Model):
     # relationships
     country = db.relationship("Country", lazy="joined")
     currency = db.relationship("Currency", lazy="joined")
-    journal = db.relationship("Journal", backref="apc_prices_new")
     region = db.relationship("Region", lazy="joined")
 
 
@@ -187,13 +157,5 @@ journal_subscription_price = db.Table(
         db.Integer,
         db.ForeignKey("subscription_price.id"),
         primary_key=True,
-    ),
-)
-
-journal_apc_price = db.Table(
-    "journal_apc_price",
-    db.Column("journal_id", db.Integer, db.ForeignKey("journals.id"), primary_key=True),
-    db.Column(
-        "apc_price_id", db.Integer, db.ForeignKey("apc_price.id"), primary_key=True
     ),
 )

@@ -9,7 +9,7 @@ import shortuuid
 from app import db
 from models.issn import ISSNMetaData
 from models.mixins import TimestampMixin
-from models.price import journal_subscription_price, journal_apc_price
+from models.price import journal_subscription_price
 from models.subjects import journal_subjects
 
 
@@ -53,9 +53,8 @@ class Journal(db.Model):
     # relationships
     apc_prices = db.relationship(
         "APCPrice",
-        secondary=journal_apc_price,
         lazy="subquery",
-        backref="journals",
+        backref="journal",
         order_by="[desc(APCPrice.year), APCPrice.price]",
     )
     author_permissions = db.relationship("AuthorPermissions", cascade="all, delete")

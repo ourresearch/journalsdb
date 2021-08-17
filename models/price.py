@@ -1,3 +1,5 @@
+from sqlalchemy import func
+
 from app import db
 from models.location import Country, Region
 from models.mixins import TimestampMixin
@@ -61,6 +63,48 @@ class APCPrice(db.Model, TimestampMixin):
             "notes": self.notes,
             "year": self.year,
         }
+
+
+# class APCPriceNew(db.Model):
+#     __tablename__ = "apc_price_new"
+#
+#     id = db.Column(db.Integer, primary_key=True)
+#     journal_id = db.Column(
+#         db.Integer, db.ForeignKey("journals.id"), nullable=False, index=True
+#     )
+#     price = db.Column(db.Numeric(10, 2), nullable=False)
+#     currency_id = db.Column(
+#         db.Integer, db.ForeignKey("currency.id"), nullable=False, index=True
+#     )
+#     country_id = db.Column(db.Integer, db.ForeignKey("countries.id"))
+#     region_id = db.Column(db.Integer, db.ForeignKey("regions.id"))
+#     year = db.Column(db.Integer, nullable=False, index=True)
+#     apc_waived = db.Column(db.Boolean, default=False, nullable=False)
+#     discounted = db.Column(db.Boolean, default=False, nullable=False)
+#     discount_reason = db.Column(db.String(128))
+#     created_at = db.Column(db.DateTime, server_default=func.now())
+#
+#     # relationships
+#     country = db.relationship("Country", lazy="joined")
+#     currency = db.relationship("Currency", lazy="joined")
+#     journal = db.relationship("Journal", backref="apc_prices_new")
+#     region = db.relationship("Region", lazy="joined")
+
+
+# class APCMetadata(db.Model, TimestampMixin):
+#     __tablename__ = "apc_metadata"
+#
+#     id = db.Column(db.Integer, primary_key=True)
+#     journal_id = db.Column(
+#         db.Integer, db.ForeignKey("journals.id"), nullable=False, index=True
+#     )
+#     apc_source = db.Column(db.String(128))
+#     apc_required = db.Column(db.Boolean, default=True, nullable=False)
+#     apc_funded_by = db.Column(db.String(128))
+#     notes = db.Column(db.Text)
+#
+#     # relationship
+#     journal = db.relationship("Journal", uselist=False, backref="apc_metadata")
 
 
 class Currency(db.Model):

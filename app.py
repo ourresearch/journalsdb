@@ -62,4 +62,5 @@ with app.app_context():
     from ingest.journal_metadata.metadata_commands import *
     from operations.issn.issn_operations_commands import *
     from operations.status.status_commands import *
+    from operations.price.copy_apc_pricing import *
     import views

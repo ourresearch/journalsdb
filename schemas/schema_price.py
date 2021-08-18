@@ -1,6 +1,6 @@
 from app import ma
 from marshmallow import fields, post_dump
-from models.price import APCPrice, MiniBundle, SubscriptionPrice
+from models.price import APCMetadata, APCPrice, MiniBundle, SubscriptionPrice
 from schemas.schema_journal import JournalSchema
 
 
@@ -16,14 +16,33 @@ class PriceSchema(ma.Schema):
 
 
 class APCPriceSchema(PriceSchema):
+    apc_waived = fields.Boolean(data_key="waived")
+    discount_reason = fields.String(data_key="discount_notes")
+
     class Meta:
         model = APCPrice
-        fields = ("price", "currency", "region", "country", "year")
+        fields = (
+            "price",
+            "currency",
+            "region",
+            "country",
+            "year",
+            "apc_waived",
+            "discounted",
+            "discount_reason",
+        )
         ordered = True
 
     @post_dump(pass_many=True)
     def wrap_with_envelope(self, data, many, **kwargs):
         return {"apc_prices": data}
+
+
+class APCMetadataSchema(ma.Schema):
+    class Meta:
+        model = APCMetadata
+        fields = ("apc_required", "apc_funded_by", "notes")
+        ordered = True
 
 
 class MiniBundlePriceSchema(PriceSchema):

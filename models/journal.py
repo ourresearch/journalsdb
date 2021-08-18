@@ -51,6 +51,9 @@ class Journal(db.Model):
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
     # relationships
+    apc_metadata = db.relationship(
+        "APCMetadata", uselist=False, lazy=True, backref="journal"
+    )
     apc_prices = db.relationship(
         "APCPrice",
         lazy="subquery",
@@ -163,6 +166,13 @@ class Journal(db.Model):
                 )
         dois_combined_and_sorted = list(sorted(dois_by_year.items(), reverse=True))
         return dois_combined_and_sorted
+
+    @property
+    def apc_source(self):
+        if self.apc_metadata and self.apc_metadata.apc_source:
+            return self.apc_metadata.apc_source
+        elif self.publisher:
+            return self.publisher.apc_data_source
 
 
 class JournalMetadata(db.Model, TimestampMixin):

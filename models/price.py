@@ -73,9 +73,6 @@ class APCMetadata(db.Model, TimestampMixin):
     apc_funded_by = db.Column(db.String(128))
     notes = db.Column(db.Text)
 
-    # relationship
-    journal = db.relationship("Journal", uselist=False, backref="apc_metadata")
-
 
 class Currency(db.Model):
     __tablename__ = "currency"

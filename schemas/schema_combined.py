@@ -2,6 +2,7 @@ from marshmallow import fields, post_dump
 
 from app import ma
 from schemas.schema_price import (
+    APCMetadataSchema,
     APCPriceSchema,
     MiniBundleSchema,
     SubscriptionPriceSchema,
@@ -47,9 +48,8 @@ class JournalListSchema(ma.Schema):
     sub_data_source = fields.Function(
         lambda obj: obj.publisher.sub_data_source if obj.publisher else None
     )
-    apc_data_source = fields.Function(
-        lambda obj: obj.publisher.apc_data_source if obj.publisher else None
-    )
+    apc_source = fields.String()
+    apc_metadata = fields.Nested(APCMetadataSchema)
     subscription_prices = fields.Nested(
         SubscriptionPriceSchema, many=True, data_key="subscription_pricing"
     )
@@ -79,14 +79,16 @@ class JournalListSchema(ma.Schema):
     @post_dump()
     def move_provenance(self, data, many, **kwargs):
         """
-        Moves provenance under the appropriate price dict.
+        Moves provenance and apc metadata under the appropriate price dict.
         """
         if "subscription_pricing" in data:
             data["subscription_pricing"]["provenance"] = data["sub_data_source"]
             del data["sub_data_source"]
         if "apc_pricing" in data:
-            data["apc_pricing"]["provenance"] = data["apc_data_source"]
-            del data["apc_data_source"]
+            data["apc_pricing"]["apc_metadata"] = data["apc_metadata"]
+            data["apc_pricing"]["provenance"] = data["apc_source"]
+            del data["apc_source"]
+            del data["apc_metadata"]
         return data
 
     @post_dump()

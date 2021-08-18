@@ -1,3 +1,22 @@
+**2021-08-18 Improve APC pricing detail, add missing journals**
+
+Add new fields to APC section of API in order to show:
+- Detailed APC pricing source
+- If APC is required
+- Who APC is funded by when it is not required (example: https://api.journalsdb.org/journals/2468-550X)
+- If APC is waived for current year (example: https://api.journalsdb.org/journals/2667-3185)
+- If APC is discounted for current year (example: https://api.journalsdb.org/journals/2543-1064 )
+
+Add missing journals from Excerpta medica:  
+0167-8353, 0924-5723, 0367-1089, 0927-2771, 0921-8068
+
+Add missing Elsevier journals:  
+0741-1677, 0955-6648
+
+Set journals as formerly known as:  
+0096-0802 -> 2688-4534  
+0764-4469 -> 1631-0691  
+
 **2021-08-15 Add missing journals**
 
 Processed Elsevier APC pricing.

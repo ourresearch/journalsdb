@@ -1,3 +1,21 @@
+**2021-08-20 APC changes, add missing journals**
+
+Renamed APC fields to make usage clearer:
+- apc_required now known as apc_fully_subsidized
+- apc_funded_by now known as apc_subsidized_by
+- discount_reason now known as discount_notes
+
+Added remaining missing APC prices for Elsevier and Taylor & Francis (44 journals).
+
+Added missing journals:  
+0740-5553, 0362-904X, 0096-5952, 2471-3635, 0970-5899, 2471-3619, 1461-3123
+
+Mapped following ISSNs:  
+0096-0802 -> 2688-4534  
+2473-5340 -> 2474-5332
+
+ISSN 0380-8977 submitted as missing but not found.
+
 **2021-08-18 Improve APC pricing detail, add missing journals**
 
 Add new fields to APC section of API in order to show:

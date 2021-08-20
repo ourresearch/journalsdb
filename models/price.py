@@ -52,7 +52,7 @@ class APCPrice(db.Model):
     year = db.Column(db.Integer, nullable=False, index=True)
     apc_waived = db.Column(db.Boolean, default=False, nullable=False)
     discounted = db.Column(db.Boolean, default=False, nullable=False)
-    discount_reason = db.Column(db.String(128))
+    discount_notes = db.Column(db.String(128))
     created_at = db.Column(db.DateTime, server_default=func.now())
 
     # relationships
@@ -69,8 +69,8 @@ class APCMetadata(db.Model, TimestampMixin):
         db.Integer, db.ForeignKey("journals.id"), nullable=False, index=True
     )
     apc_source = db.Column(db.String(128))
-    apc_required = db.Column(db.Boolean, default=True, nullable=False)
-    apc_funded_by = db.Column(db.String(128))
+    apc_fully_subsidized = db.Column(db.Boolean, default=False, nullable=False)
+    apc_subsidized_by = db.Column(db.Text)
     notes = db.Column(db.Text)
 
 

@@ -29,7 +29,7 @@ class APCPriceSchema(PriceSchema):
             "year",
             "apc_waived",
             "discounted",
-            "discount_reason",
+            "discount_notes",
         )
         ordered = True
 
@@ -41,7 +41,7 @@ class APCPriceSchema(PriceSchema):
 class APCMetadataSchema(ma.Schema):
     class Meta:
         model = APCMetadata
-        fields = ("apc_required", "apc_funded_by", "notes")
+        fields = ("apc_fully_subsidized", "apc_subsidized_by", "notes")
         ordered = True
 
 

@@ -81,9 +81,9 @@ class MiniBundleSchema(ma.Schema):
     journals = ma.Nested(
         JournalSchema, many=True, only=("issn_l", "title"), data_key="journals_included"
     )
-    subscription_prices = ma.Nested(MiniBundlePriceSchema, many=True, data_key="prices")
+    mini_bundle_prices = ma.Nested(MiniBundlePriceSchema, many=True, data_key="prices")
 
     class Meta:
         model = MiniBundle
-        fields = ("mini_bundle_name", "journals", "subscription_prices")
+        fields = ("mini_bundle_name", "journals", "mini_bundle_prices")
         ordered = True

@@ -72,19 +72,6 @@ class Currency(db.Model):
     acronym = db.Column(db.String(3), unique=True, nullable=False)
 
 
-journal_mini_bundle_price = db.Table(
-    "journal_mini_bundle_price",
-    db.Column(
-        "mini_bundle_id", db.Integer, db.ForeignKey("mini_bundles.id"), primary_key=True
-    ),
-    db.Column(
-        "subscription_price_id",
-        db.Integer,
-        db.ForeignKey("subscription_price.id"),
-        primary_key=True,
-    ),
-)
-
 mini_bundle_journals = db.Table(
     "mini_bundle_journals",
     db.Column(
@@ -117,14 +104,6 @@ class MiniBundle(db.Model, TimestampMixin):
         "MiniBundlePrice",
         backref="mini_bundles",
         order_by="[desc(MiniBundlePrice.year), MiniBundlePrice.price]",
-    )
-
-    subscription_prices = db.relationship(
-        "SubscriptionPrice",
-        secondary=journal_mini_bundle_price,
-        lazy="subquery",
-        backref="mini_bundles",
-        order_by="[desc(SubscriptionPrice.year), SubscriptionPrice.price]",
     )
 
 

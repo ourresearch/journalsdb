@@ -24,17 +24,6 @@ class SubscriptionPrice(db.Model, TimestampMixin):
     currency = db.relationship("Currency", lazy="joined")
     region = db.relationship("Region", lazy="joined")
 
-    def to_dict(self):
-        return {
-            "fte_from": self.fte_from,
-            "fte_to": self.fte_to,
-            "price": str(self.price),
-            "currency": self.currency.acronym,
-            "region": self.region.name if self.region else None,
-            "country": self.country.name if self.country else None,
-            "year": self.year,
-        }
-
 
 class APCPrice(db.Model):
     __tablename__ = "apc_price"
@@ -124,6 +113,12 @@ class MiniBundle(db.Model, TimestampMixin):
         order_by="Journal.title",
     )
 
+    mini_bundle_prices = db.relationship(
+        "MiniBundlePrice",
+        backref="mini_bundles",
+        order_by="[desc(MiniBundlePrice.year), MiniBundlePrice.price]",
+    )
+
     subscription_prices = db.relationship(
         "SubscriptionPrice",
         secondary=journal_mini_bundle_price,
@@ -132,18 +127,29 @@ class MiniBundle(db.Model, TimestampMixin):
         order_by="[desc(SubscriptionPrice.year), SubscriptionPrice.price]",
     )
 
-    def to_dict(self):
-        return {
-            "mini_bundle_name": self.name,
-            "journals_included": [
-                {"issn_l": j.issn_l, "title": j.title} for j in self.journals
-            ],
-            "prices": sorted(
-                [p.to_dict() for p in self.subscription_prices],
-                key=lambda p: p["year"],
-                reverse=True,
-            ),
-        }
+
+class MiniBundlePrice(db.Model):
+    __tablename__ = "mini_bundle_price"
+
+    id = db.Column(db.Integer, primary_key=True)
+    mini_bundle_id = db.Column(
+        db.Integer, db.ForeignKey("mini_bundles.id"), nullable=False, index=True
+    )
+    price = db.Column(db.Numeric(10, 2), nullable=False)
+    currency_id = db.Column(
+        db.Integer, db.ForeignKey("currency.id"), nullable=False, index=True
+    )
+    country_id = db.Column(db.Integer, db.ForeignKey("countries.id"))
+    region_id = db.Column(db.Integer, db.ForeignKey("regions.id"))
+    fte_from = db.Column(db.Integer)
+    fte_to = db.Column(db.Integer)
+    year = db.Column(db.Integer, nullable=False, index=True)
+    created_at = db.Column(db.DateTime, server_default=func.now())
+
+    # relationships
+    country = db.relationship("Country", lazy="joined")
+    currency = db.relationship("Currency", lazy="joined")
+    region = db.relationship("Region", lazy="joined")
 
 
 journal_subscription_price = db.Table(

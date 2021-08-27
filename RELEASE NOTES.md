@@ -1,3 +1,30 @@
+**2021-08-24 Add APC pricing, missing journals**
+
+Added all remaining Wiley APC pricing. Added portion of Springer Nature APC pricing.
+
+Mapped following ISSNs:  
+2332-8926 -> 2332-8940  
+1478-9883 -> 0266-0830  
+1541-4540 -> 0161-6846  
+1175-8778 -> 0028-8233  
+1543-5318 -> 1542-1406  
+1540-9567 -> 0276-3869  
+2777-9640 -> 1250-7970  
+1528-6948 -> 1047-7845  
+1470-021X -> 1740-0201  
+1474-6631 -> 1743-873X  
+1947-8924 -> 1947-9832  
+1619-0615 -> 0315-5986  
+1744-4243 -> 1382-5577  
+2377-4655 -> 2377-4657  
+
+Added 0137-1339, 1662-1352, 2038-9124
+
+Submitted as missing but not found:  
+0272-966X, 1369-730X
+
+
+
 **2021-08-20 APC changes, add missing journals**
 
 Renamed APC fields to make usage clearer:

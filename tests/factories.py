@@ -53,6 +53,7 @@ def import_api_test_data():
 
     pr = SubscriptionPrice(
         id=1,
+        journal_id=1,
         price=200.00,
         currency=cur,
         region=r,
@@ -66,6 +67,7 @@ def import_api_test_data():
 
     pr2 = SubscriptionPrice(
         id=2,
+        journal_id=1,
         price=300.00,
         currency=cur,
         region=r,
@@ -79,6 +81,7 @@ def import_api_test_data():
 
     pr3 = SubscriptionPrice(
         id=3,
+        journal_id=1,
         price=400.00,
         currency=cur,
         region=r,
@@ -87,6 +90,20 @@ def import_api_test_data():
         fte_to=600,
         year=1992,
     )
+
+    pr4 = SubscriptionPrice(
+        id=1,
+        journal_id=4,
+        price=200.00,
+        currency=cur,
+        region=r,
+        country=country,
+        fte_from=20,
+        fte_to=100,
+        year=1990,
+    )
+
+    db.session.add(pr)
 
     db.session.add(pr3)
 
@@ -193,7 +210,6 @@ def import_api_test_data():
         journal_metadata=[],
         permissions=None,
         subjects=[],
-        subscription_prices=[pr, pr2, pr3],
     )
 
     db.session.add(j)
@@ -291,7 +307,6 @@ def import_api_test_data():
         journal_metadata=[],
         permissions=None,
         subjects=[],
-        subscription_prices=[pr],
     )
 
     db.session.add(j_two)
@@ -335,7 +350,6 @@ def import_api_test_data():
         journal_metadata=[],
         permissions=None,
         subjects=[],
-        subscription_prices=[],
     )
 
     db.session.add(j_wiley)
@@ -383,7 +397,6 @@ def import_api_test_data():
         journal_metadata=[],
         permissions=None,
         subjects=[],
-        subscription_prices=[pr],
     )
 
     db.session.add(j_two)

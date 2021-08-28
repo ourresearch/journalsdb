@@ -9,7 +9,6 @@ import shortuuid
 from app import db
 from models.issn import ISSNMetaData
 from models.mixins import TimestampMixin
-from models.price import journal_subscription_price
 from models.subjects import journal_subjects
 
 
@@ -83,9 +82,8 @@ class Journal(db.Model):
     subjects = db.relationship("Subject", secondary=journal_subjects)
     subscription_prices = db.relationship(
         "SubscriptionPrice",
-        secondary=journal_subscription_price,
         lazy="subquery",
-        backref="journals",
+        backref="journal",
         order_by="[desc(SubscriptionPrice.year), SubscriptionPrice.price]",
     )
 

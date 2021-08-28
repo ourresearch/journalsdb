@@ -25,6 +25,29 @@ class SubscriptionPrice(db.Model, TimestampMixin):
     region = db.relationship("Region", lazy="joined")
 
 
+class SubscriptionPriceNew(db.Model, TimestampMixin):
+    __tablename__ = "subscription_price_new"
+
+    id = db.Column(db.Integer, primary_key=True)
+    journal_id = db.Column(
+        db.Integer, db.ForeignKey("journals.id"), nullable=False, index=True
+    )
+    price = db.Column(db.Numeric(10, 2), nullable=False)
+    currency_id = db.Column(
+        db.Integer, db.ForeignKey("currency.id"), nullable=False, index=True
+    )
+    country_id = db.Column(db.Integer, db.ForeignKey("countries.id"), index=True)
+    region_id = db.Column(db.Integer, db.ForeignKey("regions.id"), index=True)
+    fte_from = db.Column(db.Integer)
+    fte_to = db.Column(db.Integer)
+    year = db.Column(db.Integer, nullable=False, index=True)
+
+    # relationships
+    country = db.relationship("Country", lazy="joined")
+    currency = db.relationship("Currency", lazy="joined")
+    region = db.relationship("Region", lazy="joined")
+
+
 class APCPrice(db.Model):
     __tablename__ = "apc_price"
 

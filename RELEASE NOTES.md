@@ -1,3 +1,28 @@
+**2021-09-01 Add missing journals, refactor pricing tables**
+
+Refactored all pricing tables to one-to-many in order to make records easier to manage. 
+
+Added ISSNs:  
+0143-3887, 0020-9376, 0375-9245, 0340-1782, 0441-9057, 0365-4125, 0044-2232,
+0044-3379, 0022-4081, 0920-1580, 0920-1580, 0002-838X, 0365-5245
+
+Set ISSN as formerly known as:   
+0044-3077 -> 0300-8584  
+0043-5546 -> 0340-0794  
+0023-5946 -> 0340-1200  
+0178-4919 -> 0022-3476  
+0042-0573 -> 1432-5217  
+0006-3517 -> 0301-634X  
+1436-2511 -> 1610-2924  
+0369-9498 -> 0031-6970  
+0003-9446 -> 0340-5761  
+1006-9321 -> 1869-1900  
+
+ISSNs added to existing ISSNs:  
+0018-7348 -> 0340-6717  
+1672-1799 -> 1862-2844  
+0393-679X -> 0393-697X  
+
 **2021-08-24 Add APC pricing, missing journals**
 
 Added all remaining Wiley APC pricing. Added portion of Springer Nature APC pricing.

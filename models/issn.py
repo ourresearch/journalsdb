@@ -40,6 +40,7 @@ class ISSNMetaData(db.Model):
     issn_l = db.Column(db.String, primary_key=True)
     issn_org_issns = db.Column(JSONB)
     crossref_issns = db.Column(JSONB)
+    previous_issn_ls = db.Column(JSONB)
     issn_org_raw_api = db.Column(JSONB)
     crossref_raw_api = db.Column(JSONB)
     created_at = db.Column(db.DateTime, server_default=func.now())

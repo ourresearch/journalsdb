@@ -32,7 +32,7 @@ class Journal(db.Model):
         db.String(9), db.ForeignKey("issn_metadata.issn_l"), unique=True, nullable=False
     )
     title = db.Column(db.Text, nullable=False)
-    journal_synonyms = db.Column(JSONB)
+    other_titles = db.Column(JSONB)
     publisher_id = db.Column(db.Integer, db.ForeignKey("publishers.id"), index=True)
     internal_publisher_id = db.Column(db.Text)
     imprint_id = db.Column(db.Integer, db.ForeignKey("imprints.id"))
@@ -105,7 +105,7 @@ class Journal(db.Model):
     @classmethod
     def find_by_synonym(cls, synonym):
         return cls.query.filter(
-            cls.synonyms.contains(json.dumps(synonym))
+            cls.other_titles.contains(json.dumps(synonym))
         ).one_or_none()
 
     @property

@@ -36,10 +36,13 @@ class TestAPIJournalDetail:
         rv = api_client.get("/journals/1907-1760")
         json_data = rv.get_json()
         top_level_keys = [
+            "id",
             "issn_l",
             "issns",
             "title",
             "publisher",
+            "previous_issn_ls",
+            "other_titles",
             "journal_metadata",
             "total_dois",
             "dois_by_issued_year",

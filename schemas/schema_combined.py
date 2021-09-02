@@ -8,6 +8,7 @@ from schemas.schema_price import (
     SubscriptionPriceSchema,
 )
 from models.usage import RetractionSummary
+from schemas.custom_fields import DefaultList
 from schemas.schema_journal import (
     CurrentRenamedSchema,
     FormerRenamedSchema,
@@ -25,10 +26,15 @@ class JournalListSchema(ma.Schema):
     Schema for journals-paged.
     """
 
+    id = fields.String(attribute="uuid")
     issn_l = fields.String()
     issns = fields.List(fields.String())
     title = fields.String()
     publisher = fields.String(attribute="publisher.name", dump_default=None)
+    previous_issn_ls = DefaultList(
+        fields.String, attribute="issn_metadata.previous_issn_ls"
+    )
+    other_titles = DefaultList(fields.String)
     journal_metadata = fields.Nested(JournalMetadataSchema, many=True)
 
     # formerly / currently known as

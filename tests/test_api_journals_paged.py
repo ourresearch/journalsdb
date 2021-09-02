@@ -89,10 +89,13 @@ class TestAPIJournalsPaged:
             None,
         )
         top_level_keys = [
+            "id",
             "issn_l",
             "issns",
             "title",
             "publisher",
+            "previous_issn_ls",
+            "other_titles",
             "journal_metadata",
             "formerly_known_as",
             "total_dois",

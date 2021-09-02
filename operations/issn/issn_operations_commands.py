@@ -1,8 +1,20 @@
 import click
 
 from app import app
-from operations.issn.issn_validate_issns import validate_issns
+from operations.issn.issn_merge_issn import MergeIssn
 from operations.issn.issn_move_issn import MoveIssn
+from operations.issn.issn_validate_issns import validate_issns
+
+
+@app.cli.command("merge_issn")
+@click.option("--issn_from", prompt=True)
+@click.option("--issn_to", prompt=True)
+def merge_issn(issn_from, issn_to):
+    """
+    Merges issns together using new previous_issn_l method.
+    """
+    m = MergeIssn(issn_from, issn_to)
+    m.merge_issn()
 
 
 @app.cli.command("move_issn")

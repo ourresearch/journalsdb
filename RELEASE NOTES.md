@@ -1,3 +1,24 @@
+**2021-09-01 Add missing journals, refactor renamed journals**
+
+Added ISSNs:  
+0300-9696, 0250-5983, 0372-901X, 0372-8609, 0305-1811, 0038-0776, 1058-6628
+
+Journals merged into existing journals using new method:  
+0043-3640 -> 0095-2583  
+0951-7359 -> 1747-6585  
+2690-9073 -> 0002-1962  
+0095-9650 -> 0002-1962  
+0277-1926 -> 1069-3629  
+0449-5705 -> 0145-479X  
+0367-4355 -> 0033-4553  
+
+ISSNs added to existing ISSNs:   
+0003-9187 -> 1432-069X  
+0160-4112 -> 1460-2695  
+0301-7699 -> 0006-3231  
+
+Added new `id`, `previous_issn_ls`, and `other_titles` fields to support renamed or related journals.
+
 **2021-09-01 Add missing journals, refactor pricing tables**
 
 Refactored all pricing tables to one-to-many in order to make records easier to manage. 

@@ -22,7 +22,7 @@ class MergeIssn:
         renamed_record = (
             db.session.query(JournalRenamed)
             .filter_by(former_issn_l=self.issn_from)
-            .one()
+            .one_or_none()
         )
         j = db.session.query(Journal).filter_by(issn_l=self.issn_from).one()
         if j.subscription_prices or j.apc_prices:
@@ -31,7 +31,8 @@ class MergeIssn:
             )
 
         self.old_title = j.title
-        db.session.delete(renamed_record)
+        if renamed_record:
+            db.session.delete(renamed_record)
         db.session.delete(j)
         db.session.commit()
         print("journal entry for issn {} deleted".format(self.issn_from))

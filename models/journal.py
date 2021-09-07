@@ -116,13 +116,6 @@ class Journal(db.Model):
         return self.issn_metadata.issns
 
     @property
-    def current_journal(self):
-        """Returns a single current_journal that is pulled from the JournalRenamed table if it exists."""
-        return (
-            self.current_journals[0].current_journal if self.current_journals else None
-        )
-
-    @property
     def open_access_recent(self):
         return self.open_access[0] if self.open_access else None
 

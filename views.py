@@ -1,5 +1,3 @@
-import json
-
 from flask import abort, jsonify, redirect, request, url_for
 from flasgger import swag_from
 
@@ -34,26 +32,16 @@ def index():
 @app.route("/journals/<issn>")
 @swag_from("docs/journal.yml")
 def journal_detail(issn):
-    redirect_param = request.args.get("redirect", "true", type=str)
-    redirect_param = json.loads(redirect_param)  # convert 'true' to True
-    merge_param = request.args.get("merge", "true", type=str)
-    merge_param = json.loads(merge_param)
-
     journal = Journal.find_by_issn(issn)
 
     if not journal:
         return abort(404, description="Resource not found")
-
-    elif journal.current_journal and redirect_param:
-        # more recent version of the journal exists, so we should redirect to it
-        return redirect(url_for("journal_detail", issn=journal.current_journal.issn_l))
 
     elif journal.issn_l != issn and issn in journal.issns:
         # redirect to primary issn_l
         return redirect(url_for("journal_detail", issn=journal.issn_l))
 
     journal_detail_schema = JournalDetailSchema()
-    journal_detail_schema.context = {"merge": merge_param}
     return journal_detail_schema.dump(journal)
 
 
@@ -69,8 +57,6 @@ def journals_paged():
     publishers = request.args.get("publishers")
     publisher_ids = get_publisher_ids(publishers) if publishers else []
     valid_status = validate_status(request.args.get("status"))
-    merge_param = request.args.get("merge", "true", type=str)
-    merge_param = json.loads(merge_param)
 
     # primary query
     journals = Journal.query.order_by(Journal.created_at.asc())
@@ -87,7 +73,6 @@ def journals_paged():
 
     # schema with displayed fields based on attrs
     journal_list_schema = JournalListSchema(only=only)
-    journal_list_schema.context = {"merge": merge_param}
     journals_dumped = journal_list_schema.dump(journals.items, many=True)
 
     # combined results with pagination

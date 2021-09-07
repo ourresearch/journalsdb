@@ -91,3 +91,19 @@ class TestAPIJournalsPaged:
             'rel="next"'
         )
         assert link_header_actual == link_header_expected
+
+    def test_journals_paged_only_fields(self, api_client):
+        rv = api_client.get(
+            "/journals-paged?attrs=issn_l,issns,title,subscription_pricing"
+        )
+        json_data = rv.get_json()
+        sample = next(
+            (item for item in json_data["results"] if item["issn_l"] == "1907-1760"),
+            None,
+        )
+        assert list(sample.keys()) == [
+            "issn_l",
+            "issns",
+            "title",
+            "subscription_pricing",
+        ]

@@ -52,14 +52,6 @@ def process_only_fields(attrs):
         only.remove("open_access")
         only = only + ["open_access_recent"]
 
-    if "currently_known_as" in only:
-        only.remove("currently_known_as")
-        only = only + ["current_journal"]
-
-    if "formerly_known_as" in only:
-        only.remove("formerly_known_as")
-        only = only + ["journals_renamed"]
-
     # remove any invalid fields
     schema_fields = [j for j in JournalListSchema._declared_fields]
     for field in only:

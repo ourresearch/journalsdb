@@ -9,11 +9,7 @@ from schemas.schema_price import (
 )
 from models.usage import RetractionSummary
 from schemas.custom_fields import DefaultList
-from schemas.schema_journal import (
-    CurrentRenamedSchema,
-    FormerRenamedSchema,
-    JournalMetadataSchema,
-)
+from schemas.schema_journal import JournalMetadataSchema
 from schemas.schema_usage import (
     AuthorPermissionsSchema,
     ExtensionRequestsSchema,
@@ -36,12 +32,6 @@ class JournalListSchema(ma.Schema):
     )
     other_titles = DefaultList(fields.String)
     journal_metadata = fields.Nested(JournalMetadataSchema, many=True)
-
-    # formerly / currently known as
-    journals_renamed = fields.Nested(
-        FormerRenamedSchema, many=True, data_key="formerly_known_as"
-    )
-    current_journal = fields.Nested(CurrentRenamedSchema, data_key="currently_known_as")
 
     # doi stats
     total_dois = fields.Method("get_total_dois", dump_default=None)
@@ -105,14 +95,6 @@ class JournalListSchema(ma.Schema):
         if "subscription_pricing" in data:
             data["subscription_pricing"]["mini_bundles"] = data["mini_bundles"]
             del data["mini_bundles"]
-        return data
-
-    @post_dump()
-    def remove_null_former_current_fields(self, data, many, **kwargs):
-        if "formerly_known_as" in data and len(data["formerly_known_as"]) == 0:
-            del data["formerly_known_as"]
-        if "currently_known_as" in data and data["currently_known_as"] is None:
-            del data["currently_known_as"]
         return data
 
     class Meta:

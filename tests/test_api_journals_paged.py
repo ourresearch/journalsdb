@@ -56,39 +56,6 @@ class TestAPIJournalsPaged:
             None,
         )
         top_level_keys = [
-            "issn_l",
-            "issns",
-            "title",
-            "publisher",
-            "journal_metadata",
-            "total_dois",
-            "dois_by_issued_year",
-            "sample_dois",
-            "subscription_pricing",
-            "apc_pricing",
-            "open_access",
-            "status",
-            "status_as_of",
-        ]
-
-        i = 0
-        for key in sample.keys():
-            assert key == top_level_keys[i]
-            i += 1
-
-    def test_journals_paged_fields_renamed_current(self, api_client):
-        """
-        Ensure we are displaying the correct top-level fields in the correct order.
-        New journals that have been renamed and are the current journal have an extra
-        field called formerly_known_as.
-        """
-        rv = api_client.get("/journals-paged")
-        json_data = rv.get_json()
-        sample = next(
-            (item for item in json_data["results"] if item["issn_l"] == "2291-5222"),
-            None,
-        )
-        top_level_keys = [
             "id",
             "issn_l",
             "issns",
@@ -97,40 +64,6 @@ class TestAPIJournalsPaged:
             "previous_issn_ls",
             "other_titles",
             "journal_metadata",
-            "formerly_known_as",
-            "total_dois",
-            "dois_by_issued_year",
-            "sample_dois",
-            "subscription_pricing",
-            "apc_pricing",
-            "open_access",
-            "status",
-            "status_as_of",
-        ]
-
-        i = 0
-        for key in sample.keys():
-            assert key == top_level_keys[i]
-            i += 1
-
-    def test_journals_paged_fields_renamed_former(self, api_client):
-        """
-        Ensure we are displaying the correct top-level fields in the correct order.
-        Old journals that have been renamed have an extra field called currently_known_as.
-        """
-        rv = api_client.get("/journals-paged")
-        json_data = rv.get_json()
-        sample = next(
-            (item for item in json_data["results"] if item["issn_l"] == "5577-4444"),
-            None,
-        )
-        top_level_keys = [
-            "issn_l",
-            "issns",
-            "title",
-            "publisher",
-            "journal_metadata",
-            "currently_known_as",
             "total_dois",
             "dois_by_issued_year",
             "sample_dois",

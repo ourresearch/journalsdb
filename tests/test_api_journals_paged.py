@@ -25,7 +25,7 @@ class TestAPIJournalsPaged:
         assert json_data["pagination"]["per_page"] == 2
         assert json_data["pagination"]["pages"] == 2
 
-    def test_journals_paged_renamed_merged(self, api_client):
+    def test_journals_paged_merged_dois(self, api_client):
         rv = api_client.get("/journals-paged")
         json_data = rv.get_json()
         sample = next(
@@ -34,16 +34,6 @@ class TestAPIJournalsPaged:
         )
         assert sample["total_dois"] == 4
         assert sample["dois_by_issued_year"] == [[2021, 2], [2020, 2]]
-
-    def test_journals_paged_renamed_no_merge(self, api_client):
-        rv = api_client.get("/journals-paged?merge=false")
-        json_data = rv.get_json()
-        sample = next(
-            (item for item in json_data["results"] if item["issn_l"] == "2291-5222"),
-            None,
-        )
-        assert sample["total_dois"] == 2
-        assert sample["dois_by_issued_year"] == [[2021, 2]]
 
     def test_journals_paged_fields(self, api_client):
         """

@@ -10,6 +10,7 @@ from app import db
 from models.issn import ISSNMetaData
 from models.mixins import TimestampMixin
 from models.subjects import journal_subjects
+from models.usage import DOICount
 
 
 class JournalStatus(enum.Enum):
@@ -126,26 +127,21 @@ class Journal(db.Model):
         return self.open_access[0] if self.open_access else None
 
     @property
-    def total_dois_single(self):
-        """Returns doi total for single journal."""
-        return self.doi_counts.total_dois if self.doi_counts else None
-
-    @property
-    def total_dois_merged(self):
-        """Returns doi total for current and former journals combined."""
+    def total_dois(self):
+        """Returns doi total for current and previous issn_ls combined."""
         total = self.doi_counts.total_dois if self.doi_counts else None
-        for j in self.journals_renamed:
-            if j.former_journal.doi_counts:
-                total = total + j.former_journal.doi_counts.total_dois
+        if self.issn_metadata and self.issn_metadata.previous_issn_ls:
+            for issn in self.issn_metadata.previous_issn_ls:
+                doi_counts = DOICount.query.filter_by(issn_l=issn).one_or_none()
+                if doi_counts:
+                    if total:
+                        total = total + doi_counts.total_dois
+                    else:
+                        total = doi_counts.total_dois
         return total
 
     @property
-    def dois_by_year_single(self):
-        """Returns sorted dois by year for single journal."""
-        return self.doi_counts.dois_by_year_sorted if self.doi_counts else None
-
-    @property
-    def dois_by_year_merged(self):
+    def dois_by_year(self):
         """Returns sorted dois by year for current and former journals combined."""
         dois_by_year = {}
 
@@ -155,15 +151,14 @@ class Journal(db.Model):
                 {int(k): v for (k, v) in self.doi_counts.dois_by_year.items()}
             )
 
-        for j in self.journals_renamed:
-            if j.former_journal.doi_counts:
-                # add former journal dois by year
-                dois_by_year.update(
-                    {
-                        int(k): v
-                        for (k, v) in j.former_journal.doi_counts.dois_by_year.items()
-                    }
-                )
+        if self.issn_metadata and self.issn_metadata.previous_issn_ls:
+            for issn in self.issn_metadata.previous_issn_ls:
+                doi_counts = DOICount.query.filter_by(issn_l=issn).one_or_none()
+                if doi_counts:
+                    # add former journal dois by year
+                    dois_by_year.update(
+                        {int(k): v for (k, v) in doi_counts.dois_by_year.items()}
+                    )
         dois_combined_and_sorted = list(sorted(dois_by_year.items(), reverse=True))
         return dois_combined_and_sorted
 

@@ -1,11 +1,12 @@
 import datetime
+import json
 
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import UniqueConstraint
 
 from app import db
-from models.journal import Journal
 from models.mixins import TimestampMixin
+from models.issn import ISSNMetaData
 
 
 class DOICount(db.Model, TimestampMixin):
@@ -183,9 +184,11 @@ class RetractionSummary(db.Model):
             return retractions
 
         # try other associated issns
-        journal = Journal.find_by_issn(issn_l)
-        if journal:
-            for issn in journal.issns:
+        metadata_record = ISSNMetaData.query.filter(
+            ISSNMetaData.issn_org_issns.contains(json.dumps(issn_l))
+        ).first()
+        if metadata_record:
+            for issn in metadata_record.issn_org_issns:
                 retractions = cls.query.filter_by(issn=issn).all()
                 if retractions:
                     return retractions

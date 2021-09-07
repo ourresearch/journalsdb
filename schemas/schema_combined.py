@@ -34,8 +34,10 @@ class JournalListSchema(ma.Schema):
     journal_metadata = fields.Nested(JournalMetadataSchema, many=True)
 
     # doi stats
-    total_dois = fields.Method("get_total_dois", dump_default=None)
-    dois_by_issued_year = fields.Method("get_dois_by_year", dump_default=None)
+    total_dois = fields.Integer(attribute="total_dois")
+    dois_by_issued_year = fields.List(
+        fields.List(fields.Integer), attribute="dois_by_year"
+    )
     sample_dois = fields.List(
         fields.String, attribute="doi_counts.sample_doi_urls", dump_default=None
     )

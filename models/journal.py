@@ -64,6 +64,7 @@ class Journal(db.Model):
         "DOICount",
         primaryjoin="Journal.issn_l == foreign(DOICount.issn_l)",
         uselist=False,
+        viewonly=True,
     )
     imprint = db.relationship("Imprint", cascade="all, delete")
     issn_metadata = db.relationship("ISSNMetaData")
@@ -74,6 +75,7 @@ class Journal(db.Model):
         "OpenAccess",
         primaryjoin="Journal.issn_l == foreign(OpenAccess.issn_l)",
         order_by="desc(OpenAccess.year)",
+        viewonly=True,
     )
     permissions = db.relationship("AuthorPermissions", uselist=False, backref="journal")
     publisher = db.relationship(

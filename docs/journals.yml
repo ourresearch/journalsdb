@@ -19,7 +19,7 @@ parameters:
     type: array
     items:
       type: string
-      enum: ['issn_l', 'issns', 'title', 'publisher', 'journal_metadata', 'total_dois', 'dois_by_issued_year', 'subscription_pricing', 'apc_pricing', 'status', 'status_as_of']
+      enum: ['id', 'issn_l', 'issns', 'title', 'publisher', 'previous_issn_ls', 'other_titles', 'journal_metadata', 'total_dois', 'dois_by_issued_year', 'subscription_pricing', 'apc_pricing', 'status', 'status_as_of']
     collectionFormat: csv
     required: false
   - name: publishers
@@ -39,12 +39,6 @@ parameters:
       enum: [ 'ceased', 'incorporated', 'publishing', 'renamed', 'unknown' ]
     collectionFormat: csv
     required: false
-  - name: merge
-    description: if true, journals that have been renamed will have DOI statistics merged into the current version of the journal
-    in: query
-    type: boolean
-    required: false
-    default: true
 
 responses:
   '200':

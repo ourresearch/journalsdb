@@ -54,6 +54,7 @@ with app.app_context():
     from ingest.repositories import *
     from ingest.sample_dois import *
     from ingest.locations import *
+    from ingest.citations import *
     from ingest.currency.currency import *
     from ingest.retraction_watch import *
     from ingest.apc.apc_commands import *

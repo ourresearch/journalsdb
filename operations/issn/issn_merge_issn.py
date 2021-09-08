@@ -1,6 +1,6 @@
 from app import db
 from models.issn import ISSNMetaData, ISSNToISSNL
-from models.journal import Journal, JournalRenamed
+from models.journal import Journal
 
 
 class MergeIssn:
@@ -19,11 +19,6 @@ class MergeIssn:
         self.set_other_title()
 
     def delete_old_journal(self):
-        renamed_record = (
-            db.session.query(JournalRenamed)
-            .filter_by(former_issn_l=self.issn_from)
-            .one_or_none()
-        )
         j = db.session.query(Journal).filter_by(issn_l=self.issn_from).one()
         if j.subscription_prices or j.apc_prices:
             raise Exception(
@@ -31,8 +26,6 @@ class MergeIssn:
             )
 
         self.old_title = j.title
-        if renamed_record:
-            db.session.delete(renamed_record)
         db.session.delete(j)
         db.session.commit()
         print("journal entry for issn {} deleted".format(self.issn_from))

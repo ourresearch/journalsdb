@@ -61,6 +61,7 @@ class Journal(db.Model):
         order_by="[desc(APCPrice.year), APCPrice.price]",
     )
     author_permissions = db.relationship("AuthorPermissions", cascade="all, delete")
+    citations = db.relationship("Citation", back_populates="journal", uselist=False)
     doi_counts = db.relationship(
         "DOICount",
         primaryjoin="Journal.issn_l == foreign(DOICount.issn_l)",

@@ -9,6 +9,22 @@ from models.mixins import TimestampMixin
 from models.issn import ISSNMetaData
 
 
+class Citation(db.Model, TimestampMixin):
+    __tablename__ = "citations"
+
+    id = db.Column(db.Integer, primary_key=True)
+    journal_id = db.Column(
+        db.Integer,
+        db.ForeignKey("journals.id"),
+        nullable=False,
+    )
+    citations_by_year = db.Column(JSONB)
+    citations_per_article = db.Column(JSONB)
+    percent_confirming = db.Column(db.Float)
+
+    journal = db.relationship("Journal", back_populates="citations")
+
+
 class DOICount(db.Model, TimestampMixin):
     __tablename__ = "doi_counts"
 

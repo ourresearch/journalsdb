@@ -31,6 +31,9 @@ def get_dois_by_year(issn):
 
 
 def get_dois(issn, from_year, to_year):
+    """
+    Returns a list of DOIs for a particular timeframe.
+    """
     dois = []
     url = f"https://api.crossref.org/journals/{issn}/works?rows=500&filter=from-pub-date:{from_year}-01-01,until-pub-date:{to_year}-01-01&mailto=team@ourresearch.org"
     r = requests.get(url)
@@ -44,6 +47,7 @@ def get_citation_counts(dois_by_year):
     """
     Get citation counts from opencitations.net.
     Documentation: https://opencitations.net/index/api/v1#/citation-count/{doi}
+    Optional https://api.semanticscholar.org/v1/paper/10.1038/nrn3241
     """
     citations_by_year = {}
 
@@ -63,6 +67,9 @@ def get_citation_counts(dois_by_year):
 
 
 def get_citations_per_doi(dois_by_year, citations_by_year):
+    """
+    Returns citations per DOI.
+    """
     citations_per_doi = {}
     for year, dois in dois_by_year.items():
         if len(dois) > 0:

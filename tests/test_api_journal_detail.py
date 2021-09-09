@@ -54,6 +54,7 @@ class TestAPIJournalDetail:
             "status_as_of",
             "open_access_history",
             "repositories",
+            "citations",
             "readership",
             "author_permissions",
             "retractions",

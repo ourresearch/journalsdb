@@ -4,7 +4,7 @@ from marshmallow import fields
 
 from app import ma
 from models.author_permissions import AuthorPermissions
-from models.usage import ExtensionRequests, OpenAccess, Repository
+from models.usage import Citation, ExtensionRequests, OpenAccess, Repository
 
 
 class AuthorPermissionsSchema(ma.SQLAlchemyAutoSchema):
@@ -23,6 +23,20 @@ class OpenAccessSchema(ma.SQLAlchemyAutoSchema):
         model = OpenAccess
         ordered = True
         exclude = ["issn_l", "title", "created_at", "updated_at"]
+
+
+class CitationsSchema(ma.SQLAlchemyAutoSchema):
+    citations_by_year = fields.List(
+        fields.List(fields.Integer), attribute="citations_by_year_sorted"
+    )
+    citations_per_article = fields.List(
+        fields.List(fields.Float), attribute="citations_per_article_sorted"
+    )
+
+    class Meta:
+        model = Citation
+        ordered = True
+        fields = ("citations_by_year", "citations_per_article")
 
 
 class ExtensionRequestsSchema(ma.SQLAlchemyAutoSchema):

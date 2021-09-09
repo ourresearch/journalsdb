@@ -24,6 +24,16 @@ class Citation(db.Model, TimestampMixin):
 
     journal = db.relationship("Journal", back_populates="citations")
 
+    @property
+    def citations_by_year_sorted(self):
+        citations = {int(k): v for (k, v) in self.citations_by_year.items()}
+        return list(sorted(citations.items(), reverse=True))
+
+    @property
+    def citations_per_article_sorted(self):
+        citations = {int(k): v for (k, v) in self.citations_per_article.items()}
+        return list(sorted(citations.items(), reverse=True))
+
 
 class DOICount(db.Model, TimestampMixin):
     __tablename__ = "doi_counts"

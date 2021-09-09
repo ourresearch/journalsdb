@@ -12,6 +12,7 @@ from schemas.custom_fields import DefaultList
 from schemas.schema_journal import JournalMetadataSchema
 from schemas.schema_usage import (
     AuthorPermissionsSchema,
+    CitationsSchema,
     ExtensionRequestsSchema,
     OpenAccessSchema,
 )
@@ -114,6 +115,7 @@ class JournalDetailSchema(JournalListSchema):
     repositories = ma.URLFor(
         "repositories", values=dict(issn_l="<issn_l>", _external=True)
     )
+    citations = fields.Nested(CitationsSchema)
     extension_requests = fields.Nested(
         ExtensionRequestsSchema, many=True, data_key="readership"
     )

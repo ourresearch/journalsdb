@@ -1,3 +1,13 @@
+**2021-09-14 Add citation statistics, missing journals**
+
+Added feature to show citations counts and citations per article for most recent 2-3 years of published articles.
+
+Added ISSNs:  
+0265-9999, 0884-8165, 0953-6612 
+
+Submitted as missing but not found:  
+1069-4736, 0248-7900, 0000-0001
+
 **2021-09-01 Add missing journals, refactor renamed journals**
 
 Added ISSNs:  

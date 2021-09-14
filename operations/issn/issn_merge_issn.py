@@ -1,6 +1,7 @@
 from app import db
 from models.issn import ISSNMetaData, ISSNToISSNL
 from models.journal import Journal
+from models.usage import DOICount, OpenAccess
 
 
 class MergeIssn:
@@ -14,6 +15,8 @@ class MergeIssn:
         self.delete_old_journal()
         self.delete_old_issn_metadata()
         self.delete_old_issn_to_issnl()
+        self.delete_old_doi_data()
+        self.delete_old_open_access_data()
         self.map_issns_to_new_issn_l()
         self.add_issn_to_new_issn_org_issns()
         self.set_other_title()
@@ -49,6 +52,20 @@ class MergeIssn:
                     issn.issn, issn.issn_l
                 )
             )
+
+    def delete_old_doi_data(self):
+        dois = db.session.query(DOICount).filter_by(issn_l=self.issn_from).one_or_none()
+        if dois:
+            db.session.delete(dois)
+            db.session.commit()
+
+    def delete_old_open_access_data(self):
+        open_access = (
+            db.session.query(OpenAccess).filter_by(issn_l=self.issn_from).all()
+        )
+        for o in open_access:
+            db.session.delete(o)
+        db.session.commit()
 
     def map_issns_to_new_issn_l(self):
         for old_issn in self.old_issns:

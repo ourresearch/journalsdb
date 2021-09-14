@@ -68,7 +68,7 @@ class Journal(db.Model):
         uselist=False,
         viewonly=True,
     )
-    imprint = db.relationship("Imprint", cascade="all, delete")
+    imprint = db.relationship("Imprint")
     issn_metadata = db.relationship("ISSNMetaData")
     journal_metadata = db.relationship(
         "JournalMetadata", backref="journal", cascade="all, delete"

@@ -71,7 +71,8 @@ class ExtensionRequests(db.Model, TimestampMixin):
         index=True,
     )
     journal = db.relationship(
-        "Journal", backref=db.backref("extension_requests", lazy=True)
+        "Journal",
+        backref=db.backref("extension_requests", lazy=True, cascade="all,delete"),
     )
     month = db.Column(db.DateTime, nullable=False)
     requests = db.Column(db.Integer, nullable=False)

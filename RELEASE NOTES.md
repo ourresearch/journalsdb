@@ -1,3 +1,31 @@
+**2021-09-15 Add journal mappings, missing metadata**
+
+Mapped issns to related issns:  
+0368-3494 -> 0022-3417  
+0265-6647 -> 1471-1834  
+0942-8925 -> 2366-0058  
+0891-0162 -> 2165-0799  
+0037-7678 -> 1044-3894  
+1542-0752 -> 2472-1727  
+1542-9733 -> 2472-1727  
+1542-975X -> 2472-1727  
+0040-3709 -> 2472-1727  
+0270-3211 -> 2472-1727  
+1070-9797 -> 1091-4269  
+1062-6417 -> 1091-4269  
+0196-3635 -> 2047-2919  
+1365-2605 -> 2047-2919  
+0308-2261 -> 0889-8588  
+0749-1565 -> 1049-9091  
+0094-2391 -> 2168-8273  
+1530-6429 -> 2730-5716  
+0885-727X -> 1042-1629  
+0148-5806 -> 1556-6501  
+0300-5089 -> 0889-8553  
+1573-8159 -> 1381-1118  
+
+Added journal metadata for recently added journals.
+
 **2021-09-14 Add citation statistics, missing journals**
 
 Added feature to show citations counts and citations per article for most recent 2-3 years of published articles.

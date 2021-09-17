@@ -1,3 +1,17 @@
+**2021-09-17 Add new Wiley journals, other missing journals**
+
+Added following new Wiley ISSNs:  
+2769-2485, 2769-2558, 2769-2450, 2767-441X, 2642-3588, 2768-7228, 2768-1696, 2767-1402, 
+2767-035X, 2768-2811, 2768-0622, 2769-2795, 2694-5746, 2768-6566
+
+Mapped the following ISSNs:  
+0008-7769 -> 0341-8162  
+1357-8170 -> 2047-2897  
+2035-9969 -> 2284-0265  
+1072-8368 -> 1545-9985  
+0019-5421 -> 0973-7707  
+
+
 **2021-09-15 Add journal mappings, missing metadata**
 
 Mapped issns to related issns:  

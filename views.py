@@ -32,7 +32,7 @@ def index():
 @app.route("/journals/<issn>")
 @swag_from("docs/journal.yml")
 def journal_detail(issn):
-    journal = Journal.find_by_issn(issn)
+    journal = Journal.find_by_issn(issn.upper())
 
     if not journal:
         return abort(404, description="Resource not found")

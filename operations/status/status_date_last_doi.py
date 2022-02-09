@@ -28,6 +28,7 @@ class DateLastDOIStatus:
                             journal.issn_l
                         )
                     )
+        db.session.commit()
 
     @staticmethod
     def journals_to_update():
@@ -47,4 +48,3 @@ class DateLastDOIStatus:
                     journal.issn_l, status_as_of
                 )
             )
-            db.session.commit()

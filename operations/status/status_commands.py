@@ -5,6 +5,7 @@ import click
 from app import app
 from operations.status.status_from_spreadsheet import StatusFromSpreadsheet
 from operations.status.status_currently_publishing import CurrentlyPublishingStatus
+from operations.status.status_date_last_doi import DateLastDOIStatus
 
 CSV_DIRECTORY = "operations/status/files/"
 
@@ -27,3 +28,12 @@ def currently_publishing():
     """
     c = CurrentlyPublishingStatus()
     c.update_status()
+
+
+@app.cli.command("date_last_doi")
+def date_last_doi():
+    """
+    Calls crossref API and sets the date the last DOI was seen..
+    """
+    d = DateLastDOIStatus()
+    d.update_date_last_doi()

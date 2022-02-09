@@ -58,6 +58,7 @@ class JournalListSchema(ma.Schema):
         OpenAccessSchema,
         data_key="open_access",
     )
+    date_last_doi = fields.DateTime(format="%Y-%m-%d", attribute="date_last_doi")
     status = fields.String(attribute="status.value")
     status_as_of = fields.DateTime(format="%Y-%m-%d", attribute="status_as_of")
 

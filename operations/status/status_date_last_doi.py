@@ -1,6 +1,7 @@
 import datetime
 
 import requests
+from sqlalchemy.orm import lazyload
 
 from app import db
 from models.journal import Journal
@@ -11,8 +12,7 @@ class DateLastDOIStatus:
         self.api_url = "https://api.crossref.org/journals/{}/works?sort=published&rows=1&mailto=team@ourresearch.org"
 
     def update_date_last_doi(self):
-        journals = self.journals_to_update()
-        for journal in journals:
+        for journal in db.session.query(Journal).yield_per(100).options(lazyload("*")):
             r = requests.get(self.api_url.format(journal.issn_l))
 
             if r.status_code == 200 and r.json()["message"]["items"]:

@@ -15,6 +15,12 @@ class DateLastDOIStatus:
         journals = db.session.query(Journal).filter(Journal.date_last_doi == None).all()
         for journal in journals:
             r = requests.get(self.api_url.format(journal.issn_l))
+            if r.status_code == 404:
+                for issn in journal.issns:
+                    if journal.issn_l != issn:
+                        r = requests.get(self.api_url.format(issn))
+                        if r.status_code == 200:
+                            break
 
             if r.status_code == 200 and r.json()["message"]["items"]:
                 try:

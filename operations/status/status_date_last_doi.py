@@ -12,7 +12,8 @@ class DateLastDOIStatus:
         self.api_url = "https://api.crossref.org/journals/{}/works?sort=published&rows=1&mailto=team@ourresearch.org"
 
     def update_date_last_doi(self):
-        for journal in db.session.query(Journal).yield_per(100).options(lazyload("*")):
+        journals = db.session.query(Journal).filter(Journal.date_last_doi == None).all()
+        for journal in journals:
             r = requests.get(self.api_url.format(journal.issn_l))
 
             if r.status_code == 200 and r.json()["message"]["items"]:

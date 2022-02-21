@@ -16,6 +16,16 @@ def import_sample_dois():
             row.issn_l
         )
         r = requests.get(url)
+
+        if r.status_code != 200:
+            # try other issn
+            for issn in row.issns:
+                if issn != row.issn_l:
+                    url = "https://api.crossref.org/journals/{}/works?sample=3&mailto=team@ourresearch.org".format(
+                        issn
+                    )
+                    r = requests.get(url)
+
         if r.status_code == 200:
             dois = []
             i = 0

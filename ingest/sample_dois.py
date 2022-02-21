@@ -3,6 +3,7 @@ import time
 import requests
 
 from app import app, db
+from models.journal import Journal
 from models.usage import DOICount
 
 
@@ -19,7 +20,8 @@ def import_sample_dois():
 
         if r.status_code != 200:
             # try other issn
-            for issn in row.issns:
+            j = Journal.query.filter_by(issn_l=row.issn_l).first()
+            for issn in j.issns:
                 if issn != row.issn_l:
                     url = "https://api.crossref.org/journals/{}/works?sample=3&mailto=team@ourresearch.org".format(
                         issn

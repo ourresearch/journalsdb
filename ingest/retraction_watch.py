@@ -140,11 +140,19 @@ def build_retraction_summary():
         journal = Journal.find_by_issn(r.issn)
         if not journal:
             continue
-        metadata = journal.issn_metadata.crossref_raw_api
+        metadata = (
+            journal.issn_metadata.crossref_raw_api if journal.issn_metadata else None
+        )
+
+        # ensure data we want is not null
+
         if not metadata:
             continue
 
-        dois_by_year = metadata["message"]["breakdowns"]["dois-by-issued-year"]
+        try:
+            dois_by_year = metadata["message"]["breakdowns"]["dois-by-issued-year"]
+        except TypeError:
+            continue
 
         for year, num_dois in dois_by_year:
             if year == r.published_year:

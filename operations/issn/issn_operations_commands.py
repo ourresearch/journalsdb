@@ -2,6 +2,7 @@ import click
 
 from app import app
 from operations.issn.issn_merge_issn import MergeIssn
+from operations.issn.issn_add_cancelled_issns import add_cancelled_issns
 from operations.issn.issn_move_issn import MoveIssn
 from operations.issn.issn_validate_issns import validate_issns
 
@@ -35,3 +36,8 @@ def validate_issns_command(publisher_id):
     Validates ISSNs for a given publisher.
     """
     validate_issns(publisher_id)
+
+
+@app.cli.command("add_cancelled_issns")
+def add_cancelled_issns_command():
+    add_cancelled_issns()

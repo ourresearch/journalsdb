@@ -1,7 +1,7 @@
 import datetime
 
 import requests
-from sqlalchemy.orm import lazyload
+from requests.exceptions import RequestException
 
 from app import db
 from models.journal import Journal
@@ -12,23 +12,35 @@ class DateLastDOIStatus:
         self.api_url = "https://api.crossref.org/journals/{}/works?sort=published&rows=1&mailto=team@ourresearch.org"
 
     def update_date_last_doi(self):
-        journals = db.session.query(Journal).filter(Journal.date_last_doi == None).all()
-        for journal in journals:
-            r = requests.get(self.api_url.format(journal.issn_l))
-            if r.status_code == 404:
-                for issn in journal.issns:
-                    if journal.issn_l != issn:
-                        r = requests.get(self.api_url.format(issn))
-                        if r.status_code == 200:
-                            break
+        for journal in self.page_query(db.session.query(Journal)):
+            try:
+                r = requests.get(self.api_url.format(journal.issn_l))
+                if r.status_code == 404:
+                    for issn in journal.issns:
+                        if journal.issn_l != issn:
+                            r = requests.get(self.api_url.format(issn))
+                            if r.status_code == 200:
+                                break
+            except RequestException:
+                # go to next record
+                continue
 
             if r.status_code == 200 and r.json()["message"]["items"]:
                 try:
-                    created = r.json()["message"]["items"][0]["created"]
-                    year = created["date-parts"][0][0]
-                    month = created["date-parts"][0][1]
-                    day = created["date-parts"][0][2]
+                    # full date
+                    published = r.json()["message"]["items"][0]["published"]
+                    year = published["date-parts"][0][0]
+                    month = published["date-parts"][0][1]
+                    day = published["date-parts"][0][2]
                     self.set_last_doi_date(journal, year, month, day)
+                except IndexError:
+                    pass
+
+                try:
+                    # year only
+                    published = r.json()["message"]["items"][0]["published"]
+                    year = published["date-parts"][0][0]
+                    self.set_last_doi_date(journal, year, 1, 1)
                 except IndexError:
                     print(
                         "issue with issn {} (index out of range).".format(
@@ -36,10 +48,6 @@ class DateLastDOIStatus:
                         )
                     )
             db.session.commit()
-
-    @staticmethod
-    def journals_to_update():
-        return db.session.query(Journal).order_by(Journal.status_as_of.desc()).all()
 
     @staticmethod
     def set_last_doi_date(journal, year, month, day):
@@ -55,3 +63,16 @@ class DateLastDOIStatus:
                     journal.issn_l, status_as_of
                 )
             )
+
+    @staticmethod
+    def page_query(q):
+        """Run query with limited memory."""
+        offset = 0
+        while True:
+            r = False
+            for elem in q.limit(1000).offset(offset):
+                r = True
+                yield elem
+            offset += 1000
+            if not r:
+                break

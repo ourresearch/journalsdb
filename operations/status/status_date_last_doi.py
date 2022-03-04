@@ -33,7 +33,7 @@ class DateLastDOIStatus:
                     month = published["date-parts"][0][1]
                     day = published["date-parts"][0][2]
                     self.set_last_doi_date(journal, year, month, day)
-                except IndexError:
+                except (KeyError, IndexError):
                     pass
 
                 try:
@@ -41,7 +41,7 @@ class DateLastDOIStatus:
                     published = r.json()["message"]["items"][0]["published"]
                     year = published["date-parts"][0][0]
                     self.set_last_doi_date(journal, year, 1, 1)
-                except IndexError:
+                except (KeyError, IndexError):
                     print(
                         "issue with issn {} (index out of range).".format(
                             journal.issn_l

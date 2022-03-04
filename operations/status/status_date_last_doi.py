@@ -54,15 +54,15 @@ class DateLastDOIStatus:
         recent_article_date = "{} {} {}".format(year, month, day)
         status_as_of = datetime.datetime.strptime(recent_article_date, "%Y %m %d")
         # handle manual input of a recent date
-        if not journal.date_last_doi or (
-            journal.date_last_doi and status_as_of > journal.date_last_doi
-        ):
-            journal.date_last_doi = status_as_of
-            print(
-                "setting issn {} with date last doi of {}".format(
-                    journal.issn_l, status_as_of
-                )
+        # if not journal.date_last_doi or (
+        #     journal.date_last_doi and status_as_of > journal.date_last_doi
+        # ):
+        journal.date_last_doi = status_as_of
+        print(
+            "setting issn {} with date last doi of {}".format(
+                journal.issn_l, status_as_of
             )
+        )
 
     @staticmethod
     def page_query(q):

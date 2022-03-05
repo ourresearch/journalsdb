@@ -25,7 +25,11 @@ class DateLastDOIStatus:
                 # go to next record
                 continue
 
-            if r.status_code == 200 and r.json()["message"]["items"]:
+            if (
+                r.status_code == 200
+                and r.json().get("message")
+                and r.json()["message"].get("items")
+            ):
                 try:
                     # full date
                     published = r.json()["message"]["items"][0]["published"]

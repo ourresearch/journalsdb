@@ -1,5 +1,7 @@
 # JournalsDB API
 
+Update: As of September 2022 the JournalsDB API is shut down and no longer available.
+
 This is the API for [JournalsDB](http://journalsdb.org/) and is hosted at [https://api.journalsdb.org](https://api.journalsdb.org)
 
 ## Developer Instructions
